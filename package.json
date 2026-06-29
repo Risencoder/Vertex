@@ -1,0 +1,14 @@
+{
+  "name": "vertex",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Developer learning platform monorepo.",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests configured yet.\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@11.9.0"
+}
