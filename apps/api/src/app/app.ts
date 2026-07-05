@@ -9,7 +9,7 @@ import { registerRoutes } from './routes.ts'
 export function createApp() {
   const app = express()
 
-  app.all('/api/auth/{*any}', toNodeHandler(auth))
+  app.all('/api/auth/*splat', toNodeHandler(auth))
 
   app.use(express.json())
 
