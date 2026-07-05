@@ -13,4 +13,7 @@ function parsePort(value: string | undefined) {
 export const env = {
   PORT: parsePort(process.env.PORT),
   NODE_ENV: process.env.NODE_ENV ?? 'development',
+  DATABASE_URL: process.env.DATABASE_URL ?? '',
+  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? '',
+  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
 }
