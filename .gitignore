@@ -1,9 +1,15 @@
 # Dependencies
-node_modules
+node_modules/
+.pnpm-store/
 
 # Build
-dist
-build
+dist/
+build/
+coverage/
+
+# Cache
+.turbo/
+.cache/
 
 # Environment
 .env
@@ -13,18 +19,22 @@ build
 *.log
 
 # IDE
-.vscode
-.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Coverage
-coverage
+# TypeScript
+*.tsbuildinfo
 
 # Vite
 vite.config.ts.timestamp-*
 
-# TypeScript
-*.tsbuildinfo
+# Temporary
+tmp/
+temp/
