@@ -1,4 +1,15 @@
+import { existsSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { loadEnvFile } from 'node:process'
+import { fileURLToPath } from 'node:url'
+
 const DEFAULT_PORT = 4000
+
+const envPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../.env')
+
+if (existsSync(envPath)) {
+  loadEnvFile(envPath)
+}
 
 function parsePort(value: string | undefined) {
   if (!value) {
