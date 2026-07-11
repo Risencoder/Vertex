@@ -429,6 +429,310 @@ This practice combines the basics: JSX for structure, props for data, and list r
   },
 ]
 
+const componentsAndPropsLessons = [
+  {
+    slug: 'understanding-react-components',
+    title: 'Understanding React components',
+    description: 'Understand what components are and why React apps use them.',
+    content: `# Understanding React components
+
+Components are reusable pieces of UI. In React, most screens are built by combining small components into larger sections and pages.
+
+## Components describe UI
+
+A component is usually a function that returns JSX. The function name starts with an uppercase letter so React can treat it as a component.
+
+\`\`\`tsx
+function WelcomePanel() {
+  return (
+    <section>
+      <h1>Welcome back</h1>
+      <p>Continue your learning path.</p>
+    </section>
+  )
+}
+\`\`\`
+
+## Think in responsibilities
+
+A good component has a clear purpose. For example, a navigation item, a lesson card, or a profile summary can each be a component.
+
+## Common beginner mistakes
+
+Do not put every part of the page into one huge component. Also avoid splitting so early that each component only wraps one line without adding clarity.
+
+## Summary
+
+Components help you organize UI into named, reusable pieces. Start with clear responsibilities and split components when it makes the screen easier to understand.`,
+    order: 1,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'creating-functional-components',
+    title: 'Creating functional components',
+    description: 'Create simple React function components with clear output.',
+    content: `# Creating functional components
+
+Functional components are the standard way to write React UI. They are regular TypeScript functions that return JSX.
+
+## Start with a named function
+
+Use an uppercase function name and return one JSX tree.
+
+\`\`\`tsx
+function PageTitle() {
+  return <h1>Frontend Engineer</h1>
+}
+\`\`\`
+
+## Return structured markup
+
+When a component needs more than one element, wrap the result in a parent element or a fragment.
+
+\`\`\`tsx
+function EmptyState() {
+  return (
+    <div>
+      <h2>No lessons yet</h2>
+      <p>New content will appear here soon.</p>
+    </div>
+  )
+}
+\`\`\`
+
+## Keep logic small
+
+It is fine to calculate a label or choose a class name inside a component. If the logic grows large, extract helpers or smaller components.
+
+## Common beginner mistakes
+
+Do not call a component like a normal function inside JSX. Write \`<PageTitle />\`, not \`PageTitle()\`.
+
+## Summary
+
+Functional components are simple functions that return UI. Keep names clear, return valid JSX, and let composition do the heavy lifting.`,
+    order: 2,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'passing-data-with-props',
+    title: 'Passing data with props',
+    description: 'Pass values into components using props.',
+    content: `# Passing data with props
+
+Props are how a parent component passes data into a child component. They make components reusable because the same component can render different values.
+
+## Define the data a component needs
+
+Start by naming the values the component expects.
+
+\`\`\`tsx
+type LessonCardProps = {
+  title: string
+  description: string
+}
+
+function LessonCard({ title, description }: LessonCardProps) {
+  return (
+    <article>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </article>
+  )
+}
+\`\`\`
+
+## Pass props from the parent
+
+The parent provides values as JSX attributes.
+
+\`\`\`tsx
+function LessonList() {
+  return (
+    <LessonCard
+      title="Components and Props"
+      description="Learn how UI receives data."
+    />
+  )
+}
+\`\`\`
+
+## Props are read-only
+
+A child component should not change props directly. It should render from props and ask the parent to change data when needed.
+
+## Common beginner mistakes
+
+Avoid passing a huge object when the component only needs two fields. Prefer explicit props until there is a clear reason to pass the whole object.
+
+## Summary
+
+Props make components reusable and predictable. Define what the component needs, pass values from the parent, and keep props read-only.`,
+    order: 3,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'props-and-typescript',
+    title: 'Props and TypeScript',
+    description: 'Type component props so mistakes are caught early.',
+    content: `# Props and TypeScript
+
+TypeScript helps describe the shape of props. This makes components easier to use and catches missing or incorrect values before runtime.
+
+## Create a props type
+
+Use a type alias for the component contract.
+
+\`\`\`tsx
+type UserBadgeProps = {
+  name: string
+  role?: string
+}
+
+function UserBadge({ name, role = 'Member' }: UserBadgeProps) {
+  return (
+    <p>
+      {name} - {role}
+    </p>
+  )
+}
+\`\`\`
+
+## Use optional props carefully
+
+Optional props are useful when a component has a sensible default. If a value is required for the UI to make sense, keep it required.
+
+## Prefer readable names
+
+Types should describe the component, not the file. \`UserBadgeProps\` is clearer than \`Props\` once the file grows.
+
+## Common beginner mistakes
+
+Do not use \`any\` for props just to make an error disappear. The type is part of the component design.
+
+## Summary
+
+Typed props document how a component should be used. Required props, optional props, and defaults make UI contracts clear.`,
+    order: 4,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'component-composition',
+    title: 'Component composition',
+    description: 'Combine small components into larger UI sections.',
+    content: `# Component composition
+
+Composition means building larger UI from smaller components. Instead of making one component do everything, each component handles a clear part of the screen.
+
+## Compose from the outside
+
+A page can arrange smaller components and pass the data each one needs.
+
+\`\`\`tsx
+function DashboardHeader({ name }: { name: string }) {
+  return <h1>Welcome back, {name}</h1>
+}
+
+function DashboardPage() {
+  return (
+    <main>
+      <DashboardHeader name="Ada" />
+      <p>Your next lesson is ready.</p>
+    </main>
+  )
+}
+\`\`\`
+
+## Use children for flexible content
+
+When a component should wrap different content, use \`children\`.
+
+\`\`\`tsx
+function Panel({ children }: { children: React.ReactNode }) {
+  return <section className="panel">{children}</section>
+}
+\`\`\`
+
+## Keep ownership clear
+
+The component that owns the data should usually decide what to render. Child components should focus on presenting what they receive.
+
+## Common beginner mistakes
+
+Do not pass too many unrelated props through many layers. If this happens, reconsider where the component belongs.
+
+## Summary
+
+Composition lets you build screens from focused pieces. Use props for data, children for flexible content, and keep ownership easy to follow.`,
+    order: 5,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'components-and-props-practice',
+    title: 'Components and props practice',
+    description: 'Practice building typed components from repeated UI.',
+    content: `# Components and props practice
+
+This practice lesson combines functional components, props, TypeScript, and composition. The goal is to turn repeated markup into reusable UI.
+
+## Build a typed card
+
+Create a reusable card for a technology.
+
+\`\`\`tsx
+type TechnologyCardProps = {
+  name: string
+  description: string
+  lessonCount: number
+}
+
+function TechnologyCard({
+  name,
+  description,
+  lessonCount,
+}: TechnologyCardProps) {
+  return (
+    <article>
+      <h2>{name}</h2>
+      <p>{description}</p>
+      <span>{lessonCount} lessons</span>
+    </article>
+  )
+}
+\`\`\`
+
+## Render multiple cards
+
+Create an array of technologies and render one card for each item. Use a stable slug as the key.
+
+## Review the component boundary
+
+Ask whether the card knows too much. It should display data, not decide where the data comes from.
+
+## Common beginner mistakes
+
+Avoid copying the same markup three times and changing only the text. That is a strong signal to create a component.
+
+## Summary
+
+Practice helps make component boundaries feel natural. Extract repeated UI, type the props, and keep each component focused.`,
+    order: 6,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+]
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -545,6 +849,34 @@ async function main() {
     })
   }
 
+  const componentsAndPropsModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'components-and-props',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const lesson of componentsAndPropsLessons) {
+    await prisma.lesson.upsert({
+      where: {
+        moduleId_slug: {
+          moduleId: componentsAndPropsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      update: lesson,
+      create: {
+        ...lesson,
+        moduleId: componentsAndPropsModule.id,
+      },
+    })
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -552,6 +884,9 @@ async function main() {
   )
   console.log(`Seeded ${reactModules.length} React modules.`)
   console.log(`Seeded ${reactBasicsLessons.length} React Basics lessons.`)
+  console.log(
+    `Seeded ${componentsAndPropsLessons.length} Components and Props lessons.`,
+  )
 }
 
 main()
