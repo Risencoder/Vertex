@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from 'express'
 
+import { getAuthSession } from '../../shared/auth-session.ts'
 import {
   findPublishedLessonByModuleAndTechnologySlug,
   findPublishedModuleByTechnologyAndSlug,
-  findPublishedTechnologyBySlug,
+  findPublishedTechnologyBySlugForUser,
 } from './technologies.service.ts'
 
 export async function getTechnologyBySlug(
@@ -23,7 +24,11 @@ export async function getTechnologyBySlug(
       return
     }
 
-    const technology = await findPublishedTechnologyBySlug(slug)
+    const session = await getAuthSession(request)
+    const technology = await findPublishedTechnologyBySlugForUser(
+      slug,
+      session?.user.id,
+    )
 
     if (!technology) {
       response.status(404).json({
@@ -57,9 +62,11 @@ export async function getModuleByTechnologyAndSlug(
       return
     }
 
+    const session = await getAuthSession(request)
     const moduleDetails = await findPublishedModuleByTechnologyAndSlug(
       technologySlug,
       moduleSlug,
+      session?.user.id,
     )
 
     if (!moduleDetails) {

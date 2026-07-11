@@ -8,6 +8,12 @@ export type TechnologyModule = {
   order: number
   difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
   isPublished: boolean
+  progress: {
+    completedLessons: number
+    totalLessons: number
+    percentage: number
+    isCompleted: boolean
+  }
 }
 
 export type ModuleLesson = {
@@ -19,6 +25,10 @@ export type ModuleLesson = {
   type: 'ARTICLE' | 'VIDEO' | 'EXERCISE' | 'PROJECT_PREP'
   difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
   isPublished: boolean
+  progress: {
+    status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'
+    completedAt: string | null
+  }
 }
 
 export type LessonDetails = {
@@ -47,6 +57,14 @@ export type TechnologyDetails = {
   category: string | null
   isPublished: boolean
   modules: TechnologyModule[]
+  progress: {
+    completedLessons: number
+    totalLessons: number
+    percentage: number
+    completedModules: number
+    totalModules: number
+    isCompleted: boolean
+  }
 }
 
 export type ModuleDetails = {

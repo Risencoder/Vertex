@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
+import { authClient } from '@/shared/api/auth-client'
 import {
   getTechnologyBySlug,
   TechnologiesApiError,
@@ -43,6 +44,41 @@ type TechnologyState =
       error: string
     }
 
+function clampPercentage(value: number) {
+  return Math.min(100, Math.max(0, value))
+}
+
+function ProgressBar({
+  label,
+  percentage,
+}: {
+  label: string
+  percentage: number
+}) {
+  const safePercentage = clampPercentage(percentage)
+
+  return (
+    <div className="grid gap-1">
+      <div
+        aria-label={label}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={safePercentage}
+        className="h-2 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+      >
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${safePercentage}%` }}
+        />
+      </div>
+      <p className="sr-only">
+        {label}: {safePercentage}% complete
+      </p>
+    </div>
+  )
+}
+
 function ModuleCard({
   module,
   technologySlug,
@@ -53,16 +89,39 @@ function ModuleCard({
   return (
     <Card size="sm">
       <CardHeader>
-        <CardTitle>{module.title}</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle>{module.title}</CardTitle>
+          {module.progress.isCompleted ? (
+            <span className="inline-flex shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+              Completed
+            </span>
+          ) : null}
+        </div>
         <CardDescription>{module.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-          {module.difficulty}
-        </span>
+        <div className="grid gap-3">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {module.difficulty}
+            </span>
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {module.progress.completedLessons} of{' '}
+              {module.progress.totalLessons} lessons completed
+            </span>
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {clampPercentage(module.progress.percentage)}%
+            </span>
+          </div>
+          <ProgressBar
+            label={`${module.title} progress`}
+            percentage={module.progress.percentage}
+          />
+        </div>
       </CardContent>
       <CardFooter className="justify-start">
         <Button
+          nativeButton={false}
           render={
             <Link
               to={`/technologies/${technologySlug}/modules/${module.slug}`}
@@ -79,6 +138,7 @@ function ModuleCard({
 
 export function TechnologyPage() {
   const { slug } = useParams()
+  const session = authClient.useSession()
   const location = useLocation()
   const locationState = location.state as TechnologyPageLocationState | null
   const backTo = locationState?.fromLearningPathSlug
@@ -157,6 +217,7 @@ export function TechnologyPage() {
       <div className="mx-auto grid w-full max-w-5xl gap-6">
         <Button
           className="w-fit"
+          nativeButton={false}
           render={<Link to={backTo} />}
           variant="outline"
         >
@@ -210,13 +271,42 @@ export function TechnologyPage() {
                   {technologyState.data.description}
                 </CardDescription>
               </CardHeader>
-              {technologyState.data.category ? (
-                <CardContent>
-                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {technologyState.data.category}
-                  </span>
-                </CardContent>
-              ) : null}
+              <CardContent>
+                <div className="grid gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    {technologyState.data.category ? (
+                      <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                        {technologyState.data.category}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {technologyState.data.progress.completedLessons} of{' '}
+                      {technologyState.data.progress.totalLessons} lessons
+                      completed
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {technologyState.data.progress.completedModules} of{' '}
+                      {technologyState.data.progress.totalModules} modules
+                      completed
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {clampPercentage(
+                        technologyState.data.progress.percentage,
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <ProgressBar
+                    label={`${technologyState.data.title} progress`}
+                    percentage={technologyState.data.progress.percentage}
+                  />
+                  {!session.isPending && !session.data ? (
+                    <p className="text-sm text-muted-foreground">
+                      Sign in to track your progress.
+                    </p>
+                  ) : null}
+                </div>
+              </CardContent>
             </Card>
 
             <section className="grid gap-4">
