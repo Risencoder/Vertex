@@ -35,6 +35,8 @@ export type LessonDetails = {
   lesson: ModuleLesson & {
     content: string | null
   }
+  previousLesson: Pick<ModuleLesson, 'order' | 'slug' | 'title'> | null
+  nextLesson: Pick<ModuleLesson, 'order' | 'slug' | 'title'> | null
 }
 
 export type TechnologyDetails = {

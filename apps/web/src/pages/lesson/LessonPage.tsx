@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
@@ -291,6 +292,43 @@ export function LessonPage() {
                   {renderMarkdown(lessonState.data.lesson.content ?? '')}
                 </article>
               </CardContent>
+              <CardFooter className="justify-between gap-3">
+                {lessonState.data.previousLesson ? (
+                  <Button
+                    nativeButton={false}
+                    render={
+                      <Link
+                        to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.previousLesson.slug}`}
+                      />
+                    }
+                    variant="outline"
+                  >
+                    Previous lesson
+                  </Button>
+                ) : (
+                  <Button disabled variant="outline">
+                    Previous lesson
+                  </Button>
+                )}
+
+                {lessonState.data.nextLesson ? (
+                  <Button
+                    nativeButton={false}
+                    render={
+                      <Link
+                        to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.nextLesson.slug}`}
+                      />
+                    }
+                    variant="outline"
+                  >
+                    Next lesson
+                  </Button>
+                ) : (
+                  <Button disabled variant="outline">
+                    Next lesson
+                  </Button>
+                )}
+              </CardFooter>
             </Card>
           </div>
         ) : null}
