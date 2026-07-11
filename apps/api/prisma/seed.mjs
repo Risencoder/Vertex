@@ -55,6 +55,71 @@ const learningPaths = [
   },
 ]
 
+const technologies = [
+  {
+    slug: 'html',
+    title: 'HTML',
+    description: 'Structure semantic, accessible web documents.',
+    category: 'frontend',
+    isPublished: true,
+  },
+  {
+    slug: 'css',
+    title: 'CSS',
+    description:
+      'Style responsive interfaces with maintainable layout systems.',
+    category: 'frontend',
+    isPublished: true,
+  },
+  {
+    slug: 'javascript',
+    title: 'JavaScript',
+    description: 'Build interactive browser behavior with modern JavaScript.',
+    category: 'frontend',
+    isPublished: true,
+  },
+  {
+    slug: 'typescript',
+    title: 'TypeScript',
+    description: 'Add strong typing to scalable JavaScript applications.',
+    category: 'frontend',
+    isPublished: true,
+  },
+  {
+    slug: 'react',
+    title: 'React',
+    description:
+      'Create component-driven user interfaces for web applications.',
+    category: 'frontend',
+    isPublished: true,
+  },
+  {
+    slug: 'git',
+    title: 'Git',
+    description:
+      'Track changes and collaborate with version control workflows.',
+    category: 'engineering',
+    isPublished: true,
+  },
+  {
+    slug: 'testing',
+    title: 'Testing',
+    description: 'Verify application behavior with practical automated tests.',
+    category: 'engineering',
+    isPublished: true,
+  },
+]
+
+const frontendEngineerTechnologies = [
+  'html',
+  'css',
+  'javascript',
+  'typescript',
+  'react',
+  'git',
+  'testing',
+]
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -66,7 +131,63 @@ async function main() {
     })
   }
 
+  for (const technology of technologies) {
+    await prisma.technology.upsert({
+      where: {
+        slug: technology.slug,
+      },
+      update: technology,
+      create: technology,
+    })
+  }
+
+  const frontendEngineer = await prisma.learningPath.findUniqueOrThrow({
+    where: {
+      slug: 'frontend-engineer',
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const [
+    index,
+    technologySlug,
+  ] of frontendEngineerTechnologies.entries()) {
+    const technology = await prisma.technology.findUniqueOrThrow({
+      where: {
+        slug: technologySlug,
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    await prisma.learningPathTechnology.upsert({
+      where: {
+        learningPathId_technologyId: {
+          learningPathId: frontendEngineer.id,
+          technologyId: technology.id,
+        },
+      },
+      update: {
+        order: index + 1,
+        isRequired: true,
+      },
+      create: {
+        learningPathId: frontendEngineer.id,
+        technologyId: technology.id,
+        order: index + 1,
+        isRequired: true,
+      },
+    })
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
+  console.log(`Seeded ${technologies.length} technologies.`)
+  console.log(
+    `Linked ${frontendEngineerTechnologies.length} technologies to Frontend Engineer.`,
+  )
 }
 
 main()
