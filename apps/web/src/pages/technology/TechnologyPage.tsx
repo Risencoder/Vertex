@@ -8,6 +8,7 @@ import {
   type TechnologyDetails,
   type TechnologyModule,
 } from '@/shared/api/technologies'
+import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import { clampProgressValue, Progress } from '@/shared/ui/progress'
 
 type TechnologyPageLocationState = {
   fromLearningPathSlug?: string
@@ -44,41 +46,6 @@ type TechnologyState =
       error: string
     }
 
-function clampPercentage(value: number) {
-  return Math.min(100, Math.max(0, value))
-}
-
-function ProgressBar({
-  label,
-  percentage,
-}: {
-  label: string
-  percentage: number
-}) {
-  const safePercentage = clampPercentage(percentage)
-
-  return (
-    <div className="grid gap-1">
-      <div
-        aria-label={label}
-        aria-valuemax={100}
-        aria-valuemin={0}
-        aria-valuenow={safePercentage}
-        className="h-2 overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-      >
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${safePercentage}%` }}
-        />
-      </div>
-      <p className="sr-only">
-        {label}: {safePercentage}% complete
-      </p>
-    </div>
-  )
-}
-
 function ModuleCard({
   module,
   technologySlug,
@@ -103,19 +70,19 @@ function ModuleCard({
         <div className="grid gap-3">
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-              {module.difficulty}
+              {formatDifficulty(module.difficulty)}
             </span>
             <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
               {module.progress.completedLessons} of{' '}
               {module.progress.totalLessons} lessons completed
             </span>
             <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-              {clampPercentage(module.progress.percentage)}%
+              {clampProgressValue(module.progress.percentage)}%
             </span>
           </div>
-          <ProgressBar
+          <Progress
             label={`${module.title} progress`}
-            percentage={module.progress.percentage}
+            value={module.progress.percentage}
           />
         </div>
       </CardContent>
@@ -290,15 +257,15 @@ export function TechnologyPage() {
                       completed
                     </span>
                     <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {clampPercentage(
+                      {clampProgressValue(
                         technologyState.data.progress.percentage,
                       )}
                       %
                     </span>
                   </div>
-                  <ProgressBar
+                  <Progress
                     label={`${technologyState.data.title} progress`}
-                    percentage={technologyState.data.progress.percentage}
+                    value={technologyState.data.progress.percentage}
                   />
                   {!session.isPending && !session.data ? (
                     <p className="text-sm text-muted-foreground">

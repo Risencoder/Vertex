@@ -1,7 +1,11 @@
 import { Router } from 'express'
 
-import { getLearningPaths } from './learning-paths.controller.ts'
+import {
+  getLearningPathBySlug,
+  getLearningPaths,
+} from './learning-paths.controller.ts'
 
 export const learningPathsRouter = Router()
 
 learningPathsRouter.get('/', getLearningPaths)
+learningPathsRouter.get('/:slug', getLearningPathBySlug)

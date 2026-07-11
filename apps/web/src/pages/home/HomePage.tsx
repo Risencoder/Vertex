@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 import { authClient } from '@/shared/api/auth-client'
+import { getDashboard, type DashboardSummary } from '@/shared/api/dashboard'
 import {
   getLearningPaths,
   type LearningPath,
 } from '@/shared/api/learning-paths'
+import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -15,11 +17,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import { Progress } from '@/shared/ui/progress'
 
 type DashboardMetricCardProps = {
   title: string
   value: string
   description: string
+  progressValue?: number
 }
 
 type LearningPathsState =
@@ -44,6 +48,23 @@ type LearningPathsState =
       error: string
     }
 
+type DashboardState =
+  | {
+      status: 'loading'
+      data: null
+      error: string
+    }
+  | {
+      status: 'success'
+      data: DashboardSummary
+      error: string
+    }
+  | {
+      status: 'error'
+      data: null
+      error: string
+    }
+
 type DashboardProps = {
   user: {
     name?: string | null
@@ -54,10 +75,72 @@ type DashboardProps = {
   onLogout: () => void
 }
 
+function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
+  const continueLearning = dashboard.continueLearning
+
+  if (!continueLearning) {
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>Continue Learning</CardTitle>
+          <CardDescription>
+            Congratulations! You completed all available lessons.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-semibold tracking-normal">🎉</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>Continue Learning</CardTitle>
+        <CardDescription>Resume your current learning journey.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2 text-sm">
+          <p>
+            <span className="font-medium">Learning Path:</span>{' '}
+            {continueLearning.learningPathTitle}
+          </p>
+          <p>
+            <span className="font-medium">Technology:</span>{' '}
+            {continueLearning.technologyTitle}
+          </p>
+          <p>
+            <span className="font-medium">Module:</span>{' '}
+            {continueLearning.moduleTitle}
+          </p>
+          <p>
+            <span className="font-medium">Lesson:</span>{' '}
+            {continueLearning.lessonTitle}
+          </p>
+        </div>
+      </CardContent>
+      <CardFooter className="justify-start">
+        <Button
+          nativeButton={false}
+          render={
+            <Link
+              to={`/technologies/${continueLearning.technologySlug}/modules/${continueLearning.moduleSlug}/lessons/${continueLearning.lessonSlug}`}
+            />
+          }
+        >
+          Continue
+        </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
 function DashboardMetricCard({
   title,
   value,
   description,
+  progressValue,
 }: DashboardMetricCardProps) {
   return (
     <Card size="sm">
@@ -67,6 +150,13 @@ function DashboardMetricCard({
       <CardContent>
         <p className="text-3xl font-semibold tracking-normal">{value}</p>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+        {typeof progressValue === 'number' ? (
+          <Progress
+            className="mt-4"
+            label={`${title} progress`}
+            value={progressValue}
+          />
+        ) : null}
       </CardContent>
     </Card>
   )
@@ -81,11 +171,15 @@ function LearningPathCard({ learningPath }: { learningPath: LearningPath }) {
       </CardHeader>
       <CardContent>
         <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-          {learningPath.difficulty}
+          {formatDifficulty(learningPath.difficulty)}
         </span>
       </CardContent>
       <CardFooter className="justify-start">
-        <Button type="button" variant="outline">
+        <Button
+          nativeButton={false}
+          render={<Link to={`/learning-paths/${learningPath.slug}`} />}
+          variant="outline"
+        >
           Explore
         </Button>
       </CardFooter>
@@ -193,6 +287,49 @@ function AuthenticatedDashboard({
   onLogout,
 }: DashboardProps) {
   const displayName = user.name || 'there'
+  const [dashboardState, setDashboardState] = useState<DashboardState>({
+    status: 'loading',
+    data: null,
+    error: '',
+  })
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    async function loadDashboard() {
+      setDashboardState({
+        status: 'loading',
+        data: null,
+        error: '',
+      })
+
+      try {
+        const dashboard = await getDashboard(abortController.signal)
+
+        setDashboardState({
+          status: 'success',
+          data: dashboard,
+          error: '',
+        })
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        setDashboardState({
+          status: 'error',
+          data: null,
+          error: 'Unable to load dashboard progress. Please try again later.',
+        })
+      }
+    }
+
+    void loadDashboard()
+
+    return () => {
+      abortController.abort()
+    }
+  }, [])
 
   return (
     <div className="grid gap-6">
@@ -214,35 +351,48 @@ function AuthenticatedDashboard({
         </p>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>Continue Learning</CardTitle>
-            <CardDescription>
-              Resume your current learning journey.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="justify-start">
-            <Button>Continue</Button>
-          </CardFooter>
+      {dashboardState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading dashboard progress...
+            </p>
+          </CardContent>
         </Card>
+      ) : null}
 
-        <DashboardMetricCard
-          description="Progress tracking will appear here."
-          title="Learning Progress"
-          value="0%"
-        />
-        <DashboardMetricCard
-          description="Projects completed."
-          title="Projects"
-          value="0"
-        />
-        <DashboardMetricCard
-          description="Achievements unlocked."
-          title="Achievements"
-          value="0"
-        />
-      </section>
+      {dashboardState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {dashboardState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {dashboardState.status === 'success' ? (
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ContinueLearningCard dashboard={dashboardState.data} />
+
+          <DashboardMetricCard
+            description={`${dashboardState.data.statistics.lessonsCompleted} of ${dashboardState.data.statistics.lessonsTotal} lessons completed.`}
+            progressValue={dashboardState.data.statistics.overallProgress}
+            title="Learning Progress"
+            value={`${dashboardState.data.statistics.overallProgress}%`}
+          />
+          <DashboardMetricCard
+            description="Projects completed."
+            title="Projects"
+            value="0"
+          />
+          <DashboardMetricCard
+            description="Achievements unlocked."
+            title="Achievements"
+            value="0"
+          />
+        </section>
+      ) : null}
 
       <LearningPathsSection />
     </div>

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
+import { authClient } from '@/shared/api/auth-client'
 import {
   getModuleByTechnologyAndSlug,
   TechnologiesApiError,
   type ModuleDetails,
   type ModuleLesson,
 } from '@/shared/api/technologies'
+import { formatDifficulty, formatLessonType } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -16,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import { Progress } from '@/shared/ui/progress'
 
 type ModuleState =
   | {
@@ -51,16 +54,23 @@ function LessonCard({
   return (
     <Card size="sm">
       <CardHeader>
-        <CardTitle>{lesson.title}</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle>{lesson.title}</CardTitle>
+          {lesson.progress.status === 'COMPLETED' ? (
+            <span className="inline-flex shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+              Completed
+            </span>
+          ) : null}
+        </div>
         <CardDescription>{lesson.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-            {lesson.type}
+            {formatLessonType(lesson.type)}
           </span>
           <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-            {lesson.difficulty}
+            {formatDifficulty(lesson.difficulty)}
           </span>
         </div>
       </CardContent>
@@ -83,6 +93,7 @@ function LessonCard({
 
 export function ModulePage() {
   const { moduleSlug, technologySlug } = useParams()
+  const session = authClient.useSession()
   const [moduleState, setModuleState] = useState<ModuleState>({
     status: 'loading',
     data: null,
@@ -150,6 +161,16 @@ export function ModulePage() {
   }, [moduleSlug, technologySlug])
 
   const backTo = technologySlug ? `/technologies/${technologySlug}` : '/'
+  const completedLessons =
+    moduleState.status === 'success'
+      ? moduleState.data.lessons.filter(
+          (lesson) => lesson.progress.status === 'COMPLETED',
+        ).length
+      : 0
+  const totalLessons =
+    moduleState.status === 'success' ? moduleState.data.lessons.length : 0
+  const completionPercentage =
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
@@ -215,9 +236,28 @@ export function ModulePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                  {moduleState.data.module.difficulty}
-                </span>
+                <div className="grid gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {formatDifficulty(moduleState.data.module.difficulty)}
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {completedLessons} of {totalLessons} lessons completed
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {completionPercentage}%
+                    </span>
+                  </div>
+                  <Progress
+                    label={`${moduleState.data.module.title} progress`}
+                    value={completionPercentage}
+                  />
+                  {!session.isPending && !session.data ? (
+                    <p className="text-sm text-muted-foreground">
+                      Sign in to track progress.
+                    </p>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
 

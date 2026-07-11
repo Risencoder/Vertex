@@ -1,11 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 
+import { authClient } from '@/shared/api/auth-client'
+import {
+  completeLesson,
+  getLessonProgress,
+  LessonProgressApiError,
+  type LessonProgress,
+} from '@/shared/api/lesson-progress'
 import {
   getLessonByModuleAndTechnologySlug,
   TechnologiesApiError,
   type LessonDetails,
 } from '@/shared/api/technologies'
+import { formatDifficulty, formatLessonType } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -30,6 +38,28 @@ type LessonState =
   | {
       status: 'not-found'
       data: null
+      error: string
+    }
+  | {
+      status: 'error'
+      data: null
+      error: string
+    }
+
+type ProgressState =
+  | {
+      status: 'idle'
+      data: null
+      error: string
+    }
+  | {
+      status: 'loading'
+      data: null
+      error: string
+    }
+  | {
+      status: 'success'
+      data: LessonProgress
       error: string
     }
   | {
@@ -138,11 +168,18 @@ function renderMarkdown(markdown: string) {
 
 export function LessonPage() {
   const { lessonSlug, moduleSlug, technologySlug } = useParams()
+  const session = authClient.useSession()
   const [lessonState, setLessonState] = useState<LessonState>({
     status: 'loading',
     data: null,
     error: '',
   })
+  const [progressState, setProgressState] = useState<ProgressState>({
+    status: 'idle',
+    data: null,
+    error: '',
+  })
+  const [isCompletingLesson, setIsCompletingLesson] = useState(false)
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -159,6 +196,11 @@ export function LessonPage() {
 
       setLessonState({
         status: 'loading',
+        data: null,
+        error: '',
+      })
+      setProgressState({
+        status: 'idle',
         data: null,
         error: '',
       })
@@ -204,6 +246,124 @@ export function LessonPage() {
       abortController.abort()
     }
   }, [lessonSlug, moduleSlug, technologySlug])
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    async function loadProgress() {
+      if (lessonState.status !== 'success') {
+        setProgressState({
+          status: 'idle',
+          data: null,
+          error: '',
+        })
+        return
+      }
+
+      if (session.isPending) {
+        return
+      }
+
+      if (!session.data) {
+        setProgressState({
+          status: 'idle',
+          data: null,
+          error: '',
+        })
+        return
+      }
+
+      setProgressState({
+        status: 'loading',
+        data: null,
+        error: '',
+      })
+
+      try {
+        const progress = await getLessonProgress(
+          lessonState.data.lesson.id,
+          abortController.signal,
+        )
+
+        setProgressState({
+          status: 'success',
+          data: progress,
+          error: '',
+        })
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        if (error instanceof LessonProgressApiError && error.status === 401) {
+          setProgressState({
+            status: 'idle',
+            data: null,
+            error: '',
+          })
+          return
+        }
+
+        setProgressState({
+          status: 'error',
+          data: null,
+          error: 'Unable to load lesson progress. Please try again later.',
+        })
+      }
+    }
+
+    void loadProgress()
+
+    return () => {
+      abortController.abort()
+    }
+  }, [lessonState, session.data, session.isPending])
+
+  async function handleCompleteLesson(lessonId: string) {
+    if (isCompletingLesson) {
+      return
+    }
+
+    setIsCompletingLesson(true)
+    setProgressState((currentState) => {
+      if (currentState.status === 'success') {
+        return {
+          status: 'success',
+          data: currentState.data,
+          error: '',
+        }
+      }
+
+      return {
+        status: 'loading',
+        data: null,
+        error: '',
+      }
+    })
+
+    try {
+      const progress = await completeLesson(lessonId)
+
+      setProgressState({
+        status: 'success',
+        data: progress,
+        error: '',
+      })
+    } catch (error) {
+      const message =
+        error instanceof LessonProgressApiError && error.status === 401
+          ? 'Sign in to track your progress.'
+          : 'Unable to complete lesson. Please try again later.'
+
+      setProgressState({
+        status: 'error',
+        data: null,
+        error: message,
+      })
+    } finally {
+      setIsCompletingLesson(false)
+    }
+  }
 
   const backTo =
     technologySlug && moduleSlug
@@ -277,10 +437,10 @@ export function LessonPage() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {lessonState.data.lesson.type}
+                    {formatLessonType(lessonState.data.lesson.type)}
                   </span>
                   <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {lessonState.data.lesson.difficulty}
+                    {formatDifficulty(lessonState.data.lesson.difficulty)}
                   </span>
                 </div>
               </CardContent>
@@ -292,6 +452,73 @@ export function LessonPage() {
                   {renderMarkdown(lessonState.data.lesson.content ?? '')}
                 </article>
               </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Lesson progress</CardTitle>
+                <CardDescription>
+                  Track completion for this lesson.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {session.isPending ? (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    Checking your session...
+                  </p>
+                ) : null}
+
+                {!session.isPending && !session.data ? (
+                  <p className="text-sm text-muted-foreground">
+                    Sign in to track your progress.
+                  </p>
+                ) : null}
+
+                {session.data && progressState.status === 'loading' ? (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    Loading lesson progress...
+                  </p>
+                ) : null}
+
+                {progressState.status === 'error' ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {progressState.error}
+                  </p>
+                ) : null}
+
+                {progressState.status === 'success' ? (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    {progressState.data.status === 'COMPLETED'
+                      ? 'Completed'
+                      : 'Not completed yet'}
+                  </p>
+                ) : null}
+              </CardContent>
+              <CardFooter>
+                {session.data ? (
+                  <Button
+                    disabled={
+                      isCompletingLesson ||
+                      progressState.status === 'loading' ||
+                      progressState.data?.status === 'COMPLETED'
+                    }
+                    onClick={() => {
+                      void handleCompleteLesson(lessonState.data.lesson.id)
+                    }}
+                  >
+                    {progressState.data?.status === 'COMPLETED'
+                      ? 'Completed'
+                      : isCompletingLesson
+                        ? 'Completing...'
+                        : 'Mark as completed'}
+                  </Button>
+                ) : (
+                  <Button disabled>Mark as completed</Button>
+                )}
+              </CardFooter>
+            </Card>
+
+            <Card>
               <CardFooter className="justify-between gap-3">
                 {lessonState.data.previousLesson ? (
                   <Button

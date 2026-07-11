@@ -14,10 +14,26 @@ export type Technology = {
   slug: string
   name: string
   description: string | null
+  progress: {
+    completedLessons: number
+    totalLessons: number
+    percentage: number
+    completedModules: number
+    totalModules: number
+    isCompleted: boolean
+  }
 }
 
 export type LearningPathDetails = Omit<LearningPath, 'isPublished'> & {
   technologies: Technology[]
+  progress: {
+    completedLessons: number
+    totalLessons: number
+    percentage: number
+    completedTechnologies: number
+    totalTechnologies: number
+    isCompleted: boolean
+  }
 }
 
 export class LearningPathsApiError extends Error {

@@ -7,6 +7,7 @@ import {
   type LearningPathDetails,
   type Technology,
 } from '@/shared/api/learning-paths'
+import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -16,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import { clampProgressValue, Progress } from '@/shared/ui/progress'
 
 type LearningPathState =
   | {
@@ -49,11 +51,36 @@ function TechnologyCard({
   return (
     <Card size="sm">
       <CardHeader>
-        <CardTitle>{technology.name}</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle>{technology.name}</CardTitle>
+          {technology.progress.isCompleted ? (
+            <span className="inline-flex shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+              Completed
+            </span>
+          ) : null}
+        </div>
         <CardDescription>{technology.description}</CardDescription>
       </CardHeader>
+      <CardContent>
+        <div className="grid gap-3">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {technology.progress.completedLessons} of{' '}
+              {technology.progress.totalLessons} lessons completed
+            </span>
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {clampProgressValue(technology.progress.percentage)}%
+            </span>
+          </div>
+          <Progress
+            label={`${technology.name} progress`}
+            value={technology.progress.percentage}
+          />
+        </div>
+      </CardContent>
       <CardFooter className="justify-start">
         <Button
+          nativeButton={false}
           render={
             <Link
               state={{ fromLearningPathSlug: learningPathSlug }}
@@ -141,7 +168,12 @@ export function LearningPathPage() {
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Button className="w-fit" render={<Link to="/" />} variant="outline">
+        <Button
+          className="w-fit"
+          nativeButton={false}
+          render={<Link to="/" />}
+          variant="outline"
+        >
           Back to Dashboard
         </Button>
 
@@ -193,9 +225,33 @@ export function LearningPathPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                  {learningPathState.data.difficulty}
-                </span>
+                <div className="grid gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {formatDifficulty(learningPathState.data.difficulty)}
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {learningPathState.data.progress.completedLessons} of{' '}
+                      {learningPathState.data.progress.totalLessons} lessons
+                      completed
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {learningPathState.data.progress.completedTechnologies} of{' '}
+                      {learningPathState.data.progress.totalTechnologies}{' '}
+                      technologies completed
+                    </span>
+                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {clampProgressValue(
+                        learningPathState.data.progress.percentage,
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <Progress
+                    label={`${learningPathState.data.title} progress`}
+                    value={learningPathState.data.progress.percentage}
+                  />
+                </div>
               </CardContent>
             </Card>
 
