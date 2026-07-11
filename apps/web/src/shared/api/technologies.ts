@@ -21,6 +21,22 @@ export type ModuleLesson = {
   isPublished: boolean
 }
 
+export type LessonDetails = {
+  technology: {
+    id: string
+    slug: string
+    title: string
+  }
+  module: {
+    id: string
+    slug: string
+    title: string
+  }
+  lesson: ModuleLesson & {
+    content: string | null
+  }
+}
+
 export type TechnologyDetails = {
   id: string
   slug: string
@@ -95,4 +111,32 @@ export async function getModuleByTechnologyAndSlug(
   }
 
   return (await response.json()) as ModuleDetails
+}
+
+export async function getLessonByModuleAndTechnologySlug(
+  technologySlug: string,
+  moduleSlug: string,
+  lessonSlug: string,
+  signal?: AbortSignal,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/technologies/${encodeURIComponent(
+      technologySlug,
+    )}/modules/${encodeURIComponent(moduleSlug)}/lessons/${encodeURIComponent(
+      lessonSlug,
+    )}`,
+    {
+      credentials: 'include',
+      signal,
+    },
+  )
+
+  if (!response.ok) {
+    throw new TechnologiesApiError(
+      response.status === 404 ? 'Lesson not found.' : 'Unable to load lesson.',
+      response.status,
+    )
+  }
+
+  return (await response.json()) as LessonDetails
 }

@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router'
 import { RootLayout } from '@/app/layouts/RootLayout'
 import { HomePage } from '@/pages/home/HomePage'
 import { LearningPathPage } from '@/pages/learning-path/LearningPathPage'
+import { LessonPage } from '@/pages/lesson/LessonPage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { ModulePage } from '@/pages/module/ModulePage'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
@@ -15,6 +16,10 @@ export function AppRouter() {
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
         <Route path="learning-paths/:slug" element={<LearningPathPage />} />
+        <Route
+          path="technologies/:technologySlug/modules/:moduleSlug/lessons/:lessonSlug"
+          element={<LessonPage />}
+        />
         <Route
           path="technologies/:technologySlug/modules/:moduleSlug"
           element={<ModulePage />}

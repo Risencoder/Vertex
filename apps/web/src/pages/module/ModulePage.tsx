@@ -39,7 +39,15 @@ type ModuleState =
       error: string
     }
 
-function LessonCard({ lesson }: { lesson: ModuleLesson }) {
+function LessonCard({
+  lesson,
+  moduleSlug,
+  technologySlug,
+}: {
+  lesson: ModuleLesson
+  moduleSlug: string
+  technologySlug: string
+}) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -57,7 +65,15 @@ function LessonCard({ lesson }: { lesson: ModuleLesson }) {
         </div>
       </CardContent>
       <CardFooter className="justify-start">
-        <Button disabled variant="outline">
+        <Button
+          nativeButton={false}
+          render={
+            <Link
+              to={`/technologies/${technologySlug}/modules/${moduleSlug}/lessons/${lesson.slug}`}
+            />
+          }
+          variant="outline"
+        >
           Open
         </Button>
       </CardFooter>
@@ -140,6 +156,7 @@ export function ModulePage() {
       <div className="mx-auto grid w-full max-w-5xl gap-6">
         <Button
           className="w-fit"
+          nativeButton={false}
           render={<Link to={backTo} />}
           variant="outline"
         >
@@ -215,7 +232,12 @@ export function ModulePage() {
               {moduleState.data.lessons.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {moduleState.data.lessons.map((lesson) => (
-                    <LessonCard key={lesson.id} lesson={lesson} />
+                    <LessonCard
+                      key={lesson.id}
+                      lesson={lesson}
+                      moduleSlug={moduleState.data.module.slug}
+                      technologySlug={moduleState.data.technology.slug}
+                    />
                   ))}
                 </div>
               ) : (

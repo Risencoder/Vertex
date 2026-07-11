@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 
 import {
+  findPublishedLessonByModuleAndTechnologySlug,
   findPublishedModuleByTechnologyAndSlug,
   findPublishedTechnologyBySlug,
 } from './technologies.service.ts'
@@ -71,6 +72,48 @@ export async function getModuleByTechnologyAndSlug(
     }
 
     response.status(200).json(moduleDetails)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function getLessonByModuleAndTechnologySlug(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  try {
+    const { lessonSlug, moduleSlug, technologySlug } = request.params
+
+    if (
+      typeof technologySlug !== 'string' ||
+      typeof moduleSlug !== 'string' ||
+      typeof lessonSlug !== 'string'
+    ) {
+      response.status(404).json({
+        error: {
+          message: 'Lesson not found.',
+        },
+      })
+      return
+    }
+
+    const lessonDetails = await findPublishedLessonByModuleAndTechnologySlug(
+      technologySlug,
+      moduleSlug,
+      lessonSlug,
+    )
+
+    if (!lessonDetails) {
+      response.status(404).json({
+        error: {
+          message: 'Lesson not found.',
+        },
+      })
+      return
+    }
+
+    response.status(200).json(lessonDetails)
   } catch (error) {
     next(error)
   }

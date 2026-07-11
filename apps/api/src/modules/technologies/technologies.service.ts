@@ -103,3 +103,75 @@ export function findPublishedModuleByTechnologyAndSlug(
       }
     })
 }
+
+export function findPublishedLessonByModuleAndTechnologySlug(
+  technologySlug: string,
+  moduleSlug: string,
+  lessonSlug: string,
+) {
+  return prisma.lesson
+    .findFirst({
+      where: {
+        slug: lessonSlug,
+        isPublished: true,
+        module: {
+          slug: moduleSlug,
+          isPublished: true,
+          technology: {
+            slug: technologySlug,
+            isPublished: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        content: true,
+        order: true,
+        type: true,
+        difficulty: true,
+        isPublished: true,
+        module: {
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            technology: {
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+    })
+    .then((lesson) => {
+      if (!lesson) {
+        return null
+      }
+
+      return {
+        technology: lesson.module.technology,
+        module: {
+          id: lesson.module.id,
+          slug: lesson.module.slug,
+          title: lesson.module.title,
+        },
+        lesson: {
+          id: lesson.id,
+          slug: lesson.slug,
+          title: lesson.title,
+          description: lesson.description,
+          content: lesson.content,
+          order: lesson.order,
+          type: lesson.type,
+          difficulty: lesson.difficulty,
+          isPublished: lesson.isPublished,
+        },
+      }
+    })
+}

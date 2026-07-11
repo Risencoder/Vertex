@@ -185,6 +185,33 @@ const reactBasicsLessons = [
     slug: 'what-is-react',
     title: 'What is React?',
     description: 'Learn what React is and where it fits in modern web apps.',
+    content: `# What is React?
+
+React is a JavaScript library for building user interfaces. It helps you describe what the UI should look like for a given state, and React updates the screen when that state changes.
+
+## Component-based UI
+
+React applications are built from components. A component is a small, reusable piece of UI that can receive data and return markup.
+
+\`\`\`tsx
+function WelcomeMessage({ name }: { name: string }) {
+  return <h1>Welcome, {name}</h1>
+}
+\`\`\`
+
+## Declarative rendering
+
+Instead of manually changing the DOM step by step, you describe the final UI. React handles the updates.
+
+For example, if a user is signed in, render a dashboard. If not, render a login link. Your component describes both states clearly.
+
+## Where React fits
+
+React lives in the frontend layer. It is commonly used with routing, forms, API calls, and design systems to build interactive web applications.
+
+## Summary
+
+React is useful because it makes UI code easier to split into components, reason about, and update as application state changes.`,
     order: 1,
     type: 'ARTICLE',
     difficulty: 'BEGINNER',
