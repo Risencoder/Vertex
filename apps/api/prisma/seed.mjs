@@ -120,6 +120,66 @@ const frontendEngineerTechnologies = [
   'testing',
 ]
 
+const reactModules = [
+  {
+    slug: 'react-basics',
+    title: 'React Basics',
+    description: 'Understand React fundamentals and the component model.',
+    order: 1,
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'components-and-props',
+    title: 'Components and Props',
+    description: 'Create reusable components and pass data with props.',
+    order: 2,
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'state-and-events',
+    title: 'State and Events',
+    description: 'Manage local state and respond to user interactions.',
+    order: 3,
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'hooks',
+    title: 'Hooks',
+    description: 'Use React hooks to manage stateful component behavior.',
+    order: 4,
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'routing',
+    title: 'Routing',
+    description: 'Build multi-page flows with client-side routing.',
+    order: 5,
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'forms',
+    title: 'Forms',
+    description:
+      'Create accessible forms with validation and submission states.',
+    order: 6,
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'performance',
+    title: 'Performance',
+    description: 'Improve rendering behavior and user-perceived performance.',
+    order: 7,
+    difficulty: 'ADVANCED',
+    isPublished: true,
+  },
+]
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -183,11 +243,37 @@ async function main() {
     })
   }
 
+  const reactTechnology = await prisma.technology.findUniqueOrThrow({
+    where: {
+      slug: 'react',
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const module of reactModules) {
+    await prisma.module.upsert({
+      where: {
+        technologyId_slug: {
+          technologyId: reactTechnology.id,
+          slug: module.slug,
+        },
+      },
+      update: module,
+      create: {
+        ...module,
+        technologyId: reactTechnology.id,
+      },
+    })
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
     `Linked ${frontendEngineerTechnologies.length} technologies to Frontend Engineer.`,
   )
+  console.log(`Seeded ${reactModules.length} React modules.`)
 }
 
 main()

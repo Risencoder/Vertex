@@ -39,7 +39,13 @@ type LearningPathState =
       error: string
     }
 
-function TechnologyCard({ technology }: { technology: Technology }) {
+function TechnologyCard({
+  learningPathSlug,
+  technology,
+}: {
+  learningPathSlug: string
+  technology: Technology
+}) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -47,7 +53,15 @@ function TechnologyCard({ technology }: { technology: Technology }) {
         <CardDescription>{technology.description}</CardDescription>
       </CardHeader>
       <CardFooter className="justify-start">
-        <Button disabled variant="outline">
+        <Button
+          render={
+            <Link
+              state={{ fromLearningPathSlug: learningPathSlug }}
+              to={`/technologies/${technology.slug}`}
+            />
+          }
+          variant="outline"
+        >
           Explore
         </Button>
       </CardFooter>
@@ -197,6 +211,7 @@ export function LearningPathPage() {
                   {learningPathState.data.technologies.map((technology) => (
                     <TechnologyCard
                       key={technology.id}
+                      learningPathSlug={learningPathState.data.slug}
                       technology={technology}
                     />
                   ))}
