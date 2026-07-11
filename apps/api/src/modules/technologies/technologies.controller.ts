@@ -1,6 +1,9 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import { findPublishedTechnologyBySlug } from './technologies.service.ts'
+import {
+  findPublishedModuleByTechnologyAndSlug,
+  findPublishedTechnologyBySlug,
+} from './technologies.service.ts'
 
 export async function getTechnologyBySlug(
   request: Request,
@@ -31,6 +34,43 @@ export async function getTechnologyBySlug(
     }
 
     response.status(200).json(technology)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function getModuleByTechnologyAndSlug(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  try {
+    const { moduleSlug, technologySlug } = request.params
+
+    if (typeof technologySlug !== 'string' || typeof moduleSlug !== 'string') {
+      response.status(404).json({
+        error: {
+          message: 'Module not found.',
+        },
+      })
+      return
+    }
+
+    const moduleDetails = await findPublishedModuleByTechnologyAndSlug(
+      technologySlug,
+      moduleSlug,
+    )
+
+    if (!moduleDetails) {
+      response.status(404).json({
+        error: {
+          message: 'Module not found.',
+        },
+      })
+      return
+    }
+
+    response.status(200).json(moduleDetails)
   } catch (error) {
     next(error)
   }

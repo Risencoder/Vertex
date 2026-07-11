@@ -1,7 +1,14 @@
 import { Router } from 'express'
 
-import { getTechnologyBySlug } from './technologies.controller.ts'
+import {
+  getModuleByTechnologyAndSlug,
+  getTechnologyBySlug,
+} from './technologies.controller.ts'
 
 export const technologiesRouter = Router()
 
+technologiesRouter.get(
+  '/:technologySlug/modules/:moduleSlug',
+  getModuleByTechnologyAndSlug,
+)
 technologiesRouter.get('/:slug', getTechnologyBySlug)

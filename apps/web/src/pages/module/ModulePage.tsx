@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 
 import {
-  getTechnologyBySlug,
+  getModuleByTechnologyAndSlug,
   TechnologiesApiError,
-  type TechnologyDetails,
-  type TechnologyModule,
+  type ModuleDetails,
+  type ModuleLesson,
 } from '@/shared/api/technologies'
 import { Button } from '@/shared/ui/button'
 import {
@@ -17,11 +17,7 @@ import {
   CardTitle,
 } from '@/shared/ui/card'
 
-type TechnologyPageLocationState = {
-  fromLearningPathSlug?: string
-}
-
-type TechnologyState =
+type ModuleState =
   | {
       status: 'loading'
       data: null
@@ -29,7 +25,7 @@ type TechnologyState =
     }
   | {
       status: 'success'
-      data: TechnologyDetails
+      data: ModuleDetails
       error: string
     }
   | {
@@ -43,33 +39,25 @@ type TechnologyState =
       error: string
     }
 
-function ModuleCard({
-  module,
-  technologySlug,
-}: {
-  module: TechnologyModule
-  technologySlug: string
-}) {
+function LessonCard({ lesson }: { lesson: ModuleLesson }) {
   return (
     <Card size="sm">
       <CardHeader>
-        <CardTitle>{module.title}</CardTitle>
-        <CardDescription>{module.description}</CardDescription>
+        <CardTitle>{lesson.title}</CardTitle>
+        <CardDescription>{lesson.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-          {module.difficulty}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            {lesson.type}
+          </span>
+          <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            {lesson.difficulty}
+          </span>
+        </div>
       </CardContent>
       <CardFooter className="justify-start">
-        <Button
-          render={
-            <Link
-              to={`/technologies/${technologySlug}/modules/${module.slug}`}
-            />
-          }
-          variant="outline"
-        >
+        <Button disabled variant="outline">
           Open
         </Button>
       </CardFooter>
@@ -77,17 +65,9 @@ function ModuleCard({
   )
 }
 
-export function TechnologyPage() {
-  const { slug } = useParams()
-  const location = useLocation()
-  const locationState = location.state as TechnologyPageLocationState | null
-  const backTo = locationState?.fromLearningPathSlug
-    ? `/learning-paths/${locationState.fromLearningPathSlug}`
-    : '/'
-  const backLabel = locationState?.fromLearningPathSlug
-    ? 'Back to Learning Path'
-    : 'Back to Dashboard'
-  const [technologyState, setTechnologyState] = useState<TechnologyState>({
+export function ModulePage() {
+  const { moduleSlug, technologySlug } = useParams()
+  const [moduleState, setModuleState] = useState<ModuleState>({
     status: 'loading',
     data: null,
     error: '',
@@ -96,31 +76,32 @@ export function TechnologyPage() {
   useEffect(() => {
     const abortController = new AbortController()
 
-    async function loadTechnology() {
-      if (!slug) {
-        setTechnologyState({
+    async function loadModule() {
+      if (!technologySlug || !moduleSlug) {
+        setModuleState({
           status: 'not-found',
           data: null,
-          error: 'Technology not found.',
+          error: 'Module not found.',
         })
         return
       }
 
-      setTechnologyState({
+      setModuleState({
         status: 'loading',
         data: null,
         error: '',
       })
 
       try {
-        const technology = await getTechnologyBySlug(
-          slug,
+        const moduleDetails = await getModuleByTechnologyAndSlug(
+          technologySlug,
+          moduleSlug,
           abortController.signal,
         )
 
-        setTechnologyState({
+        setModuleState({
           status: 'success',
-          data: technology,
+          data: moduleDetails,
           error: '',
         })
       } catch (error) {
@@ -129,28 +110,30 @@ export function TechnologyPage() {
         }
 
         if (error instanceof TechnologiesApiError && error.status === 404) {
-          setTechnologyState({
+          setModuleState({
             status: 'not-found',
             data: null,
-            error: 'Technology not found.',
+            error: 'Module not found.',
           })
           return
         }
 
-        setTechnologyState({
+        setModuleState({
           status: 'error',
           data: null,
-          error: 'Unable to load technology. Please try again later.',
+          error: 'Unable to load module. Please try again later.',
         })
       }
     }
 
-    void loadTechnology()
+    void loadModule()
 
     return () => {
       abortController.abort()
     }
-  }, [slug])
+  }, [moduleSlug, technologySlug])
+
+  const backTo = technologySlug ? `/technologies/${technologySlug}` : '/'
 
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
@@ -160,88 +143,86 @@ export function TechnologyPage() {
           render={<Link to={backTo} />}
           variant="outline"
         >
-          {backLabel}
+          Back to Technology
         </Button>
 
-        {technologyState.status === 'loading' ? (
+        {moduleState.status === 'loading' ? (
           <Card>
             <CardContent>
               <p className="text-sm text-muted-foreground" role="status">
-                Loading technology...
+                Loading module...
               </p>
             </CardContent>
           </Card>
         ) : null}
 
-        {technologyState.status === 'not-found' ? (
+        {moduleState.status === 'not-found' ? (
           <Card>
             <CardHeader>
-              <CardTitle>Technology not found</CardTitle>
+              <CardTitle>Module not found</CardTitle>
               <CardDescription>
-                The technology may be unavailable or unpublished.
+                The module may be unavailable, unpublished, or outside this
+                technology.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground" role="alert">
-                {technologyState.error}
+                {moduleState.error}
               </p>
             </CardContent>
           </Card>
         ) : null}
 
-        {technologyState.status === 'error' ? (
+        {moduleState.status === 'error' ? (
           <Card>
             <CardContent>
               <p className="text-sm text-destructive" role="alert">
-                {technologyState.error}
+                {moduleState.error}
               </p>
             </CardContent>
           </Card>
         ) : null}
 
-        {technologyState.status === 'success' ? (
+        {moduleState.status === 'success' ? (
           <div className="grid gap-6">
             <Card>
               <CardHeader>
+                <CardDescription>
+                  {moduleState.data.technology.title}
+                </CardDescription>
                 <CardTitle className="text-2xl">
-                  {technologyState.data.title}
+                  {moduleState.data.module.title}
                 </CardTitle>
                 <CardDescription>
-                  {technologyState.data.description}
+                  {moduleState.data.module.description}
                 </CardDescription>
               </CardHeader>
-              {technologyState.data.category ? (
-                <CardContent>
-                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {technologyState.data.category}
-                  </span>
-                </CardContent>
-              ) : null}
+              <CardContent>
+                <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  {moduleState.data.module.difficulty}
+                </span>
+              </CardContent>
             </Card>
 
             <section className="grid gap-4">
               <div>
-                <h2 className="font-heading text-xl font-semibold">Modules</h2>
+                <h2 className="font-heading text-xl font-semibold">Lessons</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Work through the published modules for this technology.
+                  Work through the published lessons in order.
                 </p>
               </div>
 
-              {technologyState.data.modules.length > 0 ? (
+              {moduleState.data.lessons.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {technologyState.data.modules.map((module) => (
-                    <ModuleCard
-                      key={module.id}
-                      module={module}
-                      technologySlug={technologyState.data.slug}
-                    />
+                  {moduleState.data.lessons.map((lesson) => (
+                    <LessonCard key={lesson.id} lesson={lesson} />
                   ))}
                 </div>
               ) : (
                 <Card>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      No modules are available yet.
+                      No lessons are available yet.
                     </p>
                   </CardContent>
                 </Card>

@@ -180,6 +180,63 @@ const reactModules = [
   },
 ]
 
+const reactBasicsLessons = [
+  {
+    slug: 'what-is-react',
+    title: 'What is React?',
+    description: 'Learn what React is and where it fits in modern web apps.',
+    order: 1,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'setting-up-a-react-project',
+    title: 'Setting up a React project',
+    description: 'Create a local React project and understand the file layout.',
+    order: 2,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'jsx-fundamentals',
+    title: 'JSX fundamentals',
+    description: 'Write JSX and understand how it describes UI structure.',
+    order: 3,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'components-overview',
+    title: 'Components overview',
+    description: 'Break UI into small, reusable React components.',
+    order: 4,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'rendering-data',
+    title: 'Rendering data',
+    description: 'Render values and lists from data in React components.',
+    order: 5,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'basic-practice',
+    title: 'Basic practice',
+    description: 'Practice the React basics by building a small UI section.',
+    order: 6,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+]
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -268,12 +325,41 @@ async function main() {
     })
   }
 
+  const reactBasicsModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'react-basics',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const lesson of reactBasicsLessons) {
+    await prisma.lesson.upsert({
+      where: {
+        moduleId_slug: {
+          moduleId: reactBasicsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      update: lesson,
+      create: {
+        ...lesson,
+        moduleId: reactBasicsModule.id,
+      },
+    })
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
     `Linked ${frontendEngineerTechnologies.length} technologies to Frontend Engineer.`,
   )
   console.log(`Seeded ${reactModules.length} React modules.`)
+  console.log(`Seeded ${reactBasicsLessons.length} React Basics lessons.`)
 }
 
 main()
