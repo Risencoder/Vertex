@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 import { authClient } from '@/shared/api/auth-client'
+import {
+  getLearningPaths,
+  type LearningPath,
+} from '@/shared/api/learning-paths'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -17,6 +21,28 @@ type DashboardMetricCardProps = {
   value: string
   description: string
 }
+
+type LearningPathsState =
+  | {
+      status: 'loading'
+      data: LearningPath[]
+      error: string
+    }
+  | {
+      status: 'success'
+      data: LearningPath[]
+      error: string
+    }
+  | {
+      status: 'empty'
+      data: LearningPath[]
+      error: string
+    }
+  | {
+      status: 'error'
+      data: LearningPath[]
+      error: string
+    }
 
 type DashboardProps = {
   user: {
@@ -43,6 +69,120 @@ function DashboardMetricCard({
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
+  )
+}
+
+function LearningPathCard({ learningPath }: { learningPath: LearningPath }) {
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>{learningPath.title}</CardTitle>
+        <CardDescription>{learningPath.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+          {learningPath.difficulty}
+        </span>
+      </CardContent>
+      <CardFooter className="justify-start">
+        <Button type="button" variant="outline">
+          Explore
+        </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
+function LearningPathsSection() {
+  const [learningPathsState, setLearningPathsState] =
+    useState<LearningPathsState>({
+      status: 'loading',
+      data: [],
+      error: '',
+    })
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    async function loadLearningPaths() {
+      try {
+        const learningPaths = await getLearningPaths(abortController.signal)
+
+        setLearningPathsState({
+          status: learningPaths.length > 0 ? 'success' : 'empty',
+          data: learningPaths,
+          error: '',
+        })
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        setLearningPathsState({
+          status: 'error',
+          data: [],
+          error: 'Unable to load learning paths. Please try again later.',
+        })
+      }
+    }
+
+    void loadLearningPaths()
+
+    return () => {
+      abortController.abort()
+    }
+  }, [])
+
+  return (
+    <section className="grid gap-4">
+      <div>
+        <h2 className="font-heading text-xl font-semibold">Learning Paths</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Choose a path to start building practical engineering skills.
+        </p>
+      </div>
+
+      {learningPathsState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading learning paths...
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {learningPathsState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {learningPathsState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {learningPathsState.status === 'empty' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              No learning paths are available yet.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {learningPathsState.status === 'success' ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {learningPathsState.data.map((learningPath) => (
+            <LearningPathCard
+              key={learningPath.id}
+              learningPath={learningPath}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -103,6 +243,8 @@ function AuthenticatedDashboard({
           value="0"
         />
       </section>
+
+      <LearningPathsSection />
     </div>
   )
 }
