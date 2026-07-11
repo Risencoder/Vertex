@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
-import { authClient } from '@/shared/api/auth-client'
+import { useRootLayout } from '@/app/layouts/use-root-layout'
 import { getDashboard, type DashboardSummary } from '@/shared/api/dashboard'
 import {
   getLearningPaths,
@@ -9,6 +9,7 @@ import {
 } from '@/shared/api/learning-paths'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs'
 import {
   Card,
   CardContent,
@@ -70,9 +71,6 @@ type DashboardProps = {
     name?: string | null
     email: string
   }
-  isLoggingOut: boolean
-  logoutError: string
-  onLogout: () => void
 }
 
 function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
@@ -228,7 +226,7 @@ function LearningPathsSection() {
   }, [])
 
   return (
-    <section className="grid gap-4">
+    <section className="grid gap-4" id="learning-paths">
       <div>
         <h2 className="font-heading text-xl font-semibold">Learning Paths</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -280,12 +278,7 @@ function LearningPathsSection() {
   )
 }
 
-function AuthenticatedDashboard({
-  user,
-  isLoggingOut,
-  logoutError,
-  onLogout,
-}: DashboardProps) {
+function AuthenticatedDashboard({ user }: DashboardProps) {
   const displayName = user.name || 'there'
   const [dashboardState, setDashboardState] = useState<DashboardState>({
     status: 'loading',
@@ -333,23 +326,16 @@ function AuthenticatedDashboard({
 
   return (
     <div className="grid gap-6">
-      <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+      <Breadcrumbs items={[{ label: 'Dashboard' }]} />
+
+      <section className="rounded-xl border bg-card p-4">
         <div>
           <h1 className="font-heading text-2xl font-semibold">
             Welcome back, {displayName}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
         </div>
-        <Button disabled={isLoggingOut} onClick={onLogout} variant="outline">
-          {isLoggingOut ? 'Signing out...' : 'Logout'}
-        </Button>
       </section>
-
-      {logoutError ? (
-        <p className="text-sm text-destructive" role="alert">
-          {logoutError}
-        </p>
-      ) : null}
 
       {dashboardState.status === 'loading' ? (
         <Card>
@@ -434,60 +420,25 @@ function GuestHome() {
 }
 
 export function HomePage() {
-  const session = authClient.useSession()
-  const [logoutError, setLogoutError] = useState('')
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { session } = useRootLayout()
 
-  async function handleLogout() {
-    if (isLoggingOut) {
-      return
-    }
-
-    setIsLoggingOut(true)
-    setLogoutError('')
-
-    try {
-      const { error } = await authClient.signOut()
-
-      if (error) {
-        setLogoutError(error.message || 'Unable to sign out. Please try again.')
-        return
-      }
-
-      await session.refetch()
-    } catch {
-      setLogoutError('Unable to connect to the server. Please try again.')
-    } finally {
-      setIsLoggingOut(false)
-    }
+  if (session.data) {
+    return <AuthenticatedDashboard user={session.data.user} />
   }
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center">
-        {session.isPending ? (
-          <Card className="w-full max-w-lg">
-            <CardContent>
-              <p className="text-sm text-muted-foreground" role="status">
-                Loading your session...
-              </p>
-            </CardContent>
-          </Card>
-        ) : session.data ? (
-          <div className="w-full">
-            <AuthenticatedDashboard
-              isLoggingOut={isLoggingOut}
-              logoutError={logoutError}
-              onLogout={() => {
-                void handleLogout()
-              }}
-              user={session.data.user}
-            />
-          </div>
-        ) : (
-          <GuestHome />
-        )}
-      </div>
-    </main>
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+      {session.isPending ? (
+        <Card className="w-full max-w-lg">
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading your session...
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <GuestHome />
+      )}
+    </div>
   )
 }

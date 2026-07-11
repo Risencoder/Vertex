@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
-import { authClient } from '@/shared/api/auth-client'
+import { useRootLayout } from '@/app/layouts/use-root-layout'
 import {
   getTechnologyBySlug,
   TechnologiesApiError,
@@ -10,6 +10,7 @@ import {
 } from '@/shared/api/technologies'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
+import { Breadcrumbs, type BreadcrumbItem } from '@/shared/ui/breadcrumbs'
 import {
   Card,
   CardContent,
@@ -103,17 +104,18 @@ function ModuleCard({
   )
 }
 
+function formatSlugLabel(slug: string) {
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export function TechnologyPage() {
   const { slug } = useParams()
-  const session = authClient.useSession()
+  const { session } = useRootLayout()
   const location = useLocation()
   const locationState = location.state as TechnologyPageLocationState | null
-  const backTo = locationState?.fromLearningPathSlug
-    ? `/learning-paths/${locationState.fromLearningPathSlug}`
-    : '/'
-  const backLabel = locationState?.fromLearningPathSlug
-    ? 'Back to Learning Path'
-    : 'Back to Dashboard'
   const [technologyState, setTechnologyState] = useState<TechnologyState>({
     status: 'loading',
     data: null,
@@ -179,134 +181,142 @@ export function TechnologyPage() {
     }
   }, [slug])
 
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Dashboard', to: '/' },
+    ...(locationState?.fromLearningPathSlug
+      ? [
+          {
+            label: formatSlugLabel(locationState.fromLearningPathSlug),
+            to: `/learning-paths/${locationState.fromLearningPathSlug}`,
+          },
+        ]
+      : []),
+    {
+      label:
+        technologyState.status === 'success'
+          ? technologyState.data.title
+          : 'Technology',
+    },
+  ]
+
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-5xl gap-6">
-        <Button
-          className="w-fit"
-          nativeButton={false}
-          render={<Link to={backTo} />}
-          variant="outline"
-        >
-          {backLabel}
-        </Button>
+    <div className="grid gap-6">
+      <Breadcrumbs items={breadcrumbItems} />
+      {technologyState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading technology...
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {technologyState.status === 'loading' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-muted-foreground" role="status">
-                Loading technology...
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+      {technologyState.status === 'not-found' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Technology not found</CardTitle>
+            <CardDescription>
+              The technology may be unavailable or unpublished.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="alert">
+              {technologyState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {technologyState.status === 'not-found' ? (
+      {technologyState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {technologyState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {technologyState.status === 'success' ? (
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Technology not found</CardTitle>
+              <CardTitle className="text-2xl">
+                {technologyState.data.title}
+              </CardTitle>
               <CardDescription>
-                The technology may be unavailable or unpublished.
+                {technologyState.data.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground" role="alert">
-                {technologyState.error}
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {technologyState.status === 'error' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-destructive" role="alert">
-                {technologyState.error}
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {technologyState.status === 'success' ? (
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {technologyState.data.title}
-                </CardTitle>
-                <CardDescription>
-                  {technologyState.data.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  <div className="flex flex-wrap gap-2">
-                    {technologyState.data.category ? (
-                      <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                        {technologyState.data.category}
-                      </span>
-                    ) : null}
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-2">
+                  {technologyState.data.category ? (
                     <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {technologyState.data.progress.completedLessons} of{' '}
-                      {technologyState.data.progress.totalLessons} lessons
-                      completed
+                      {technologyState.data.category}
                     </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {technologyState.data.progress.completedModules} of{' '}
-                      {technologyState.data.progress.totalModules} modules
-                      completed
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {clampProgressValue(
-                        technologyState.data.progress.percentage,
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <Progress
-                    label={`${technologyState.data.title} progress`}
-                    value={technologyState.data.progress.percentage}
-                  />
-                  {!session.isPending && !session.data ? (
-                    <p className="text-sm text-muted-foreground">
-                      Sign in to track your progress.
-                    </p>
                   ) : null}
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {technologyState.data.progress.completedLessons} of{' '}
+                    {technologyState.data.progress.totalLessons} lessons
+                    completed
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {technologyState.data.progress.completedModules} of{' '}
+                    {technologyState.data.progress.totalModules} modules
+                    completed
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {clampProgressValue(
+                      technologyState.data.progress.percentage,
+                    )}
+                    %
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <section className="grid gap-4">
-              <div>
-                <h2 className="font-heading text-xl font-semibold">Modules</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Work through the published modules for this technology.
-                </p>
+                <Progress
+                  label={`${technologyState.data.title} progress`}
+                  value={technologyState.data.progress.percentage}
+                />
+                {!session.isPending && !session.data ? (
+                  <p className="text-sm text-muted-foreground">
+                    Sign in to track your progress.
+                  </p>
+                ) : null}
               </div>
+            </CardContent>
+          </Card>
 
-              {technologyState.data.modules.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {technologyState.data.modules.map((module) => (
-                    <ModuleCard
-                      key={module.id}
-                      module={module}
-                      technologySlug={technologyState.data.slug}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      No modules are available yet.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </section>
-          </div>
-        ) : null}
-      </div>
-    </main>
+          <section className="grid gap-4">
+            <div>
+              <h2 className="font-heading text-xl font-semibold">Modules</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Work through the published modules for this technology.
+              </p>
+            </div>
+
+            {technologyState.data.modules.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {technologyState.data.modules.map((module) => (
+                  <ModuleCard
+                    key={module.id}
+                    module={module}
+                    technologySlug={technologyState.data.slug}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    No modules are available yet.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+        </div>
+      ) : null}
+    </div>
   )
 }

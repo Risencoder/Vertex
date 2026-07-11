@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 
-import { authClient } from '@/shared/api/auth-client'
+import { useRootLayout } from '@/app/layouts/use-root-layout'
 import {
   completeLesson,
   getLessonProgress,
@@ -15,6 +15,7 @@ import {
 } from '@/shared/api/technologies'
 import { formatDifficulty, formatLessonType } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs'
 import {
   Card,
   CardContent,
@@ -168,7 +169,7 @@ function renderMarkdown(markdown: string) {
 
 export function LessonPage() {
   const { lessonSlug, moduleSlug, technologySlug } = useParams()
-  const session = authClient.useSession()
+  const { session } = useRootLayout()
   const [lessonState, setLessonState] = useState<LessonState>({
     status: 'loading',
     data: null,
@@ -365,201 +366,213 @@ export function LessonPage() {
     }
   }
 
-  const backTo =
-    technologySlug && moduleSlug
-      ? `/technologies/${technologySlug}/modules/${moduleSlug}`
-      : '/'
-
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Button
-          className="w-fit"
-          nativeButton={false}
-          render={<Link to={backTo} />}
-          variant="outline"
-        >
-          Back to Module
-        </Button>
+    <div className="grid gap-6">
+      <Breadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/' },
+          {
+            label:
+              lessonState.status === 'success'
+                ? lessonState.data.technology.title
+                : 'Technology',
+            to: technologySlug ? `/technologies/${technologySlug}` : '/',
+          },
+          {
+            label:
+              lessonState.status === 'success'
+                ? lessonState.data.module.title
+                : 'Module',
+            to:
+              technologySlug && moduleSlug
+                ? `/technologies/${technologySlug}/modules/${moduleSlug}`
+                : '/',
+          },
+          {
+            label:
+              lessonState.status === 'success'
+                ? lessonState.data.lesson.title
+                : 'Lesson',
+          },
+        ]}
+      />
+      {lessonState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading lesson...
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {lessonState.status === 'loading' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-muted-foreground" role="status">
-                Loading lesson...
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+      {lessonState.status === 'not-found' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Lesson not found</CardTitle>
+            <CardDescription>
+              The lesson may be unavailable, unpublished, or outside this
+              module.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="alert">
+              {lessonState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {lessonState.status === 'not-found' ? (
+      {lessonState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {lessonState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {lessonState.status === 'success' ? (
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Lesson not found</CardTitle>
               <CardDescription>
-                The lesson may be unavailable, unpublished, or outside this
-                module.
+                {lessonState.data.technology.title} /{' '}
+                {lessonState.data.module.title}
+              </CardDescription>
+              <CardTitle className="text-2xl">
+                {lessonState.data.lesson.title}
+              </CardTitle>
+              <CardDescription>
+                {lessonState.data.lesson.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground" role="alert">
-                {lessonState.error}
-              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  {formatLessonType(lessonState.data.lesson.type)}
+                </span>
+                <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  {formatDifficulty(lessonState.data.lesson.difficulty)}
+                </span>
+              </div>
             </CardContent>
           </Card>
-        ) : null}
 
-        {lessonState.status === 'error' ? (
           <Card>
             <CardContent>
-              <p className="text-sm text-destructive" role="alert">
-                {lessonState.error}
-              </p>
+              <article className="grid gap-4">
+                {renderMarkdown(lessonState.data.lesson.content ?? '')}
+              </article>
             </CardContent>
           </Card>
-        ) : null}
 
-        {lessonState.status === 'success' ? (
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardDescription>
-                  {lessonState.data.technology.title} /{' '}
-                  {lessonState.data.module.title}
-                </CardDescription>
-                <CardTitle className="text-2xl">
-                  {lessonState.data.lesson.title}
-                </CardTitle>
-                <CardDescription>
-                  {lessonState.data.lesson.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {formatLessonType(lessonState.data.lesson.type)}
-                  </span>
-                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {formatDifficulty(lessonState.data.lesson.difficulty)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Lesson progress</CardTitle>
+              <CardDescription>
+                Track completion for this lesson.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {session.isPending ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  Checking your session...
+                </p>
+              ) : null}
 
-            <Card>
-              <CardContent>
-                <article className="grid gap-4">
-                  {renderMarkdown(lessonState.data.lesson.content ?? '')}
-                </article>
-              </CardContent>
-            </Card>
+              {!session.isPending && !session.data ? (
+                <p className="text-sm text-muted-foreground">
+                  Sign in to track your progress.
+                </p>
+              ) : null}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Lesson progress</CardTitle>
-                <CardDescription>
-                  Track completion for this lesson.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {session.isPending ? (
-                  <p className="text-sm text-muted-foreground" role="status">
-                    Checking your session...
-                  </p>
-                ) : null}
+              {session.data && progressState.status === 'loading' ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  Loading lesson progress...
+                </p>
+              ) : null}
 
-                {!session.isPending && !session.data ? (
-                  <p className="text-sm text-muted-foreground">
-                    Sign in to track your progress.
-                  </p>
-                ) : null}
+              {progressState.status === 'error' ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {progressState.error}
+                </p>
+              ) : null}
 
-                {session.data && progressState.status === 'loading' ? (
-                  <p className="text-sm text-muted-foreground" role="status">
-                    Loading lesson progress...
-                  </p>
-                ) : null}
+              {progressState.status === 'success' ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {progressState.data.status === 'COMPLETED'
+                    ? 'Completed'
+                    : 'Not completed yet'}
+                </p>
+              ) : null}
+            </CardContent>
+            <CardFooter>
+              {session.data ? (
+                <Button
+                  disabled={
+                    isCompletingLesson ||
+                    progressState.status === 'loading' ||
+                    progressState.data?.status === 'COMPLETED'
+                  }
+                  onClick={() => {
+                    void handleCompleteLesson(lessonState.data.lesson.id)
+                  }}
+                >
+                  {progressState.data?.status === 'COMPLETED'
+                    ? 'Completed'
+                    : isCompletingLesson
+                      ? 'Completing...'
+                      : 'Mark as completed'}
+                </Button>
+              ) : (
+                <Button disabled>Mark as completed</Button>
+              )}
+            </CardFooter>
+          </Card>
 
-                {progressState.status === 'error' ? (
-                  <p className="text-sm text-destructive" role="alert">
-                    {progressState.error}
-                  </p>
-                ) : null}
+          <Card>
+            <CardFooter className="justify-between gap-3">
+              {lessonState.data.previousLesson ? (
+                <Button
+                  nativeButton={false}
+                  render={
+                    <Link
+                      to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.previousLesson.slug}`}
+                    />
+                  }
+                  variant="outline"
+                >
+                  Previous lesson
+                </Button>
+              ) : (
+                <Button disabled variant="outline">
+                  Previous lesson
+                </Button>
+              )}
 
-                {progressState.status === 'success' ? (
-                  <p className="text-sm text-muted-foreground" role="status">
-                    {progressState.data.status === 'COMPLETED'
-                      ? 'Completed'
-                      : 'Not completed yet'}
-                  </p>
-                ) : null}
-              </CardContent>
-              <CardFooter>
-                {session.data ? (
-                  <Button
-                    disabled={
-                      isCompletingLesson ||
-                      progressState.status === 'loading' ||
-                      progressState.data?.status === 'COMPLETED'
-                    }
-                    onClick={() => {
-                      void handleCompleteLesson(lessonState.data.lesson.id)
-                    }}
-                  >
-                    {progressState.data?.status === 'COMPLETED'
-                      ? 'Completed'
-                      : isCompletingLesson
-                        ? 'Completing...'
-                        : 'Mark as completed'}
-                  </Button>
-                ) : (
-                  <Button disabled>Mark as completed</Button>
-                )}
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardFooter className="justify-between gap-3">
-                {lessonState.data.previousLesson ? (
-                  <Button
-                    nativeButton={false}
-                    render={
-                      <Link
-                        to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.previousLesson.slug}`}
-                      />
-                    }
-                    variant="outline"
-                  >
-                    Previous lesson
-                  </Button>
-                ) : (
-                  <Button disabled variant="outline">
-                    Previous lesson
-                  </Button>
-                )}
-
-                {lessonState.data.nextLesson ? (
-                  <Button
-                    nativeButton={false}
-                    render={
-                      <Link
-                        to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.nextLesson.slug}`}
-                      />
-                    }
-                    variant="outline"
-                  >
-                    Next lesson
-                  </Button>
-                ) : (
-                  <Button disabled variant="outline">
-                    Next lesson
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          </div>
-        ) : null}
-      </div>
-    </main>
+              {lessonState.data.nextLesson ? (
+                <Button
+                  nativeButton={false}
+                  render={
+                    <Link
+                      to={`/technologies/${lessonState.data.technology.slug}/modules/${lessonState.data.module.slug}/lessons/${lessonState.data.nextLesson.slug}`}
+                    />
+                  }
+                  variant="outline"
+                >
+                  Next lesson
+                </Button>
+              ) : (
+                <Button disabled variant="outline">
+                  Next lesson
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        </div>
+      ) : null}
+    </div>
   )
 }

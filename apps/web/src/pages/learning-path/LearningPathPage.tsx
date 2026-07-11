@@ -9,6 +9,7 @@ import {
 } from '@/shared/api/learning-paths'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs'
 import {
   Card,
   CardContent,
@@ -166,117 +167,117 @@ export function LearningPathPage() {
   }, [slug])
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Button
-          className="w-fit"
-          nativeButton={false}
-          render={<Link to="/" />}
-          variant="outline"
-        >
-          Back to Dashboard
-        </Button>
+    <div className="grid gap-6">
+      <Breadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/' },
+          {
+            label:
+              learningPathState.status === 'success'
+                ? learningPathState.data.title
+                : 'Learning Path',
+          },
+        ]}
+      />
+      {learningPathState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading learning path...
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {learningPathState.status === 'loading' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-muted-foreground" role="status">
-                Loading learning path...
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+      {learningPathState.status === 'not-found' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Learning path not found</CardTitle>
+            <CardDescription>
+              The learning path may be unavailable or unpublished.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="alert">
+              {learningPathState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {learningPathState.status === 'not-found' ? (
+      {learningPathState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {learningPathState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {learningPathState.status === 'success' ? (
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Learning path not found</CardTitle>
+              <CardTitle className="text-2xl">
+                {learningPathState.data.title}
+              </CardTitle>
               <CardDescription>
-                The learning path may be unavailable or unpublished.
+                {learningPathState.data.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground" role="alert">
-                {learningPathState.error}
-              </p>
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {formatDifficulty(learningPathState.data.difficulty)}
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {learningPathState.data.progress.completedLessons} of{' '}
+                    {learningPathState.data.progress.totalLessons} lessons
+                    completed
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {learningPathState.data.progress.completedTechnologies} of{' '}
+                    {learningPathState.data.progress.totalTechnologies}{' '}
+                    technologies completed
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {clampProgressValue(
+                      learningPathState.data.progress.percentage,
+                    )}
+                    %
+                  </span>
+                </div>
+                <Progress
+                  label={`${learningPathState.data.title} progress`}
+                  value={learningPathState.data.progress.percentage}
+                />
+              </div>
             </CardContent>
           </Card>
-        ) : null}
 
-        {learningPathState.status === 'error' ? (
           <Card>
+            <CardHeader>
+              <CardTitle>Technologies</CardTitle>
+              <CardDescription>
+                Follow the core technologies in this learning path.
+              </CardDescription>
+            </CardHeader>
             <CardContent>
-              <p className="text-sm text-destructive" role="alert">
-                {learningPathState.error}
-              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {learningPathState.data.technologies.map((technology) => (
+                  <TechnologyCard
+                    key={technology.id}
+                    learningPathSlug={learningPathState.data.slug}
+                    technology={technology}
+                  />
+                ))}
+              </div>
             </CardContent>
           </Card>
-        ) : null}
-
-        {learningPathState.status === 'success' ? (
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {learningPathState.data.title}
-                </CardTitle>
-                <CardDescription>
-                  {learningPathState.data.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {formatDifficulty(learningPathState.data.difficulty)}
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {learningPathState.data.progress.completedLessons} of{' '}
-                      {learningPathState.data.progress.totalLessons} lessons
-                      completed
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {learningPathState.data.progress.completedTechnologies} of{' '}
-                      {learningPathState.data.progress.totalTechnologies}{' '}
-                      technologies completed
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {clampProgressValue(
-                        learningPathState.data.progress.percentage,
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <Progress
-                    label={`${learningPathState.data.title} progress`}
-                    value={learningPathState.data.progress.percentage}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Technologies</CardTitle>
-                <CardDescription>
-                  Follow the core technologies in this learning path.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {learningPathState.data.technologies.map((technology) => (
-                    <TechnologyCard
-                      key={technology.id}
-                      learningPathSlug={learningPathState.data.slug}
-                      technology={technology}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : null}
-      </div>
-    </main>
+        </div>
+      ) : null}
+    </div>
   )
 }

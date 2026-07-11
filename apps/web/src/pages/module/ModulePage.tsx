@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
-import { authClient } from '@/shared/api/auth-client'
+import { useRootLayout } from '@/app/layouts/use-root-layout'
 import {
   getModuleByTechnologyAndSlug,
   TechnologiesApiError,
@@ -10,6 +10,7 @@ import {
 } from '@/shared/api/technologies'
 import { formatDifficulty, formatLessonType } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs'
 import {
   Card,
   CardContent,
@@ -93,7 +94,7 @@ function LessonCard({
 
 export function ModulePage() {
   const { moduleSlug, technologySlug } = useParams()
-  const session = authClient.useSession()
+  const { session } = useRootLayout()
   const [moduleState, setModuleState] = useState<ModuleState>({
     status: 'loading',
     data: null,
@@ -160,7 +161,6 @@ export function ModulePage() {
     }
   }, [moduleSlug, technologySlug])
 
-  const backTo = technologySlug ? `/technologies/${technologySlug}` : '/'
   const completedLessons =
     moduleState.status === 'success'
       ? moduleState.data.lessons.filter(
@@ -173,126 +173,134 @@ export function ModulePage() {
     totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-5xl gap-6">
-        <Button
-          className="w-fit"
-          nativeButton={false}
-          render={<Link to={backTo} />}
-          variant="outline"
-        >
-          Back to Technology
-        </Button>
+    <div className="grid gap-6">
+      <Breadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/' },
+          {
+            label:
+              moduleState.status === 'success'
+                ? moduleState.data.technology.title
+                : 'Technology',
+            to: technologySlug ? `/technologies/${technologySlug}` : '/',
+          },
+          {
+            label:
+              moduleState.status === 'success'
+                ? moduleState.data.module.title
+                : 'Module',
+          },
+        ]}
+      />
 
-        {moduleState.status === 'loading' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-muted-foreground" role="status">
-                Loading module...
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+      {moduleState.status === 'loading' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="status">
+              Loading module...
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {moduleState.status === 'not-found' ? (
+      {moduleState.status === 'not-found' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Module not found</CardTitle>
+            <CardDescription>
+              The module may be unavailable, unpublished, or outside this
+              technology.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground" role="alert">
+              {moduleState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {moduleState.status === 'error' ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-destructive" role="alert">
+              {moduleState.error}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {moduleState.status === 'success' ? (
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Module not found</CardTitle>
               <CardDescription>
-                The module may be unavailable, unpublished, or outside this
-                technology.
+                {moduleState.data.technology.title}
+              </CardDescription>
+              <CardTitle className="text-2xl">
+                {moduleState.data.module.title}
+              </CardTitle>
+              <CardDescription>
+                {moduleState.data.module.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground" role="alert">
-                {moduleState.error}
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {moduleState.status === 'error' ? (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-destructive" role="alert">
-                {moduleState.error}
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {moduleState.status === 'success' ? (
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardDescription>
-                  {moduleState.data.technology.title}
-                </CardDescription>
-                <CardTitle className="text-2xl">
-                  {moduleState.data.module.title}
-                </CardTitle>
-                <CardDescription>
-                  {moduleState.data.module.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {formatDifficulty(moduleState.data.module.difficulty)}
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {completedLessons} of {totalLessons} lessons completed
-                    </span>
-                    <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {completionPercentage}%
-                    </span>
-                  </div>
-                  <Progress
-                    label={`${moduleState.data.module.title} progress`}
-                    value={completionPercentage}
-                  />
-                  {!session.isPending && !session.data ? (
-                    <p className="text-sm text-muted-foreground">
-                      Sign in to track progress.
-                    </p>
-                  ) : null}
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {formatDifficulty(moduleState.data.module.difficulty)}
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {completedLessons} of {totalLessons} lessons completed
+                  </span>
+                  <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                    {completionPercentage}%
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <section className="grid gap-4">
-              <div>
-                <h2 className="font-heading text-xl font-semibold">Lessons</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Work through the published lessons in order.
-                </p>
+                <Progress
+                  label={`${moduleState.data.module.title} progress`}
+                  value={completionPercentage}
+                />
+                {!session.isPending && !session.data ? (
+                  <p className="text-sm text-muted-foreground">
+                    Sign in to track progress.
+                  </p>
+                ) : null}
               </div>
+            </CardContent>
+          </Card>
 
-              {moduleState.data.lessons.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {moduleState.data.lessons.map((lesson) => (
-                    <LessonCard
-                      key={lesson.id}
-                      lesson={lesson}
-                      moduleSlug={moduleState.data.module.slug}
-                      technologySlug={moduleState.data.technology.slug}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      No lessons are available yet.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </section>
-          </div>
-        ) : null}
-      </div>
-    </main>
+          <section className="grid gap-4">
+            <div>
+              <h2 className="font-heading text-xl font-semibold">Lessons</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Work through the published lessons in order.
+              </p>
+            </div>
+
+            {moduleState.data.lessons.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {moduleState.data.lessons.map((lesson) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    moduleSlug={moduleState.data.module.slug}
+                    technologySlug={moduleState.data.technology.slug}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    No lessons are available yet.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+        </div>
+      ) : null}
+    </div>
   )
 }
