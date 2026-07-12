@@ -78,9 +78,9 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
 
   if (!continueLearning) {
     return (
-      <Card size="sm">
+      <Card className="border-primary/20 bg-primary/5" size="sm">
         <CardHeader>
-          <CardTitle>Continue Learning</CardTitle>
+          <CardTitle className="text-lg">Continue Learning</CardTitle>
           <CardDescription>
             Congratulations! You completed all available lessons.
           </CardDescription>
@@ -93,29 +93,34 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
   }
 
   return (
-    <Card size="sm">
+    <Card className="border-primary/20 bg-primary/5 shadow-sm md:col-span-2 xl:col-span-2">
       <CardHeader>
-        <CardTitle>Continue Learning</CardTitle>
-        <CardDescription>Resume your current learning journey.</CardDescription>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-xl">Continue Learning</CardTitle>
+            <CardDescription>
+              Resume your current learning journey.
+            </CardDescription>
+          </div>
+          <span className="w-fit rounded-lg border border-primary/20 bg-background px-2 py-1 text-xs font-medium text-primary">
+            Next lesson
+          </span>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-2 text-sm">
-          <p>
-            <span className="font-medium">Learning Path:</span>{' '}
-            {continueLearning.learningPathTitle}
-          </p>
-          <p>
-            <span className="font-medium">Technology:</span>{' '}
-            {continueLearning.technologyTitle}
-          </p>
-          <p>
-            <span className="font-medium">Module:</span>{' '}
-            {continueLearning.moduleTitle}
-          </p>
-          <p>
-            <span className="font-medium">Lesson:</span>{' '}
-            {continueLearning.lessonTitle}
-          </p>
+        <div className="grid gap-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">
+              {continueLearning.learningPathTitle} /{' '}
+              {continueLearning.technologyTitle}
+            </p>
+            <p className="mt-1 font-heading text-2xl font-semibold leading-tight">
+              {continueLearning.lessonTitle}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Module: {continueLearning.moduleTitle}
+            </p>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="justify-start">
@@ -126,6 +131,7 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
               to={`/technologies/${continueLearning.technologySlug}/modules/${continueLearning.moduleSlug}/lessons/${continueLearning.lessonSlug}`}
             />
           }
+          size="lg"
         >
           Continue
         </Button>
@@ -141,12 +147,14 @@ function DashboardMetricCard({
   progressValue,
 }: DashboardMetricCardProps) {
   return (
-    <Card size="sm">
+    <Card className="min-h-40" size="sm">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold tracking-normal">{value}</p>
+        <p className="font-heading text-4xl font-semibold tracking-normal">
+          {value}
+        </p>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
         {typeof progressValue === 'number' ? (
           <Progress
@@ -329,11 +337,19 @@ function AuthenticatedDashboard({ user }: DashboardProps) {
       <Breadcrumbs items={[{ label: 'Dashboard' }]} />
 
       <section className="rounded-xl border bg-card p-4">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold">
-            Welcome back, {displayName}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">
+              Dashboard overview
+            </p>
+            <h1 className="mt-1 font-heading text-3xl font-semibold tracking-normal">
+              Welcome back, {displayName}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">{user.email}</p>
+          </div>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Pick up where you left off and keep your learning momentum visible.
+          </p>
         </div>
       </section>
 
