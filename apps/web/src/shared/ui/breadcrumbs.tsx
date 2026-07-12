@@ -36,7 +36,7 @@ export function Breadcrumbs({
               ) : (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className="truncate text-foreground"
+                  className="truncate rounded-md bg-muted px-1.5 py-0.5 font-medium text-foreground"
                 >
                   {item.label}
                 </span>

@@ -19,6 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import {
+  PageErrorState,
+  PageLoadingState,
+  PageNotFoundState,
+  SectionHeader,
+} from '@/shared/ui/page-state'
 import { clampProgressValue, Progress } from '@/shared/ui/progress'
 
 type TechnologyPageLocationState = {
@@ -203,39 +209,19 @@ export function TechnologyPage() {
     <div className="grid gap-6">
       <Breadcrumbs items={breadcrumbItems} />
       {technologyState.status === 'loading' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading technology...
-            </p>
-          </CardContent>
-        </Card>
+        <PageLoadingState message="Loading technology..." />
       ) : null}
 
       {technologyState.status === 'not-found' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Technology not found</CardTitle>
-            <CardDescription>
-              The technology may be unavailable or unpublished.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="alert">
-              {technologyState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageNotFoundState
+          description="The technology may be unavailable or unpublished."
+          message={technologyState.error}
+          title="Technology not found"
+        />
       ) : null}
 
       {technologyState.status === 'error' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-destructive" role="alert">
-              {technologyState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageErrorState message={technologyState.error} />
       ) : null}
 
       {technologyState.status === 'success' ? (
@@ -288,12 +274,10 @@ export function TechnologyPage() {
           </Card>
 
           <section className="grid gap-4">
-            <div>
-              <h2 className="font-heading text-xl font-semibold">Modules</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Work through the published modules for this technology.
-              </p>
-            </div>
+            <SectionHeader
+              description="Work through the published modules for this technology."
+              title="Modules"
+            />
 
             {technologyState.data.modules.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

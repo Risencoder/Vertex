@@ -18,6 +18,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import {
+  PageErrorState,
+  PageLoadingState,
+  PageNotFoundState,
+  SectionHeader,
+} from '@/shared/ui/page-state'
 import { clampProgressValue, Progress } from '@/shared/ui/progress'
 
 type LearningPathState =
@@ -180,39 +186,19 @@ export function LearningPathPage() {
         ]}
       />
       {learningPathState.status === 'loading' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading learning path...
-            </p>
-          </CardContent>
-        </Card>
+        <PageLoadingState message="Loading learning path..." />
       ) : null}
 
       {learningPathState.status === 'not-found' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Learning path not found</CardTitle>
-            <CardDescription>
-              The learning path may be unavailable or unpublished.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="alert">
-              {learningPathState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageNotFoundState
+          description="The learning path may be unavailable or unpublished."
+          message={learningPathState.error}
+          title="Learning path not found"
+        />
       ) : null}
 
       {learningPathState.status === 'error' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-destructive" role="alert">
-              {learningPathState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageErrorState message={learningPathState.error} />
       ) : null}
 
       {learningPathState.status === 'success' ? (
@@ -259,10 +245,10 @@ export function LearningPathPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Technologies</CardTitle>
-              <CardDescription>
-                Follow the core technologies in this learning path.
-              </CardDescription>
+              <SectionHeader
+                description="Follow the core technologies in this learning path."
+                title="Technologies"
+              />
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

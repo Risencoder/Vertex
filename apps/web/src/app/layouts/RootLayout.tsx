@@ -10,26 +10,55 @@ type LayoutSession = RootLayoutContext['session']
 
 const navigationItems = [
   {
+    id: 'dashboard',
     label: 'Dashboard',
     to: '/',
   },
   {
+    id: 'learning-paths',
     label: 'Learning Paths',
     to: '/#learning-paths',
   },
   {
+    id: 'projects',
     label: 'Projects',
     comingSoon: true,
   },
   {
+    id: 'achievements',
     label: 'Achievements',
     comingSoon: true,
   },
   {
+    id: 'settings',
     label: 'Settings',
     comingSoon: true,
   },
 ]
+
+function isNavigationItemActive({
+  hash,
+  itemId,
+  pathname,
+}: {
+  hash: string
+  itemId: string
+  pathname: string
+}) {
+  if (itemId === 'dashboard') {
+    return pathname === '/' && hash !== '#learning-paths'
+  }
+
+  if (itemId === 'learning-paths') {
+    return (
+      hash === '#learning-paths' ||
+      pathname.startsWith('/learning-paths') ||
+      pathname.startsWith('/technologies')
+    )
+  }
+
+  return false
+}
 
 function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation()
@@ -37,19 +66,18 @@ function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <ul className="grid gap-1">
       {navigationItems.map((item) => {
-        const isActive =
-          item.to === '/'
-            ? location.pathname === '/'
-            : item.to
-              ? location.pathname === item.to.split('#')[0]
-              : false
+        const isActive = isNavigationItemActive({
+          hash: location.hash,
+          itemId: item.id,
+          pathname: location.pathname,
+        })
 
         return (
           <li key={item.label}>
             {item.to ? (
               <Link
                 aria-current={isActive ? 'page' : undefined}
-                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:bg-primary/10 aria-[current=page]:text-primary"
                 onClick={onNavigate}
                 to={item.to}
               >

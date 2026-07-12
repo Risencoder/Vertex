@@ -24,6 +24,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import {
+  PageErrorState,
+  PageLoadingState,
+  PageNotFoundState,
+} from '@/shared/ui/page-state'
 
 type LessonState =
   | {
@@ -397,40 +402,19 @@ export function LessonPage() {
         ]}
       />
       {lessonState.status === 'loading' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading lesson...
-            </p>
-          </CardContent>
-        </Card>
+        <PageLoadingState message="Loading lesson..." />
       ) : null}
 
       {lessonState.status === 'not-found' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Lesson not found</CardTitle>
-            <CardDescription>
-              The lesson may be unavailable, unpublished, or outside this
-              module.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="alert">
-              {lessonState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageNotFoundState
+          description="The lesson may be unavailable, unpublished, or outside this module."
+          message={lessonState.error}
+          title="Lesson not found"
+        />
       ) : null}
 
       {lessonState.status === 'error' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-destructive" role="alert">
-              {lessonState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageErrorState message={lessonState.error} />
       ) : null}
 
       {lessonState.status === 'success' ? (

@@ -19,6 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import {
+  PageErrorState,
+  PageLoadingState,
+  PageNotFoundState,
+  SectionHeader,
+} from '@/shared/ui/page-state'
 import { Progress } from '@/shared/ui/progress'
 
 type ModuleState =
@@ -194,40 +200,19 @@ export function ModulePage() {
       />
 
       {moduleState.status === 'loading' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading module...
-            </p>
-          </CardContent>
-        </Card>
+        <PageLoadingState message="Loading module..." />
       ) : null}
 
       {moduleState.status === 'not-found' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Module not found</CardTitle>
-            <CardDescription>
-              The module may be unavailable, unpublished, or outside this
-              technology.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground" role="alert">
-              {moduleState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageNotFoundState
+          description="The module may be unavailable, unpublished, or outside this technology."
+          message={moduleState.error}
+          title="Module not found"
+        />
       ) : null}
 
       {moduleState.status === 'error' ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-destructive" role="alert">
-              {moduleState.error}
-            </p>
-          </CardContent>
-        </Card>
+        <PageErrorState message={moduleState.error} />
       ) : null}
 
       {moduleState.status === 'success' ? (
@@ -271,12 +256,10 @@ export function ModulePage() {
           </Card>
 
           <section className="grid gap-4">
-            <div>
-              <h2 className="font-heading text-xl font-semibold">Lessons</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Work through the published lessons in order.
-              </p>
-            </div>
+            <SectionHeader
+              description="Work through the published lessons in order."
+              title="Lessons"
+            />
 
             {moduleState.data.lessons.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
