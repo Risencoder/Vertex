@@ -60,11 +60,18 @@ function isNavigationItemActive({
   return false
 }
 
-function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
+function NavigationItems({
+  onNavigate,
+  variant = 'mobile',
+}: {
+  onNavigate?: () => void
+  variant?: 'desktop' | 'mobile'
+}) {
   const location = useLocation()
+  const isDesktop = variant === 'desktop'
 
   return (
-    <ul className="grid gap-1">
+    <ul className={isDesktop ? 'grid gap-1.5' : 'grid gap-1'}>
       {navigationItems.map((item) => {
         const isActive = isNavigationItemActive({
           hash: location.hash,
@@ -77,7 +84,11 @@ function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
             {item.to ? (
               <Link
                 aria-current={isActive ? 'page' : undefined}
-                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:bg-primary/10 aria-[current=page]:text-primary"
+                className={
+                  isDesktop
+                    ? 'group flex items-center justify-between rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:border-primary/20 aria-[current=page]:bg-primary/10 aria-[current=page]:text-primary aria-[current=page]:shadow-sm'
+                    : 'flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:bg-primary/10 aria-[current=page]:text-primary'
+                }
                 onClick={onNavigate}
                 to={item.to}
               >
@@ -86,10 +97,20 @@ function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
             ) : (
               <span
                 aria-disabled="true"
-                className="flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/60"
+                className={
+                  isDesktop
+                    ? 'flex cursor-not-allowed items-center justify-between rounded-xl border border-dashed border-border/80 bg-muted/30 px-3 py-2.5 text-sm font-medium text-muted-foreground/60'
+                    : 'flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/60'
+                }
               >
                 <span>{item.label}</span>
-                <span className="rounded-md border border-border px-1.5 py-0.5 text-[0.7rem]">
+                <span
+                  className={
+                    isDesktop
+                      ? 'rounded-md border border-border bg-background px-1.5 py-0.5 text-[0.7rem] font-medium text-muted-foreground/70'
+                      : 'rounded-md border border-border px-1.5 py-0.5 text-[0.7rem]'
+                  }
+                >
                   Soon
                 </span>
               </span>
@@ -98,6 +119,35 @@ function NavigationItems({ onNavigate }: { onNavigate?: () => void }) {
         )
       })}
     </ul>
+  )
+}
+
+function DesktopSidebar() {
+  return (
+    <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-background lg:block">
+      <div className="flex h-full flex-col px-4 py-5">
+        <Link
+          className="group mb-6 rounded-2xl border bg-muted/40 p-4 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          to="/"
+        >
+          <span className="block font-heading text-2xl font-semibold leading-none">
+            Vertex
+          </span>
+          <span className="mt-2 block text-xs font-medium text-muted-foreground">
+            Engineering growth workspace
+          </span>
+        </Link>
+
+        <nav aria-label="Main navigation" className="grid gap-6">
+          <div className="grid gap-2">
+            <p className="px-3 text-xs font-semibold uppercase text-muted-foreground/70">
+              Learn
+            </p>
+            <NavigationItems variant="desktop" />
+          </div>
+        </nav>
+      </div>
+    </aside>
   )
 }
 
@@ -141,17 +191,7 @@ function AuthenticatedShell({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-background px-3 py-4 lg:block">
-        <Link
-          className="mb-6 block rounded-lg px-3 py-2 font-heading text-xl font-semibold focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          to="/"
-        >
-          Vertex
-        </Link>
-        <nav aria-label="Main navigation">
-          <NavigationItems />
-        </nav>
-      </aside>
+      <DesktopSidebar />
 
       <div className="min-w-0 lg:pl-64">
         <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
