@@ -221,31 +221,119 @@ const reactBasicsLessons = [
     description: 'Learn what React is and where it fits in modern web apps.',
     content: `# What is React?
 
-React is a JavaScript library for building user interfaces. It helps you describe what the UI should look like for a given state, and React updates the screen when that state changes.
+## 1. Lesson Goal
 
-## Component-based UI
+Understand React as a tool for describing user interfaces with components, not as a magic layer that replaces HTML, CSS, or JavaScript.
 
-React applications are built from components. A component is a small, reusable piece of UI that can receive data and return markup.
+By the end, you should be able to explain what React does, where it fits in a frontend app, and why component-based UI matters.
+
+## 2. Why It Matters
+
+Real products change constantly. A dashboard may show a signed-in user, an empty state, a loading message, or a list of lessons.
+
+Without structure, UI code becomes a pile of manual DOM updates. React gives you a way to describe the screen as small pieces and let the rendering layer update the browser when data changes.
+
+## 3. Core Concept
+
+React is a JavaScript library for building user interfaces. Its main idea is simple: write components that describe what should appear on screen.
+
+A component is usually a function that returns JSX.
 
 \`\`\`tsx
-function WelcomeMessage({ name }: { name: string }) {
-  return <h1>Welcome, {name}</h1>
+function WelcomeCard() {
+  return (
+    <section>
+      <h1>Welcome back</h1>
+      <p>Continue your learning path.</p>
+    </section>
+  )
 }
 \`\`\`
 
-## Declarative rendering
+React does not remove HTML or CSS. It gives you a component model for organizing them with JavaScript.
 
-Instead of manually changing the DOM step by step, you describe the final UI. React handles the updates.
+## 4. Mental Model
 
-For example, if a user is signed in, render a dashboard. If not, render a login link. Your component describes both states clearly.
+Think of a React component as a recipe for part of the UI.
 
-## Where React fits
+The component receives information, decides what the UI should look like, and returns a description of that UI. React compares that description with what is already on the screen and updates the browser.
 
-React lives in the frontend layer. It is commonly used with routing, forms, API calls, and design systems to build interactive web applications.
+You focus on the desired result. React handles the rendering mechanics.
 
-## Summary
+## 5. Guided Walkthrough
 
-React is useful because it makes UI code easier to split into components, reason about, and update as application state changes.`,
+A small product screen may start like this:
+
+\`\`\`tsx
+function LearningStatus() {
+  const lessonCount = 3
+
+  return (
+    <section>
+      <h2>React Basics</h2>
+      <p>{lessonCount} lessons available</p>
+    </section>
+  )
+}
+\`\`\`
+
+Notice what React adds:
+
+1. The UI has a name: \`LearningStatus\`.
+2. Markup and small display logic live together.
+3. The component can later receive data from another part of the app.
+
+This is the foundation for larger screens.
+
+## 6. Common Mistakes
+
+### Mistake 1: Thinking React is a full application by itself
+
+React handles UI. A production app also needs routing, data fetching, styling, accessibility, testing, and deployment.
+
+### Mistake 2: Treating components as random snippets
+
+A component should represent a meaningful piece of UI. If the name does not explain its purpose, the component may not be clear yet.
+
+### Mistake 3: Forgetting that React is still JavaScript
+
+React components are JavaScript or TypeScript functions. Variables, arrays, functions, and conditions still matter.
+
+## 7. Practice Task
+
+Build a small \`LearningStatus\` component.
+
+Requirements:
+
+1. Render a section with a heading.
+2. Show the name of a learning path.
+3. Show how many lessons are available.
+4. Show a short message that explains what the learner should do next.
+5. Keep the component focused on displaying UI only.
+
+The goal is to practice thinking in components, not to add state or fetch data.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- You can explain what React does in one or two sentences.
+- Your component has a clear name.
+- The component returns one understandable UI section.
+- You did not add unrelated behavior.
+- You can identify where HTML-like structure, JavaScript values, and React components meet.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why is React useful for building interfaces that change over time?
+
+Your answer should mention components or describing UI from data.
+
+## 10. Next Step
+
+Next, you will look at the project setup that lets React code run locally and grow into a real application.`,
     order: 1,
     type: 'ARTICLE',
     difficulty: 'BEGINNER',
@@ -257,11 +345,25 @@ React is useful because it makes UI code easier to split into components, reason
     description: 'Create a local React project and understand the file layout.',
     content: `# Setting up a React project
 
-A React project needs a development server, a build step, and a clear source folder. In modern projects, Vite is a common choice because it starts quickly and keeps configuration small.
+## 1. Lesson Goal
 
-## Create the project
+Understand the basic files and workflow of a modern React project so you know where code starts, where components live, and how the app runs.
 
-The usual workflow is to scaffold the app, install dependencies, and start the development server.
+## 2. Why It Matters
+
+Junior developers often lose time because the project feels like a black box. They can edit a component, but they do not know how that code reaches the browser.
+
+A clear setup mental model makes debugging easier. When something fails, you can ask better questions: did the dev server start, did TypeScript compile, did React mount, or did the component render incorrectly?
+
+## 3. Core Concept
+
+A React project usually has three important parts:
+
+1. A package file that defines scripts and dependencies.
+2. A source folder where application code lives.
+3. A build tool that runs the development server and creates production files.
+
+With Vite, a common setup flow looks like this:
 
 \`\`\`bash
 pnpm create vite my-app --template react-ts
@@ -270,17 +372,84 @@ pnpm install
 pnpm dev
 \`\`\`
 
-## Understand the important files
+## 4. Mental Model
 
-The \`src/main.tsx\` file mounts React into the page. The \`src/App.tsx\` file usually contains the first component you see in the browser.
+Think of the project as a small workshop.
 
-## Keep the structure simple
+The package scripts are the switches. The build tool is the machinery. The \`src\` folder is your workbench. React components are the pieces you assemble into the UI.
 
-At the beginning, avoid creating too many folders. Add structure when the app starts to have clear responsibilities such as shared UI, pages, routes, and API helpers.
+When you run the dev script, the workshop turns on and shows your app in the browser.
 
-## Summary
+## 5. Guided Walkthrough
 
-A good setup gives you fast feedback, a predictable entry point, and a place to grow the app without adding complexity too early.`,
+The entry file usually mounts React:
+
+\`\`\`tsx
+import { createRoot } from 'react-dom/client'
+import { App } from './App'
+
+createRoot(document.getElementById('root')!).render(<App />)
+\`\`\`
+
+The \`App\` component is often the first visible component:
+
+\`\`\`tsx
+export function App() {
+  return <h1>Hello React</h1>
+}
+\`\`\`
+
+This means the browser loads HTML, React finds the root element, and your component tree starts from \`App\`.
+
+## 6. Common Mistakes
+
+### Mistake 1: Editing generated files without understanding them
+
+Generated starter files are not sacred. They are a starting point. Learn which files are entry points and which are examples.
+
+### Mistake 2: Creating too many folders too early
+
+Structure should help you find code. A beginner project does not need every folder a large production app might use.
+
+### Mistake 3: Ignoring scripts
+
+Scripts such as \`dev\`, \`build\`, and \`lint\` are part of the engineering workflow. Learn what each one checks.
+
+## 7. Practice Task
+
+Build a small \`ProjectMap\` component that explains a React project structure.
+
+Requirements:
+
+1. Show three items: package scripts, source folder, and app entry point.
+2. Give each item a short practical description.
+3. Use clear headings and paragraphs.
+4. Keep the component static.
+5. Do not add routing, state, or data fetching.
+
+The goal is to explain the project structure as UI.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- You can explain what \`src/main.tsx\` does.
+- You can explain what \`App.tsx\` usually represents.
+- You know which script starts local development.
+- Your practice component describes structure without adding unrelated behavior.
+- Your naming would make sense to another developer.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why is understanding the project entry point useful before building features?
+
+Your answer should mention debugging, navigation through the codebase, or confidence changing files.
+
+## 10. Next Step
+
+Next, you will learn JSX, the syntax React components use to describe UI structure.`,
     order: 2,
     type: 'EXERCISE',
     difficulty: 'BEGINNER',
@@ -292,11 +461,19 @@ A good setup gives you fast feedback, a predictable entry point, and a place to 
     description: 'Write JSX and understand how it describes UI structure.',
     content: `# JSX fundamentals
 
-JSX is a syntax that lets you describe UI inside JavaScript or TypeScript. It looks similar to HTML, but it is part of your component code.
+## 1. Lesson Goal
 
-## Expressions inside markup
+Understand JSX as a syntax for describing UI inside component code, including expressions, attributes, and valid return structure.
 
-Use curly braces to place JavaScript expressions inside JSX.
+## 2. Why It Matters
+
+JSX is where React starts to feel different. You are not writing a separate template file. You are describing UI close to the values and decisions that shape it.
+
+If you understand JSX well, component code becomes easier to read and debug.
+
+## 3. Core Concept
+
+JSX looks similar to HTML, but it is JavaScript syntax. A component can return JSX, and JSX can contain JavaScript expressions inside curly braces.
 
 \`\`\`tsx
 const userName = 'Ada'
@@ -306,9 +483,19 @@ function Greeting() {
 }
 \`\`\`
 
-## Attributes and class names
+The expression \`{userName}\` is evaluated and placed into the UI.
 
-JSX uses \`className\` instead of \`class\`, because \`class\` is already a JavaScript keyword.
+## 4. Mental Model
+
+Think of JSX as a UI description with small windows into JavaScript.
+
+Plain text describes fixed UI. Curly braces let values enter the UI. Component tags let you compose bigger screens from smaller pieces.
+
+## 5. Guided Walkthrough
+
+Attributes in JSX often look like HTML, but some names are different.
+
+Use \`className\`, not \`class\`:
 
 \`\`\`tsx
 function Badge() {
@@ -316,13 +503,70 @@ function Badge() {
 }
 \`\`\`
 
-## Return one parent element
+Return one JSX tree:
 
-A component returns one JSX tree. If you need multiple elements, wrap them in a parent element or a fragment.
+\`\`\`tsx
+function Header() {
+  return (
+    <>
+      <h1>Vertex</h1>
+      <p>Build real engineering skill.</p>
+    </>
+  )
+}
+\`\`\`
 
-## Summary
+A fragment groups elements without adding an extra DOM element.
 
-JSX is the bridge between component logic and UI structure. It stays readable when you keep expressions small and components focused.`,
+## 6. Common Mistakes
+
+### Mistake 1: Using \`class\` instead of \`className\`
+
+JSX uses JavaScript-friendly attribute names. Use \`className\` for CSS classes.
+
+### Mistake 2: Putting statements inside JSX expressions
+
+Curly braces accept expressions, not statements. Use a variable before the return when logic gets larger.
+
+### Mistake 3: Returning sibling elements without a wrapper
+
+Return one tree. Use a semantic element or a fragment.
+
+## 7. Practice Task
+
+Build a \`ProfileBadge\` component.
+
+Requirements:
+
+1. Create constants for a user name, role, and completed lesson count.
+2. Render the values inside JSX using curly braces.
+3. Add a CSS class using \`className\`.
+4. Return one valid JSX tree.
+5. Keep expressions small and readable.
+
+The goal is to practice JSX syntax, not styling complexity.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- You used curly braces for JavaScript values.
+- You used \`className\`.
+- Your component returns one JSX tree.
+- You avoided complex logic inside JSX.
+- You can explain how JSX differs from plain HTML.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why does JSX allow JavaScript expressions inside markup-like UI?
+
+Your answer should mention connecting data or values to rendered UI.
+
+## 10. Next Step
+
+Next, you will use JSX inside focused components so UI can be split into reusable pieces.`,
     order: 3,
     type: 'ARTICLE',
     difficulty: 'BEGINNER',
@@ -334,34 +578,112 @@ JSX is the bridge between component logic and UI structure. It stays readable wh
     description: 'Break UI into small, reusable React components.',
     content: `# Components overview
 
-Components are the core building blocks of React. A component is a function that returns UI and can be reused across the application.
+## 1. Lesson Goal
 
-## Start with a small responsibility
+Learn how to think about components as named, focused pieces of UI with clear responsibilities.
 
-A good component does one clear job. For example, a card component can render a title and description without knowing where the data came from.
+## 2. Why It Matters
+
+Real screens become complicated quickly. A dashboard can contain navigation, metrics, lists, forms, and empty states.
+
+Components let you split that complexity into smaller pieces that can be named, reviewed, tested, and reused.
+
+## 3. Core Concept
+
+A React component is a function that returns UI. The strongest components have a clear purpose.
 
 \`\`\`tsx
-function InfoCard({ title, description }: { title: string; description: string }) {
+function EmptyState() {
   return (
     <section>
-      <h2>{title}</h2>
-      <p>{description}</p>
+      <h2>No lessons yet</h2>
+      <p>New content will appear here soon.</p>
     </section>
   )
 }
 \`\`\`
 
-## Compose components
+The name \`EmptyState\` tells another developer what this UI is for.
 
-React apps grow by composing small components into larger screens. Pages can use layout components, UI components, and feature-specific components together.
+## 4. Mental Model
 
-## Keep data flow visible
+Think of components as paragraphs in a well-written document.
 
-Pass data into components with props. This keeps the component predictable and easier to test.
+One huge paragraph is hard to read. Too many tiny fragments are also hard to follow. Good components split the UI at meaningful boundaries.
 
-## Summary
+## 5. Guided Walkthrough
 
-Components help you split UI into reusable pieces. Keep them focused, compose them thoughtfully, and pass data explicitly.`,
+Start with the screen:
+
+\`\`\`tsx
+function DashboardPreview() {
+  return (
+    <main>
+      <WelcomePanel />
+      <ProgressSummary />
+      <LessonList />
+    </main>
+  )
+}
+\`\`\`
+
+Each child component has a responsibility:
+
+- \`WelcomePanel\` greets the learner.
+- \`ProgressSummary\` shows progress.
+- \`LessonList\` renders available lessons.
+
+This is composition: building a larger UI from smaller components.
+
+## 6. Common Mistakes
+
+### Mistake 1: Putting the whole page in one component
+
+Large components hide intent. Split when a section has a clear name and responsibility.
+
+### Mistake 2: Splitting too early
+
+Do not create a component just to wrap one line. Split for clarity, reuse, or ownership.
+
+### Mistake 3: Using vague names
+
+Names like \`Box\`, \`Thing\`, or \`Content\` often fail to explain the component's role.
+
+## 7. Practice Task
+
+Build a small \`DashboardPreview\` using three components.
+
+Requirements:
+
+1. Create \`WelcomePanel\`, \`ProgressSummary\`, and \`NextLessonCard\`.
+2. Compose them inside \`DashboardPreview\`.
+3. Give each component one clear responsibility.
+4. Keep all content static for now.
+5. Use semantic HTML where it fits.
+
+The goal is to practice component boundaries.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- Each component has a clear name.
+- No component is doing too many jobs.
+- The parent component reads like a summary of the screen.
+- You did not add props before they were needed.
+- You can explain why you split the UI this way.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+How do components make a growing UI easier to understand?
+
+Your answer should mention names, responsibilities, or composition.
+
+## 10. Next Step
+
+Next, you will render real values and lists from data inside components.`,
     order: 4,
     type: 'ARTICLE',
     difficulty: 'BEGINNER',
@@ -373,11 +695,19 @@ Components help you split UI into reusable pieces. Keep them focused, compose th
     description: 'Render values and lists from data in React components.',
     content: `# Rendering data
 
-Most React screens are built from data. The component receives values and turns them into visible UI.
+## 1. Lesson Goal
 
-## Render simple values
+Learn how to render values, arrays, and empty states in React components.
 
-Use JSX expressions to render strings, numbers, and computed values.
+## 2. Why It Matters
+
+Most product UI is data shaped into a screen. Learning paths, lessons, users, notifications, and project reviews all start as data.
+
+If you can render data clearly, you can build useful screens before adding advanced behavior.
+
+## 3. Core Concept
+
+Render simple values with JSX expressions:
 
 \`\`\`tsx
 function ProfileSummary({ name }: { name: string }) {
@@ -385,31 +715,104 @@ function ProfileSummary({ name }: { name: string }) {
 }
 \`\`\`
 
-## Render lists
-
-Use \`map\` to render arrays. Each item needs a stable \`key\` so React can track changes.
+Render arrays with \`map\`:
 
 \`\`\`tsx
-const lessons = ['JSX fundamentals', 'Components overview']
+const lessons = [
+  { slug: 'jsx-fundamentals', title: 'JSX fundamentals' },
+  { slug: 'components-overview', title: 'Components overview' },
+]
+\`\`\`
 
+Each rendered item needs a stable \`key\`.
+
+## 4. Mental Model
+
+Think of rendering data as translating a data shape into a UI shape.
+
+A string becomes text. An object becomes a card. An array becomes a list. An empty array becomes an empty state.
+
+## 5. Guided Walkthrough
+
+\`\`\`tsx
 function LessonList() {
   return (
     <ul>
       {lessons.map((lesson) => (
-        <li key={lesson}>{lesson}</li>
+        <li key={lesson.slug}>{lesson.title}</li>
       ))}
     </ul>
   )
 }
 \`\`\`
 
-## Handle empty data
+If there are no lessons, show a useful message:
 
-If an array is empty, show a helpful empty state instead of a blank area.
+\`\`\`tsx
+function LessonList() {
+  if (lessons.length === 0) {
+    return <p>No lessons available yet.</p>
+  }
 
-## Summary
+  return (
+    <ul>
+      {lessons.map((lesson) => (
+        <li key={lesson.slug}>{lesson.title}</li>
+      ))}
+    </ul>
+  )
+}
+\`\`\`
 
-Rendering data means turning values, arrays, and empty states into clear UI. Stable keys and explicit states make the screen easier to reason about.`,
+## 6. Common Mistakes
+
+### Mistake 1: Using the array index as the default key
+
+Indexes can cause confusing UI bugs when items are inserted, removed, or reordered. Prefer stable IDs or slugs.
+
+### Mistake 2: Forgetting the empty state
+
+A blank screen makes users wonder if the app is broken. Empty states explain what happened.
+
+### Mistake 3: Doing too much inside \`map\`
+
+If each item becomes complex, extract an item component.
+
+## 7. Practice Task
+
+Build a \`LessonOverviewList\` component.
+
+Requirements:
+
+1. Create an array of lesson objects with \`slug\`, \`title\`, and \`difficulty\`.
+2. Render one list item for each lesson.
+3. Use a stable key.
+4. Show the lesson title and difficulty.
+5. Add an empty state branch.
+
+The goal is to practice turning arrays into UI.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- Your data has stable identifiers.
+- Your list uses a stable key.
+- Your empty state is visible when the array is empty.
+- Your JSX inside \`map\` stays readable.
+- You can explain why keys help React track list items.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why is a stable key important when rendering a list?
+
+Your answer should mention helping React track items across renders.
+
+## 10. Next Step
+
+Next, you will combine the React basics into one small UI section.`,
     order: 5,
     type: 'EXERCISE',
     difficulty: 'BEGINNER',
@@ -421,11 +824,35 @@ Rendering data means turning values, arrays, and empty states into clear UI. Sta
     description: 'Practice the React basics by building a small UI section.',
     content: `# Basic practice
 
-Practice helps connect the ideas from the previous lessons. The goal is to build a small section using JSX, components, props, and list rendering.
+## 1. Lesson Goal
 
-## Build a lesson card
+Combine React basics by building a small static learning path preview from components, JSX, and rendered data.
 
-Create a component that receives a title, description, and difficulty.
+## 2. Why It Matters
+
+Individual concepts matter, but real engineering work combines them. Even a simple product section needs component boundaries, readable JSX, data rendering, and empty state thinking.
+
+This lesson turns the module into a small build.
+
+## 3. Core Concept
+
+A basic React UI usually combines:
+
+1. Components for structure.
+2. JSX for markup.
+3. Data values for content.
+4. Lists for repeated UI.
+5. Empty states for missing data.
+
+## 4. Mental Model
+
+Think from the screen backward.
+
+First identify the sections a user sees. Then identify repeated pieces. Then decide what data each piece needs. Finally, render the data with JSX.
+
+## 5. Guided Walkthrough
+
+Start with a reusable card:
 
 \`\`\`tsx
 type LessonCardProps = {
@@ -445,23 +872,274 @@ function LessonCard({ title, description, difficulty }: LessonCardProps) {
 }
 \`\`\`
 
-## Render a small list
+Then render a list of lesson data:
 
-Create an array of lessons and render one card for each item. Use a stable key such as a slug.
+\`\`\`tsx
+const lessons = [
+  {
+    slug: 'what-is-react',
+    title: 'What is React?',
+    description: 'Understand the role of React.',
+    difficulty: 'Beginner',
+  },
+]
+\`\`\`
 
-## Check the result
+The final screen should read like a real product section, even if the data is local.
 
-Make sure each card shows the correct data and the component still looks clear when descriptions are longer.
+## 6. Common Mistakes
 
-## Summary
+### Mistake 1: Building everything in one component
 
-This practice combines the basics: JSX for structure, props for data, and list rendering for repeated UI.`,
+The point is to practice composition. Split repeated lesson UI into a card component.
+
+### Mistake 2: Hardcoding repeated markup
+
+If three cards have the same shape, use data and \`map\`.
+
+### Mistake 3: Skipping empty states
+
+Even static practice should include the habit of handling no data.
+
+## 7. Practice Task
+
+Build a \`LearningPathPreview\` component.
+
+Requirements:
+
+1. Create a \`LessonCard\` component.
+2. Create local lesson data with at least three lessons.
+3. Render the lessons with \`map\`.
+4. Use a stable key.
+5. Show title, description, and difficulty for each lesson.
+6. Include an empty state branch.
+7. Keep the UI static; do not add state yet.
+
+The goal is to combine the module fundamentals into one coherent UI.
+
+## 8. Self-Check
+
+Before marking this module complete, check that:
+
+- You used at least two components.
+- Repeated cards come from data.
+- Each list item has a stable key.
+- The empty state is handled.
+- Component names explain their responsibility.
+- You can explain how JSX, components, and data rendering work together.
+
+## 9. Reflection
+
+In three to five sentences, explain your component design:
+
+- Which parts became separate components?
+- What data did you render?
+- Where did you use a stable key?
+- What would change if the lesson data came from an API later?
+
+This reflection prepares you to discuss basic React UI work in review.
+
+## 10. Next Step
+
+Next, you will move into Components and Props, where these static components become reusable through explicit inputs.`,
     order: 6,
     type: 'EXERCISE',
     difficulty: 'BEGINNER',
     isPublished: true,
   },
 ]
+
+const reactBasicsStarterCodeBySlug = {
+  'what-is-react': `export function LearningStatus() {
+  const pathName = 'React Basics'
+  const lessonCount = 6
+
+  return (
+    <section aria-labelledby="learning-status-heading">
+      <h2 id="learning-status-heading">{/* TODO: show the path name. */}</h2>
+      <p>{/* TODO: show how many lessons are available. */}</p>
+      <p>{/* TODO: tell the learner what to do next. */}</p>
+    </section>
+  )
+}`,
+  'setting-up-a-react-project': `export function ProjectMap() {
+  const projectParts = [
+    // TODO: add package scripts, source folder, and app entry point.
+  ]
+
+  return (
+    <section aria-labelledby="project-map-heading">
+      <h2 id="project-map-heading">Project map</h2>
+
+      {/* TODO: render each project part with a short description. */}
+    </section>
+  )
+}`,
+  'jsx-fundamentals': `export function ProfileBadge() {
+  const userName = 'Ada'
+  const role = 'Frontend learner'
+  const completedLessons = 3
+
+  return (
+    <section>
+      {/* TODO: use JSX expressions to render the values above. */}
+      {/* TODO: add a className to one element. */}
+    </section>
+  )
+}`,
+  'components-overview': `function WelcomePanel() {
+  return null
+}
+
+function ProgressSummary() {
+  return null
+}
+
+function NextLessonCard() {
+  return null
+}
+
+export function DashboardPreview() {
+  return (
+    <main>
+      {/* TODO: compose the three focused components here. */}
+    </main>
+  )
+}`,
+  'rendering-data': `type Lesson = {
+  slug: string
+  title: string
+  difficulty: string
+}
+
+const lessons: Lesson[] = [
+  // TODO: add at least three lesson objects.
+]
+
+export function LessonOverviewList() {
+  // TODO: handle the empty state.
+
+  return (
+    <ul>
+      {/* TODO: render lessons with map and a stable key. */}
+    </ul>
+  )
+}`,
+  'basic-practice': `type Lesson = {
+  slug: string
+  title: string
+  description: string
+  difficulty: string
+}
+
+function LessonCard() {
+  // TODO: decide what data this card needs.
+  return null
+}
+
+export function LearningPathPreview() {
+  const lessons: Lesson[] = [
+    // TODO: add at least three lessons.
+  ]
+
+  // TODO: handle the empty state.
+
+  return (
+    <section aria-labelledby="learning-path-preview-heading">
+      <h2 id="learning-path-preview-heading">React Basics</h2>
+      {/* TODO: render lesson cards from data. */}
+    </section>
+  )
+}`,
+}
+
+const reactBasicsPredictionTasksBySlug = {
+  'what-is-react': {
+    title: 'Prediction',
+    description: 'Predict what React is responsible for.',
+    prompt: 'Which statement best describes React in a frontend application?',
+    starterCode: null,
+    options: [
+      {
+        id: 'complete-platform',
+        label:
+          'React is a complete platform that handles UI, database, authentication, and deployment.',
+      },
+      {
+        id: 'ui-library',
+        label: 'React is a UI library for building interfaces from components.',
+      },
+      {
+        id: 'css-replacement',
+        label: 'React replaces HTML and CSS with JavaScript.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'ui-library',
+      responses: {
+        'complete-platform':
+          'Not quite. React focuses on UI. A full product still needs routing, data, auth, styling, testing, and deployment decisions.',
+        'ui-library':
+          'Correct. React helps you build user interfaces by composing components and rendering UI from data.',
+        'css-replacement':
+          'Not quite. React still uses markup concepts and styling. It organizes UI with components rather than replacing HTML and CSS entirely.',
+      },
+    },
+    validation: {
+      correctOptionId: 'ui-library',
+    },
+    metadata: {
+      reason:
+        'Clarifies the most common beginner misconception about React scope.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+  'jsx-fundamentals': {
+    title: 'Prediction',
+    description: 'Predict how JSX connects JavaScript values to UI.',
+    prompt: 'What appears in the paragraph when this component renders?',
+    starterCode: `const userName = 'Ada'
+
+function Greeting() {
+  return <p>Hello, {userName}</p>
+}`,
+    options: [
+      {
+        id: 'literal-expression',
+        label: 'Hello, {userName}',
+      },
+      {
+        id: 'evaluated-expression',
+        label: 'Hello, Ada',
+      },
+      {
+        id: 'syntax-error',
+        label: 'Nothing. Curly braces are not allowed in JSX.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'evaluated-expression',
+      responses: {
+        'literal-expression':
+          'Not quite. Curly braces open a JavaScript expression, so React uses the value of the variable.',
+        'evaluated-expression':
+          'Correct. JSX evaluates the expression inside curly braces and renders the variable value.',
+        'syntax-error':
+          'Not quite. Curly braces are the normal way to place JavaScript expressions inside JSX.',
+      },
+    },
+    validation: {
+      correctOptionId: 'evaluated-expression',
+    },
+    metadata: {
+      reason:
+        'Prediction helps learners distinguish JSX text from JavaScript expressions.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+}
 
 const componentsAndPropsLessons = [
   {
@@ -1019,6 +1697,72 @@ const reflectionValidation = {
   minCharacters: 40,
 }
 
+function createReactBasicsCodeTaskForLesson(lesson, order) {
+  const starterCode = reactBasicsStarterCodeBySlug[lesson.slug]
+
+  return {
+    title: 'Practice task',
+    description: lesson.description,
+    prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
+    starterCode,
+    options: undefined,
+    feedback: undefined,
+    validation: {
+      rejectUnchangedStarter: true,
+      starterCodeHash: hashStarterCode(starterCode),
+      normalization: 'trim',
+    },
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'react-basics',
+      sourceSection: 'Practice Task',
+    },
+    type: 'CODE',
+    order,
+    isRequired: true,
+  }
+}
+
+function createReactBasicsReflectionTaskForLesson(lesson, order) {
+  return {
+    title: 'Reflection',
+    description: 'Explain the concept in your own words before moving on.',
+    prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
+    starterCode: undefined,
+    options: undefined,
+    feedback: undefined,
+    validation: reflectionValidation,
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'react-basics',
+      sourceSection: 'Reflection',
+    },
+    type: 'REFLECTION',
+    order,
+    isRequired: true,
+  }
+}
+
+function createReactBasicsTasksForLesson(lesson) {
+  const predictionTask = reactBasicsPredictionTasksBySlug[lesson.slug]
+
+  if (predictionTask) {
+    return [
+      {
+        ...predictionTask,
+        order: 1,
+      },
+      createReactBasicsCodeTaskForLesson(lesson, 2),
+      createReactBasicsReflectionTaskForLesson(lesson, 3),
+    ]
+  }
+
+  return [
+    createReactBasicsCodeTaskForLesson(lesson, 1),
+    createReactBasicsReflectionTaskForLesson(lesson, 2),
+  ]
+}
+
 function createCodeTaskForLesson(lesson, order) {
   const starterCode = stateAndEventsStarterCodeBySlug[lesson.slug]
 
@@ -1245,6 +1989,41 @@ async function main() {
     })
   }
 
+  let reactBasicsTaskCount = 0
+
+  for (const lesson of reactBasicsLessons) {
+    const seededLesson = await prisma.lesson.findUniqueOrThrow({
+      where: {
+        moduleId_slug: {
+          moduleId: reactBasicsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const tasks = createReactBasicsTasksForLesson(lesson)
+
+    for (const task of tasks) {
+      await prisma.lessonTask.upsert({
+        where: {
+          lessonId_order: {
+            lessonId: seededLesson.id,
+            order: task.order,
+          },
+        },
+        update: task,
+        create: {
+          ...task,
+          lessonId: seededLesson.id,
+        },
+      })
+    }
+
+    reactBasicsTaskCount += tasks.length
+  }
+
   const componentsAndPropsModule = await prisma.module.findUniqueOrThrow({
     where: {
       technologyId_slug: {
@@ -1343,6 +2122,7 @@ async function main() {
   )
   console.log(`Seeded ${reactModules.length} React modules.`)
   console.log(`Seeded ${reactBasicsLessons.length} React Basics lessons.`)
+  console.log(`Seeded ${reactBasicsTaskCount} React Basics tasks.`)
   console.log(
     `Seeded ${componentsAndPropsLessons.length} Components and Props lessons.`,
   )
