@@ -97,14 +97,14 @@ const predictionOptions = [
 
 type PredictionOptionId = (typeof predictionOptions)[number]['id']
 
-const goldenLessonSteps = [
+const lessonFlowSteps = [
   { id: 'predict', label: 'Predict' },
   { id: 'learn', label: 'Learn' },
   { id: 'practice', label: 'Practice' },
   { id: 'reflect', label: 'Reflect' },
 ] as const
 
-type GoldenLessonStepId = (typeof goldenLessonSteps)[number]['id']
+type LessonFlowStepId = (typeof lessonFlowSteps)[number]['id']
 
 const notificationToggleStarterCode = `import { useState } from 'react'
 
@@ -129,6 +129,23 @@ export function NotificationToggle() {
     </section>
   )
 }`
+
+const defaultPracticeStarterCode = `// Use this space for your practice solution.
+// Keep the code focused on this lesson's Practice Task.
+
+export function PracticeAttempt() {
+  // TODO: write your component or function here.
+
+  return null
+}`
+
+function getPracticeStarterCode(currentLessonSlug?: string) {
+  if (currentLessonSlug === 'local-state-with-usestate') {
+    return notificationToggleStarterCode
+  }
+
+  return defaultPracticeStarterCode
+}
 
 function getMarkdownBeforeSection(markdown: string, sectionHeading: string) {
   const lines = markdown.split('\n')
@@ -161,17 +178,24 @@ function getMarkdownSection(markdown: string, sectionHeading: string) {
 
 function LessonStepProgress({
   currentStep,
+  hasPredictionStep,
 }: {
-  currentStep: GoldenLessonStepId
+  currentStep: LessonFlowStepId
+  hasPredictionStep: boolean
 }) {
-  const currentStepIndex = goldenLessonSteps.findIndex(
+  const visibleSteps = hasPredictionStep
+    ? lessonFlowSteps
+    : lessonFlowSteps.filter((step) => step.id !== 'predict')
+  const currentStepIndex = visibleSteps.findIndex(
     (step) => step.id === currentStep,
   )
 
   return (
     <nav aria-label="Lesson steps" className="border-b py-6">
-      <ol className="grid gap-3 sm:grid-cols-4">
-        {goldenLessonSteps.map((step, index) => {
+      <ol
+        className={`grid gap-3 ${hasPredictionStep ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}
+      >
+        {visibleSteps.map((step, index) => {
           const isCurrent = step.id === currentStep
           const isComplete = index < currentStepIndex
 
@@ -410,10 +434,10 @@ export function LessonPage() {
   const [predictionAnswer, setPredictionAnswer] =
     useState<PredictionOptionId | null>(null)
   const [isPredictionRevealed, setIsPredictionRevealed] = useState(false)
-  const [goldenLessonStep, setGoldenLessonStep] =
-    useState<GoldenLessonStepId>('predict')
+  const [lessonFlowStep, setLessonFlowStep] =
+    useState<LessonFlowStepId>('learn')
   const [practiceAttempt, setPracticeAttempt] = useState(
-    notificationToggleStarterCode,
+    getPracticeStarterCode(),
   )
   const [isPracticeAttemptSaved, setIsPracticeAttemptSaved] = useState(false)
   const [reflectionAnswer, setReflectionAnswer] = useState('')
@@ -442,10 +466,15 @@ export function LessonPage() {
         data: null,
         error: '',
       })
+      const startsWithPrediction =
+        technologySlug === 'react' &&
+        moduleSlug === 'state-and-events' &&
+        lessonSlug === 'local-state-with-usestate'
+
       setPredictionAnswer(null)
       setIsPredictionRevealed(false)
-      setGoldenLessonStep('predict')
-      setPracticeAttempt(notificationToggleStarterCode)
+      setLessonFlowStep(startsWithPrediction ? 'predict' : 'learn')
+      setPracticeAttempt(getPracticeStarterCode(lessonSlug))
       setIsPracticeAttemptSaved(false)
       setReflectionAnswer('')
       setIsReflectionAccepted(false)
@@ -616,23 +645,23 @@ export function LessonPage() {
     ? getEstimatedReadingTime(lessonDetails.lesson.content ?? '')
     : null
   const isLessonCompleted = progressState.data?.status === 'COMPLETED'
-  const isGoldenLesson =
-    technologySlug === 'react' &&
-    moduleSlug === 'state-and-events' &&
-    lessonSlug === 'local-state-with-usestate'
+  const usesStepLessonFlow =
+    technologySlug === 'react' && moduleSlug === 'state-and-events'
+  const hasPredictionStep =
+    usesStepLessonFlow && lessonSlug === 'local-state-with-usestate'
   const selectedPrediction = predictionOptions.find(
     (option) => option.id === predictionAnswer,
   )
   const lessonMarkdown = lessonDetails?.lesson.content ?? ''
-  const goldenLessonLearnMarkdown = getMarkdownBeforeSection(
+  const stepLessonLearnMarkdown = getMarkdownBeforeSection(
     lessonMarkdown,
     '## 7. Practice Task',
   )
-  const goldenLessonPracticeMarkdown = getMarkdownSection(
+  const stepLessonPracticeMarkdown = getMarkdownSection(
     lessonMarkdown,
     '## 7. Practice Task',
   )
-  const goldenLessonReflectionMarkdown = getMarkdownSection(
+  const stepLessonReflectionMarkdown = getMarkdownSection(
     lessonMarkdown,
     '## 9. Reflection',
   )
@@ -642,7 +671,7 @@ export function LessonPage() {
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
   const canAcceptReflection =
     reflectionCharacterCount >= 40 && reflectionWordCount >= 6
-  const canUseLessonFinishFlow = !isGoldenLesson || isReflectionAccepted
+  const canUseLessonFinishFlow = !usesStepLessonFlow || isReflectionAccepted
 
   return (
     <div className="grid gap-6">
@@ -742,11 +771,14 @@ export function LessonPage() {
               </div>
             </section>
 
-            {isGoldenLesson ? (
-              <LessonStepProgress currentStep={goldenLessonStep} />
+            {usesStepLessonFlow ? (
+              <LessonStepProgress
+                currentStep={lessonFlowStep}
+                hasPredictionStep={hasPredictionStep}
+              />
             ) : null}
 
-            {isGoldenLesson && goldenLessonStep === 'predict' ? (
+            {hasPredictionStep && lessonFlowStep === 'predict' ? (
               <section
                 aria-labelledby="prediction-heading"
                 className="border-b py-8"
@@ -820,7 +852,7 @@ export function LessonPage() {
                   <CardFooter>
                     {isPredictionRevealed ? (
                       <Button
-                        onClick={() => setGoldenLessonStep('learn')}
+                        onClick={() => setLessonFlowStep('learn')}
                         type="button"
                       >
                         Continue to Learn
@@ -839,7 +871,7 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {!isGoldenLesson || goldenLessonStep === 'learn' ? (
+            {!usesStepLessonFlow || lessonFlowStep === 'learn' ? (
               <section
                 aria-labelledby="lesson-content-heading"
                 className="border-b py-8"
@@ -855,15 +887,15 @@ export function LessonPage() {
                   </div>
                   <article className="grid max-w-3xl gap-5">
                     {renderMarkdown(
-                      isGoldenLesson
-                        ? goldenLessonLearnMarkdown
+                      usesStepLessonFlow
+                        ? stepLessonLearnMarkdown
                         : (lessonDetails.lesson.content ?? ''),
                     )}
                   </article>
-                  {isGoldenLesson ? (
+                  {usesStepLessonFlow ? (
                     <div className="max-w-3xl">
                       <Button
-                        onClick={() => setGoldenLessonStep('practice')}
+                        onClick={() => setLessonFlowStep('practice')}
                         type="button"
                       >
                         Continue to Practice
@@ -874,7 +906,7 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {isGoldenLesson && goldenLessonStep === 'practice' ? (
+            {usesStepLessonFlow && lessonFlowStep === 'practice' ? (
               <section
                 aria-labelledby="golden-practice-heading"
                 className="border-b py-8"
@@ -887,7 +919,7 @@ export function LessonPage() {
                   <CardContent>
                     <div className="grid gap-6">
                       <article className="grid gap-5">
-                        {renderMarkdown(goldenLessonPracticeMarkdown)}
+                        {renderMarkdown(stepLessonPracticeMarkdown)}
                       </article>
 
                       <div className="grid gap-3 rounded-lg border bg-background p-4">
@@ -944,7 +976,7 @@ export function LessonPage() {
                     </Button>
                     <Button
                       disabled={!isPracticeAttemptSaved}
-                      onClick={() => setGoldenLessonStep('reflect')}
+                      onClick={() => setLessonFlowStep('reflect')}
                       type="button"
                     >
                       Continue to Reflect
@@ -954,7 +986,7 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {isGoldenLesson && goldenLessonStep === 'reflect' ? (
+            {usesStepLessonFlow && lessonFlowStep === 'reflect' ? (
               <section
                 aria-labelledby="golden-reflection-heading"
                 className="border-b py-8"
@@ -972,7 +1004,7 @@ export function LessonPage() {
                     </h2>
                   </div>
                   <article className="grid gap-5">
-                    {renderMarkdown(goldenLessonReflectionMarkdown)}
+                    {renderMarkdown(stepLessonReflectionMarkdown)}
                   </article>
                   <div className="grid gap-3 rounded-lg border bg-muted/20 p-4">
                     <div className="grid gap-1">
@@ -1031,7 +1063,7 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {!isGoldenLesson || goldenLessonStep === 'reflect' ? (
+            {!usesStepLessonFlow || lessonFlowStep === 'reflect' ? (
               <section
                 aria-labelledby="lesson-practice-heading"
                 className="border-b py-8"
@@ -1039,11 +1071,11 @@ export function LessonPage() {
                 <Card className="bg-muted/20">
                   <CardHeader>
                     <CardTitle id="lesson-practice-heading">
-                      {isGoldenLesson ? 'Lesson progress' : 'Practice'}
+                      {usesStepLessonFlow ? 'Lesson progress' : 'Practice'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {isGoldenLesson && !isReflectionAccepted ? (
+                    {usesStepLessonFlow && !isReflectionAccepted ? (
                       <p className="text-sm text-muted-foreground">
                         Save your reflection before marking this lesson
                         complete.
@@ -1116,8 +1148,8 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {!isGoldenLesson ||
-            (goldenLessonStep === 'reflect' && isReflectionAccepted) ? (
+            {!usesStepLessonFlow ||
+            (lessonFlowStep === 'reflect' && isReflectionAccepted) ? (
               <section aria-labelledby="lesson-next-heading" className="pt-8">
                 <Card className="bg-background">
                   <CardHeader>
