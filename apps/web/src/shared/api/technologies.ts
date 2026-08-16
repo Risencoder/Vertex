@@ -31,6 +31,43 @@ export type ModuleLesson = {
   }
 }
 
+export type LessonTaskType =
+  'READING' | 'PREDICTION' | 'PRACTICE' | 'CODE' | 'REFLECTION'
+
+export type LessonTaskOption = {
+  id: string
+  label: string
+}
+
+export type LessonTaskFeedback = {
+  correctOptionId?: string
+  responses?: Record<string, string>
+}
+
+export type LessonTaskValidation = {
+  correctOptionId?: string
+  minWords?: number
+  minCharacters?: number
+  rejectUnchangedStarter?: boolean
+  starterCodeHash?: string
+  normalization?: string
+}
+
+export type LessonTask = {
+  id: string
+  title: string
+  description: string | null
+  prompt: string | null
+  starterCode: string | null
+  options: LessonTaskOption[] | null
+  feedback: LessonTaskFeedback | null
+  validation: LessonTaskValidation | null
+  metadata: Record<string, unknown> | null
+  type: LessonTaskType
+  order: number
+  isRequired: boolean
+}
+
 export type LessonDetails = {
   technology: {
     id: string
@@ -44,6 +81,7 @@ export type LessonDetails = {
   }
   lesson: ModuleLesson & {
     content: string | null
+    tasks: LessonTask[]
   }
   previousLesson: Pick<ModuleLesson, 'order' | 'slug' | 'title'> | null
   nextLesson: Pick<ModuleLesson, 'order' | 'slug' | 'title'> | null

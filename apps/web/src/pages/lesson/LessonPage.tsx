@@ -12,6 +12,7 @@ import {
   getLessonByModuleAndTechnologySlug,
   TechnologiesApiError,
   type LessonDetails,
+  type LessonTask,
 } from '@/shared/api/technologies'
 import { formatDifficulty, formatLessonType } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
@@ -74,29 +75,6 @@ type ProgressState =
       error: string
     }
 
-const predictionOptions = [
-  {
-    id: 'increment-once',
-    label: 'The button always shows "Clicked 1 time".',
-    feedback:
-      'This would be true if count were a regular variable recreated on every render. React preserves useState values between renders, so the count can keep increasing.',
-  },
-  {
-    id: 'increment-each-click',
-    label: 'The number increases by 1 after every click.',
-    feedback:
-      'Correct. setCount schedules a render with the next value, and React preserves that state for the component between renders.',
-  },
-  {
-    id: 'no-change',
-    label: 'The number stays at 0 because count is a const.',
-    feedback:
-      'A const prevents reassignment within one render, but setCount does not reassign count. It gives React a new state value to use on the next render.',
-  },
-] as const
-
-type PredictionOptionId = (typeof predictionOptions)[number]['id']
-
 const lessonFlowSteps = [
   { id: 'predict', label: 'Predict' },
   { id: 'learn', label: 'Learn' },
@@ -105,47 +83,7 @@ const lessonFlowSteps = [
 ] as const
 
 type LessonFlowStepId = (typeof lessonFlowSteps)[number]['id']
-
-const notificationToggleStarterCode = `import { useState } from 'react'
-
-export function NotificationToggle() {
-  // TODO: create local state for whether notifications are enabled.
-
-  function handleToggle() {
-    // TODO: update state to the opposite value.
-  }
-
-  return (
-    <section aria-labelledby="notification-heading">
-      <h2 id="notification-heading">Notifications</h2>
-
-      <p>
-        {/* TODO: show whether notifications are enabled or disabled. */}
-      </p>
-
-      <button onClick={handleToggle} type="button">
-        {/* TODO: show a different label for each state. */}
-      </button>
-    </section>
-  )
-}`
-
-const defaultPracticeStarterCode = `// Use this space for your practice solution.
-// Keep the code focused on this lesson's Practice Task.
-
-export function PracticeAttempt() {
-  // TODO: write your component or function here.
-
-  return null
-}`
-
-function getPracticeStarterCode(currentLessonSlug?: string) {
-  if (currentLessonSlug === 'local-state-with-usestate') {
-    return notificationToggleStarterCode
-  }
-
-  return defaultPracticeStarterCode
-}
+type LessonFlowStep = (typeof lessonFlowSteps)[number]
 
 function getMarkdownBeforeSection(markdown: string, sectionHeading: string) {
   const lines = markdown.split('\n')
@@ -158,44 +96,21 @@ function getMarkdownBeforeSection(markdown: string, sectionHeading: string) {
   return lines.slice(0, sectionIndex).join('\n').trim()
 }
 
-function getMarkdownSection(markdown: string, sectionHeading: string) {
-  const lines = markdown.split('\n')
-  const sectionIndex = lines.findIndex((line) => line.trim() === sectionHeading)
-
-  if (sectionIndex === -1) {
-    return ''
-  }
-
-  const nextSectionIndex = lines.findIndex(
-    (line, index) => index > sectionIndex && /^## \d+\./.test(line.trim()),
-  )
-
-  return lines
-    .slice(sectionIndex, nextSectionIndex === -1 ? undefined : nextSectionIndex)
-    .join('\n')
-    .trim()
-}
-
 function LessonStepProgress({
   currentStep,
-  hasPredictionStep,
+  steps,
 }: {
   currentStep: LessonFlowStepId
-  hasPredictionStep: boolean
+  steps: LessonFlowStep[]
 }) {
-  const visibleSteps = hasPredictionStep
-    ? lessonFlowSteps
-    : lessonFlowSteps.filter((step) => step.id !== 'predict')
-  const currentStepIndex = visibleSteps.findIndex(
-    (step) => step.id === currentStep,
-  )
+  const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
 
   return (
     <nav aria-label="Lesson steps" className="border-b py-6">
       <ol
-        className={`grid gap-3 ${hasPredictionStep ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}
+        className={`grid gap-3 ${steps.length === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}
       >
-        {visibleSteps.map((step, index) => {
+        {steps.map((step, index) => {
           const isCurrent = step.id === currentStep
           const isComplete = index < currentStepIndex
 
@@ -417,6 +332,55 @@ function getEstimatedReadingTime(content: string) {
   return `${Math.max(3, Math.ceil(wordCount / 180))} min read`
 }
 
+function getTaskByType(tasks: LessonTask[], type: LessonTask['type']) {
+  return tasks.find((task) => task.type === type)
+}
+
+function getLessonFlowSteps(tasks: LessonTask[]) {
+  const steps: LessonFlowStep[] = []
+
+  if (getTaskByType(tasks, 'PREDICTION')) {
+    steps.push(lessonFlowSteps[0])
+  }
+
+  steps.push(lessonFlowSteps[1])
+
+  if (getTaskByType(tasks, 'CODE')) {
+    steps.push(lessonFlowSteps[2])
+  }
+
+  if (getTaskByType(tasks, 'REFLECTION')) {
+    steps.push(lessonFlowSteps[3])
+  }
+
+  return steps
+}
+
+function getInitialLessonFlowStep(tasks: LessonTask[]): LessonFlowStepId {
+  return getTaskByType(tasks, 'PREDICTION') ? 'predict' : 'learn'
+}
+
+function getNextLessonFlowStep(
+  steps: LessonFlowStep[],
+  currentStep: LessonFlowStepId,
+) {
+  const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
+
+  return steps[currentStepIndex + 1]?.id ?? null
+}
+
+function normalizeAttempt(value: string, normalization?: string) {
+  if (normalization === 'trim') {
+    return value.trim()
+  }
+
+  return value
+}
+
+function getCorrectPredictionOptionId(task?: LessonTask) {
+  return task?.validation?.correctOptionId ?? task?.feedback?.correctOptionId
+}
+
 export function LessonPage() {
   const { lessonSlug, moduleSlug, technologySlug } = useParams()
   const { session } = useRootLayout()
@@ -431,14 +395,11 @@ export function LessonPage() {
     error: '',
   })
   const [isCompletingLesson, setIsCompletingLesson] = useState(false)
-  const [predictionAnswer, setPredictionAnswer] =
-    useState<PredictionOptionId | null>(null)
+  const [predictionAnswer, setPredictionAnswer] = useState<string | null>(null)
   const [isPredictionRevealed, setIsPredictionRevealed] = useState(false)
   const [lessonFlowStep, setLessonFlowStep] =
     useState<LessonFlowStepId>('learn')
-  const [practiceAttempt, setPracticeAttempt] = useState(
-    getPracticeStarterCode(),
-  )
+  const [practiceAttempt, setPracticeAttempt] = useState('')
   const [isPracticeAttemptSaved, setIsPracticeAttemptSaved] = useState(false)
   const [reflectionAnswer, setReflectionAnswer] = useState('')
   const [isReflectionAccepted, setIsReflectionAccepted] = useState(false)
@@ -466,15 +427,11 @@ export function LessonPage() {
         data: null,
         error: '',
       })
-      const startsWithPrediction =
-        technologySlug === 'react' &&
-        moduleSlug === 'state-and-events' &&
-        lessonSlug === 'local-state-with-usestate'
 
       setPredictionAnswer(null)
       setIsPredictionRevealed(false)
-      setLessonFlowStep(startsWithPrediction ? 'predict' : 'learn')
-      setPracticeAttempt(getPracticeStarterCode(lessonSlug))
+      setLessonFlowStep('learn')
+      setPracticeAttempt('')
       setIsPracticeAttemptSaved(false)
       setReflectionAnswer('')
       setIsReflectionAccepted(false)
@@ -486,12 +443,16 @@ export function LessonPage() {
           lessonSlug,
           abortController.signal,
         )
+        const tasks = lessonDetails.lesson.tasks ?? []
+        const codeTask = getTaskByType(tasks, 'CODE')
 
         setLessonState({
           status: 'success',
           data: lessonDetails,
           error: '',
         })
+        setLessonFlowStep(getInitialLessonFlowStep(tasks))
+        setPracticeAttempt(codeTask?.starterCode ?? '')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
@@ -645,33 +606,54 @@ export function LessonPage() {
     ? getEstimatedReadingTime(lessonDetails.lesson.content ?? '')
     : null
   const isLessonCompleted = progressState.data?.status === 'COMPLETED'
-  const usesStepLessonFlow =
-    technologySlug === 'react' && moduleSlug === 'state-and-events'
-  const hasPredictionStep =
-    usesStepLessonFlow && lessonSlug === 'local-state-with-usestate'
-  const selectedPrediction = predictionOptions.find(
+  const lessonTasks = lessonDetails?.lesson.tasks ?? []
+  const predictionTask = getTaskByType(lessonTasks, 'PREDICTION')
+  const codeTask = getTaskByType(lessonTasks, 'CODE')
+  const reflectionTask = getTaskByType(lessonTasks, 'REFLECTION')
+  const lessonFlow = getLessonFlowSteps(lessonTasks)
+  const usesStepLessonFlow = lessonTasks.some((task) =>
+    ['PREDICTION', 'CODE', 'REFLECTION'].includes(task.type),
+  )
+  const selectedPrediction = predictionTask?.options?.find(
     (option) => option.id === predictionAnswer,
   )
+  const correctPredictionOptionId = getCorrectPredictionOptionId(predictionTask)
+  const selectedPredictionFeedback = predictionAnswer
+    ? predictionTask?.feedback?.responses?.[predictionAnswer]
+    : undefined
   const lessonMarkdown = lessonDetails?.lesson.content ?? ''
   const stepLessonLearnMarkdown = getMarkdownBeforeSection(
     lessonMarkdown,
     '## 7. Practice Task',
   )
-  const stepLessonPracticeMarkdown = getMarkdownSection(
-    lessonMarkdown,
-    '## 7. Practice Task',
+  const normalizedPracticeAttempt = normalizeAttempt(
+    practiceAttempt,
+    codeTask?.validation?.normalization,
   )
-  const stepLessonReflectionMarkdown = getMarkdownSection(
-    lessonMarkdown,
-    '## 9. Reflection',
+  const normalizedStarterCode = normalizeAttempt(
+    codeTask?.starterCode ?? '',
+    codeTask?.validation?.normalization,
   )
-  const canSavePracticeAttempt = practiceAttempt.trim().length > 0
+  const isUnchangedStarterAttempt =
+    Boolean(codeTask?.validation?.rejectUnchangedStarter) &&
+    normalizedPracticeAttempt === normalizedStarterCode
+  const canSavePracticeAttempt =
+    practiceAttempt.trim().length > 0 && !isUnchangedStarterAttempt
   const reflectionText = reflectionAnswer.trim()
   const reflectionCharacterCount = reflectionText.length
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
+  const reflectionMinWords = reflectionTask?.validation?.minWords ?? 1
+  const reflectionMinCharacters = reflectionTask?.validation?.minCharacters ?? 1
   const canAcceptReflection =
-    reflectionCharacterCount >= 40 && reflectionWordCount >= 6
-  const canUseLessonFinishFlow = !usesStepLessonFlow || isReflectionAccepted
+    reflectionCharacterCount >= reflectionMinCharacters &&
+    reflectionWordCount >= reflectionMinWords
+  const nextStepAfterLearn = getNextLessonFlowStep(lessonFlow, 'learn')
+  const nextStepAfterPractice = getNextLessonFlowStep(lessonFlow, 'practice')
+  const finalLessonFlowStep = lessonFlow[lessonFlow.length - 1]?.id
+  const isAtFinalLessonFlowStep = lessonFlowStep === finalLessonFlowStep
+  const requiresReflection = Boolean(reflectionTask?.isRequired)
+  const canUseLessonFinishFlow =
+    !usesStepLessonFlow || !requiresReflection || isReflectionAccepted
 
   return (
     <div className="grid gap-6">
@@ -774,11 +756,11 @@ export function LessonPage() {
             {usesStepLessonFlow ? (
               <LessonStepProgress
                 currentStep={lessonFlowStep}
-                hasPredictionStep={hasPredictionStep}
+                steps={lessonFlow}
               />
             ) : null}
 
-            {hasPredictionStep && lessonFlowStep === 'predict' ? (
+            {predictionTask && lessonFlowStep === 'predict' ? (
               <section
                 aria-labelledby="prediction-heading"
                 className="border-b py-8"
@@ -787,27 +769,21 @@ export function LessonPage() {
                   <CardHeader>
                     <CardDescription>Before you continue</CardDescription>
                     <CardTitle id="prediction-heading">
-                      What happens each time the button is clicked?
+                      {predictionTask.prompt}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="grid gap-5">
-                    <pre className="overflow-x-auto rounded-lg border bg-background p-4 text-sm leading-6">
-                      <code>{`function Counter() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <button onClick={() => setCount(count + 1)}>
-      Clicked {count} times
-    </button>
-  )
-}`}</code>
-                    </pre>
+                    {predictionTask.starterCode ? (
+                      <pre className="overflow-x-auto rounded-lg border bg-background p-4 text-sm leading-6">
+                        <code>{predictionTask.starterCode}</code>
+                      </pre>
+                    ) : null}
 
                     <fieldset className="grid gap-3">
                       <legend className="sr-only">
-                        Choose what the counter displays after each click
+                        Choose your prediction
                       </legend>
-                      {predictionOptions.map((option) => (
+                      {predictionTask.options?.map((option) => (
                         <label
                           className="flex cursor-pointer items-start gap-3 rounded-lg border bg-background p-4 text-sm leading-6 transition-colors hover:bg-muted/50 has-checked:border-primary has-checked:ring-2 has-checked:ring-primary/20"
                           key={option.id}
@@ -835,12 +811,12 @@ export function LessonPage() {
                         role="status"
                       >
                         <p className="font-medium">
-                          {selectedPrediction.id === 'increment-each-click'
+                          {selectedPrediction.id === correctPredictionOptionId
                             ? 'That is right'
                             : 'Not quite'}
                         </p>
                         <p className="text-sm leading-6 text-muted-foreground">
-                          {selectedPrediction.feedback}
+                          {selectedPredictionFeedback}
                         </p>
                       </div>
                     ) : (
@@ -892,13 +868,15 @@ export function LessonPage() {
                         : (lessonDetails.lesson.content ?? ''),
                     )}
                   </article>
-                  {usesStepLessonFlow ? (
+                  {usesStepLessonFlow && nextStepAfterLearn ? (
                     <div className="max-w-3xl">
                       <Button
-                        onClick={() => setLessonFlowStep('practice')}
+                        onClick={() => setLessonFlowStep(nextStepAfterLearn)}
                         type="button"
                       >
-                        Continue to Practice
+                        {nextStepAfterLearn === 'practice'
+                          ? 'Continue to Practice'
+                          : 'Continue to Reflect'}
                       </Button>
                     </div>
                   ) : null}
@@ -906,42 +884,44 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {usesStepLessonFlow && lessonFlowStep === 'practice' ? (
+            {codeTask && lessonFlowStep === 'practice' ? (
               <section
-                aria-labelledby="golden-practice-heading"
+                aria-labelledby="lesson-code-task-heading"
                 className="border-b py-8"
               >
                 <Card className="max-w-3xl bg-muted/20">
                   <CardHeader>
                     <CardDescription>Apply the idea</CardDescription>
-                    <CardTitle id="golden-practice-heading">Practice</CardTitle>
+                    <CardTitle id="lesson-code-task-heading">
+                      {codeTask.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-6">
                       <article className="grid gap-5">
-                        {renderMarkdown(stepLessonPracticeMarkdown)}
+                        {renderMarkdown(codeTask.prompt ?? '')}
                       </article>
 
                       <div className="grid gap-3 rounded-lg border bg-background p-4">
                         <div className="grid gap-1">
                           <label
                             className="text-sm font-medium"
-                            htmlFor="notification-toggle-attempt"
+                            htmlFor="lesson-code-attempt"
                           >
                             Your coding attempt
                           </label>
                           <p
                             className="text-sm leading-6 text-muted-foreground"
-                            id="notification-toggle-attempt-help"
+                            id="lesson-code-attempt-help"
                           >
                             Edit the starter code below. Save your attempt when
                             you have a version you would be ready to discuss.
                           </p>
                         </div>
                         <textarea
-                          aria-describedby="notification-toggle-attempt-help"
+                          aria-describedby="lesson-code-attempt-help"
                           className="min-h-80 w-full resize-y rounded-lg border bg-muted/30 p-4 font-mono text-sm leading-6 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ring"
-                          id="notification-toggle-attempt"
+                          id="lesson-code-attempt"
                           onChange={(event) => {
                             setPracticeAttempt(event.target.value)
                             setIsPracticeAttemptSaved(false)
@@ -956,6 +936,10 @@ export function LessonPage() {
                           >
                             Attempt saved locally. You can continue to
                             reflection.
+                          </p>
+                        ) : isUnchangedStarterAttempt ? (
+                          <p className="text-sm text-muted-foreground">
+                            Change the starter code before saving your attempt.
                           </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
@@ -974,21 +958,23 @@ export function LessonPage() {
                     >
                       Save attempt
                     </Button>
-                    <Button
-                      disabled={!isPracticeAttemptSaved}
-                      onClick={() => setLessonFlowStep('reflect')}
-                      type="button"
-                    >
-                      Continue to Reflect
-                    </Button>
+                    {nextStepAfterPractice ? (
+                      <Button
+                        disabled={!isPracticeAttemptSaved}
+                        onClick={() => setLessonFlowStep(nextStepAfterPractice)}
+                        type="button"
+                      >
+                        Continue to Reflect
+                      </Button>
+                    ) : null}
                   </CardFooter>
                 </Card>
               </section>
             ) : null}
 
-            {usesStepLessonFlow && lessonFlowStep === 'reflect' ? (
+            {reflectionTask && lessonFlowStep === 'reflect' ? (
               <section
-                aria-labelledby="golden-reflection-heading"
+                aria-labelledby="lesson-reflection-heading"
                 className="border-b py-8"
               >
                 <div className="grid max-w-3xl gap-6">
@@ -998,13 +984,13 @@ export function LessonPage() {
                     </p>
                     <h2
                       className="font-heading text-2xl font-semibold leading-tight"
-                      id="golden-reflection-heading"
+                      id="lesson-reflection-heading"
                     >
-                      Reflect
+                      {reflectionTask.title}
                     </h2>
                   </div>
                   <article className="grid gap-5">
-                    {renderMarkdown(stepLessonReflectionMarkdown)}
+                    {renderMarkdown(reflectionTask.prompt ?? '')}
                   </article>
                   <div className="grid gap-3 rounded-lg border bg-muted/20 p-4">
                     <div className="grid gap-1">
@@ -1041,7 +1027,8 @@ export function LessonPage() {
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        Write at least 6 words and 40 characters before saving.
+                        Write at least {reflectionMinWords} words and{' '}
+                        {reflectionMinCharacters} characters before saving.
                         Current: {reflectionWordCount} words,{' '}
                         {reflectionCharacterCount} characters.
                       </p>
@@ -1063,7 +1050,7 @@ export function LessonPage() {
               </section>
             ) : null}
 
-            {!usesStepLessonFlow || lessonFlowStep === 'reflect' ? (
+            {!usesStepLessonFlow || isAtFinalLessonFlowStep ? (
               <section
                 aria-labelledby="lesson-practice-heading"
                 className="border-b py-8"
@@ -1149,7 +1136,7 @@ export function LessonPage() {
             ) : null}
 
             {!usesStepLessonFlow ||
-            (lessonFlowStep === 'reflect' && isReflectionAccepted) ? (
+            (isAtFinalLessonFlowStep && canUseLessonFinishFlow) ? (
               <section aria-labelledby="lesson-next-heading" className="pt-8">
                 <Card className="bg-background">
                   <CardHeader>
