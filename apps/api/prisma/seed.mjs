@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { loadEnvFile } from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -19,6 +19,17 @@ const prisma = new PrismaClient({
     connectionString: process.env.DATABASE_URL ?? '',
   }),
 })
+
+function readMarkdownLesson(fileName) {
+  return readFileSync(
+    resolve(
+      prismaRoot,
+      '../../../docs/content/react/state-and-events',
+      fileName,
+    ),
+    'utf8',
+  )
+}
 
 const learningPaths = [
   {
@@ -733,6 +744,74 @@ Practice helps make component boundaries feel natural. Extract repeated UI, type
   },
 ]
 
+const stateAndEventsLessons = [
+  {
+    slug: 'local-state-with-usestate',
+    title: 'Local State with useState',
+    description:
+      'Understand local component state and how useState drives UI updates.',
+    content: readMarkdownLesson('01-local-state-with-usestate.md'),
+    order: 1,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'updating-state-safely',
+    title: 'Updating State Safely',
+    description:
+      'Use updater functions when the next state depends on the previous state.',
+    content: readMarkdownLesson('02-updating-state-safely.md'),
+    order: 2,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'handling-user-events',
+    title: 'Handling User Events',
+    description:
+      'Connect user actions to component behavior with clear event handlers.',
+    content: readMarkdownLesson('03-handling-user-events.md'),
+    order: 3,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'controlled-form-inputs',
+    title: 'Controlled Form Inputs',
+    description: 'Keep form values in React state with value and onChange.',
+    content: readMarkdownLesson('04-controlled-form-inputs.md'),
+    order: 4,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'derived-ui-state',
+    title: 'Derived UI State',
+    description:
+      'Calculate UI values from existing state instead of duplicating data.',
+    content: readMarkdownLesson('05-derived-ui-state.md'),
+    order: 5,
+    type: 'ARTICLE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+  {
+    slug: 'state-and-events-practice',
+    title: 'State and Events Practice',
+    description:
+      'Combine local state, safe updates, events, controlled inputs, and derived state.',
+    content: readMarkdownLesson('06-state-and-events-practice.md'),
+    order: 6,
+    type: 'EXERCISE',
+    difficulty: 'BEGINNER',
+    isPublished: true,
+  },
+]
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -877,6 +956,34 @@ async function main() {
     })
   }
 
+  const stateAndEventsModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'state-and-events',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const lesson of stateAndEventsLessons) {
+    await prisma.lesson.upsert({
+      where: {
+        moduleId_slug: {
+          moduleId: stateAndEventsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      update: lesson,
+      create: {
+        ...lesson,
+        moduleId: stateAndEventsModule.id,
+      },
+    })
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -886,6 +993,9 @@ async function main() {
   console.log(`Seeded ${reactBasicsLessons.length} React Basics lessons.`)
   console.log(
     `Seeded ${componentsAndPropsLessons.length} Components and Props lessons.`,
+  )
+  console.log(
+    `Seeded ${stateAndEventsLessons.length} State and Events lessons.`,
   )
 }
 
