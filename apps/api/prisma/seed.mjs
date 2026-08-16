@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { loadEnvFile } from 'node:process'
@@ -29,6 +30,28 @@ function readMarkdownLesson(fileName) {
     ),
     'utf8',
   )
+}
+
+function extractMarkdownSection(markdown, sectionHeading) {
+  const lines = markdown.split('\n')
+  const sectionIndex = lines.findIndex((line) => line.trim() === sectionHeading)
+
+  if (sectionIndex === -1) {
+    return ''
+  }
+
+  const nextSectionIndex = lines.findIndex(
+    (line, index) => index > sectionIndex && /^## \d+\./.test(line.trim()),
+  )
+
+  return lines
+    .slice(sectionIndex, nextSectionIndex === -1 ? undefined : nextSectionIndex)
+    .join('\n')
+    .trim()
+}
+
+function hashStarterCode(starterCode) {
+  return createHash('sha256').update(starterCode.trim()).digest('hex')
 }
 
 const learningPaths = [
@@ -812,6 +835,300 @@ const stateAndEventsLessons = [
   },
 ]
 
+const stateAndEventsStarterCodeBySlug = {
+  'local-state-with-usestate': `import { useState } from 'react'
+
+export function NotificationToggle() {
+  // TODO: create local state for whether notifications are enabled.
+
+  function handleToggle() {
+    // TODO: update state to the opposite value.
+  }
+
+  return (
+    <section aria-labelledby="notification-heading">
+      <h2 id="notification-heading">Notifications</h2>
+
+      <p>
+        {/* TODO: show whether notifications are enabled or disabled. */}
+      </p>
+
+      <button onClick={handleToggle} type="button">
+        {/* TODO: show a different label for each state. */}
+      </button>
+    </section>
+  )
+}`,
+  'updating-state-safely': `import { useState } from 'react'
+
+export function SeatReservation() {
+  // TODO: store the number of reserved seats.
+
+  function handleReserveSeat() {
+    // TODO: add one seat using a safe state update.
+  }
+
+  function handleReleaseSeat() {
+    // TODO: remove one seat without going below zero.
+  }
+
+  return (
+    <section aria-labelledby="seat-reservation-heading">
+      <h2 id="seat-reservation-heading">Seat reservation</h2>
+
+      <p>{/* TODO: show the current number of reserved seats. */}</p>
+
+      <button onClick={handleReserveSeat} type="button">
+        Reserve seat
+      </button>
+      <button onClick={handleReleaseSeat} type="button">
+        Release seat
+      </button>
+    </section>
+  )
+}`,
+  'handling-user-events': `import { useState } from 'react'
+
+type Preference = 'email' | 'product'
+
+export function PreferencePanel() {
+  // TODO: store whether the panel is open.
+  // TODO: store the selected preference.
+
+  function handleTogglePanel() {
+    // TODO: open or close the panel.
+  }
+
+  function handleSelectPreference(preference: Preference) {
+    // TODO: store the selected preference.
+  }
+
+  return (
+    <section aria-labelledby="preference-heading">
+      <h2 id="preference-heading">Preferences</h2>
+
+      <button onClick={handleTogglePanel} type="button">
+        {/* TODO: show a label based on whether the panel is open. */}
+      </button>
+
+      {/* TODO: show preference buttons only when the panel is open. */}
+      {/* TODO: display the selected preference. */}
+    </section>
+  )
+}`,
+  'controlled-form-inputs': `import { useState } from 'react'
+
+export function ContactForm() {
+  // TODO: create state for name, email, message, and submitted summary.
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    // TODO: submit using current state values.
+  }
+
+  function handleReset() {
+    // TODO: clear the form state.
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label htmlFor="contact-name">Name</label>
+      <input id="contact-name" />
+
+      <label htmlFor="contact-email">Email</label>
+      <input id="contact-email" type="email" />
+
+      <label htmlFor="contact-message">Message</label>
+      <textarea id="contact-message" />
+
+      <button type="submit">{/* TODO: disable when fields are empty. */}</button>
+      <button onClick={handleReset} type="button">
+        Reset
+      </button>
+
+      {/* TODO: show a submitted summary. */}
+    </form>
+  )
+}`,
+  'derived-ui-state': `import { useState } from 'react'
+
+export function SignupFormPreview() {
+  // TODO: store only the values the user edits directly.
+  // TODO: derive passwordsMatch, isPasswordLongEnough, and canSubmit.
+
+  return (
+    <form>
+      <label htmlFor="signup-email">Email</label>
+      <input id="signup-email" type="email" />
+
+      <label htmlFor="signup-password">Password</label>
+      <input id="signup-password" type="password" />
+
+      <label htmlFor="signup-confirm-password">Confirm password</label>
+      <input id="signup-confirm-password" type="password" />
+
+      <p>{/* TODO: show helpful status text from derived values. */}</p>
+
+      <button type="submit">{/* TODO: disable until derived canSubmit is true. */}</button>
+    </form>
+  )
+}`,
+  'state-and-events-practice': `import { useState } from 'react'
+
+type Priority = 'low' | 'medium' | 'high'
+
+type Task = {
+  id: number
+  title: string
+  priority: Priority
+  isComplete: boolean
+}
+
+export function TaskPlanner() {
+  // TODO: store task title, priority, and tasks.
+  // TODO: derive canAddTask, completedCount, and totalCount.
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    // TODO: prevent empty titles and add a task with a safe update.
+  }
+
+  function handleToggleTask(taskId: number) {
+    // TODO: toggle one task without mutating the existing task.
+  }
+
+  return (
+    <section aria-labelledby="task-planner-heading">
+      <h2 id="task-planner-heading">Task planner</h2>
+
+      <form onSubmit={handleSubmit}>
+        {/* TODO: add controlled title and priority inputs. */}
+        <button type="submit">Add task</button>
+      </form>
+
+      <p>{/* TODO: show completed and total task counts. */}</p>
+
+      {/* TODO: show an empty state or a task list. */}
+    </section>
+  )
+}`,
+}
+
+const reflectionValidation = {
+  minWords: 6,
+  minCharacters: 40,
+}
+
+function createCodeTaskForLesson(lesson, order) {
+  const starterCode = stateAndEventsStarterCodeBySlug[lesson.slug]
+
+  return {
+    title: 'Practice task',
+    description: lesson.description,
+    prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
+    starterCode,
+    options: undefined,
+    feedback: undefined,
+    validation: {
+      rejectUnchangedStarter: true,
+      starterCodeHash: hashStarterCode(starterCode),
+      normalization: 'trim',
+    },
+    metadata: {
+      source: 'docs/content/react/state-and-events',
+      sourceSection: 'Practice Task',
+    },
+    type: 'CODE',
+    order,
+    isRequired: true,
+  }
+}
+
+function createReflectionTaskForLesson(lesson, order) {
+  return {
+    title: 'Reflection',
+    description: 'Explain the concept in your own words before moving on.',
+    prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
+    starterCode: undefined,
+    options: undefined,
+    feedback: undefined,
+    validation: reflectionValidation,
+    metadata: {
+      source: 'docs/content/react/state-and-events',
+      sourceSection: 'Reflection',
+    },
+    type: 'REFLECTION',
+    order,
+    isRequired: true,
+  }
+}
+
+function createLocalStatePredictionTask() {
+  return {
+    title: 'Prediction',
+    description: 'Predict how React state changes what appears on screen.',
+    prompt: 'What happens each time the button is clicked?',
+    starterCode: `function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  )
+}`,
+    options: [
+      {
+        id: 'increment-once',
+        label: 'The button always shows "Clicked 1 time".',
+      },
+      {
+        id: 'increment-each-click',
+        label: 'The number increases by 1 after every click.',
+      },
+      {
+        id: 'no-change',
+        label: 'The number stays at 0 because count is a const.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'increment-each-click',
+      responses: {
+        'increment-once':
+          'This would be true if count were a regular variable recreated on every render. React preserves useState values between renders, so the count can keep increasing.',
+        'increment-each-click':
+          'Correct. setCount schedules a render with the next value, and React preserves that state for the component between renders.',
+        'no-change':
+          'A const prevents reassignment within one render, but setCount does not reassign count. It gives React a new state value to use on the next render.',
+      },
+    },
+    validation: {
+      correctOptionId: 'increment-each-click',
+    },
+    metadata: {
+      source: 'golden-lesson-v1-prototype',
+    },
+    type: 'PREDICTION',
+    order: 1,
+    isRequired: true,
+  }
+}
+
+function createStateAndEventsTasksForLesson(lesson) {
+  if (lesson.slug === 'local-state-with-usestate') {
+    return [
+      createLocalStatePredictionTask(),
+      createCodeTaskForLesson(lesson, 2),
+      createReflectionTaskForLesson(lesson, 3),
+    ]
+  }
+
+  return [
+    createCodeTaskForLesson(lesson, 1),
+    createReflectionTaskForLesson(lesson, 2),
+  ]
+}
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -984,6 +1301,41 @@ async function main() {
     })
   }
 
+  let stateAndEventsTaskCount = 0
+
+  for (const lesson of stateAndEventsLessons) {
+    const seededLesson = await prisma.lesson.findUniqueOrThrow({
+      where: {
+        moduleId_slug: {
+          moduleId: stateAndEventsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const tasks = createStateAndEventsTasksForLesson(lesson)
+
+    for (const task of tasks) {
+      await prisma.lessonTask.upsert({
+        where: {
+          lessonId_order: {
+            lessonId: seededLesson.id,
+            order: task.order,
+          },
+        },
+        update: task,
+        create: {
+          ...task,
+          lessonId: seededLesson.id,
+        },
+      })
+    }
+
+    stateAndEventsTaskCount += tasks.length
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -997,6 +1349,7 @@ async function main() {
   console.log(
     `Seeded ${stateAndEventsLessons.length} State and Events lessons.`,
   )
+  console.log(`Seeded ${stateAndEventsTaskCount} State and Events tasks.`)
 }
 
 main()
