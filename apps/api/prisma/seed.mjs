@@ -2645,6 +2645,1022 @@ export function TaskPlanner() {
 }`,
 }
 
+const hooksLessons = [
+  {
+    slug: 'why-hooks-exist',
+    title: 'Why Hooks Exist',
+    description:
+      'Understand what hooks solve and how hook rules keep components predictable.',
+    content: `# Why Hooks Exist
+
+## 1. Lesson Goal
+
+Understand hooks as React's way to let function components use stateful React features without changing the component model.
+
+By the end, you should be able to explain why hooks exist, where hooks belong, and why the rules of hooks are not random style preferences.
+
+## 2. Why It Matters
+
+You already know state and events. Hooks are the next layer: they let components remember state, synchronize with external systems, keep references, and reuse stateful behavior.
+
+In real projects, hooks appear everywhere. If you treat them as magic functions, components become hard to debug. If you understand the mental model, hooks become a predictable tool for organizing behavior.
+
+## 3. Core Concept
+
+A hook is a function that lets a React component connect to a React feature.
+
+\`useState\` connects a component to local state. \`useEffect\` connects a component to external synchronization. \`useRef\` gives a component a stable container that does not trigger renders.
+
+Hooks must be called at the top level of a component or another hook. Do not call hooks inside conditions, loops, event handlers, or nested helper functions.
+
+\`\`\`tsx
+function ProfileStatus() {
+  const [isOnline, setIsOnline] = useState(false)
+
+  return (
+    <button onClick={() => setIsOnline((current) => !current)}>
+      {isOnline ? 'Online' : 'Offline'}
+    </button>
+  )
+}
+\`\`\`
+
+The component can re-render many times, but React needs hook calls to happen in the same order each render.
+
+## 4. Mental Model
+
+Think of hooks as numbered slots React associates with a component instance.
+
+On every render, React walks through the hook calls in order. The first hook call gets the first slot, the second hook call gets the second slot, and so on.
+
+If a hook is hidden inside a condition, the order can change between renders. React may then connect the wrong state or effect to the wrong slot. The rules of hooks protect that order.
+
+## 5. Guided Walkthrough
+
+Start with state at the top level:
+
+\`\`\`tsx
+function LessonBookmark() {
+  const [isBookmarked, setIsBookmarked] = useState(false)
+
+  return (
+    <button onClick={() => setIsBookmarked((current) => !current)}>
+      {isBookmarked ? 'Remove bookmark' : 'Bookmark lesson'}
+    </button>
+  )
+}
+\`\`\`
+
+Now compare that with a broken pattern:
+
+\`\`\`tsx
+function LessonBookmark({ canBookmark }: { canBookmark: boolean }) {
+  if (canBookmark) {
+    const [isBookmarked, setIsBookmarked] = useState(false)
+  }
+
+  return null
+}
+\`\`\`
+
+The hook only runs sometimes. That means the hook order can change. Instead, call the hook every render and put the condition in the UI or handler logic.
+
+## 6. Common Mistakes
+
+### Mistake 1: Calling hooks only when needed
+
+Hooks should not be conditional. Call them at the top level, then use conditions around behavior or rendering.
+
+### Mistake 2: Treating hooks like normal utility functions
+
+Hooks participate in React rendering. A helper function can be called anywhere, but a hook must follow hook rules.
+
+### Mistake 3: Creating one large component because hooks feel local
+
+Hooks make behavior possible inside function components, but they do not remove the need for clear component boundaries.
+
+## 7. Practice Task
+
+Build a \`LessonBookmarkPanel\` component.
+
+Requirements:
+
+- use \`useState\` at the top level;
+- let the learner toggle a bookmark on and off;
+- show a different status message for bookmarked and unbookmarked states;
+- show an optional note only when bookmarked;
+- keep hook calls outside conditions.
+
+## 8. Self-Check
+
+- The hook is called before any conditional return or branch.
+- The button changes the state with a clear handler.
+- The UI changes based on state.
+- No hook is called inside an \`if\`, loop, event handler, or nested function.
+
+## 9. Reflection
+
+Why does React need hooks to be called in the same order on every render?
+
+## 10. Next Step
+
+Next, you will learn \`useEffect\`, the hook React uses when a component needs to synchronize with something outside rendering.`,
+    order: 1,
+    type: 'ARTICLE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'useeffect-mental-model',
+    title: 'useEffect Mental Model',
+    description:
+      'Understand effects as synchronization after render, not as event handlers.',
+    content: `# useEffect Mental Model
+
+## 1. Lesson Goal
+
+Understand \`useEffect\` as a way to synchronize a component with something outside React after rendering.
+
+By the end, you should be able to explain the difference between event logic and effect logic.
+
+## 2. Why It Matters
+
+Many React bugs come from using effects for the wrong job. Developers put user actions, derived values, or normal render decisions into effects, then wonder why the component feels unpredictable.
+
+Effects are powerful, but they should be used with a clear reason: synchronization.
+
+## 3. Core Concept
+
+Rendering calculates what the UI should look like. Events respond to user actions. Effects run after React has committed the render and let the component synchronize with external systems.
+
+Examples of external systems include:
+
+- the document title;
+- browser APIs;
+- subscriptions;
+- timers;
+- network requests;
+- third-party widgets.
+
+\`\`\`tsx
+function LessonTitle({ title }: { title: string }) {
+  useEffect(() => {
+    document.title = title
+  }, [title])
+
+  return <h1>{title}</h1>
+}
+\`\`\`
+
+The heading is render output. The browser tab title is outside React, so it is synchronized in an effect.
+
+## 4. Mental Model
+
+Think of an effect as a small synchronization contract:
+
+When these values change, make the outside world match this render.
+
+The effect does not decide what to render. The component already rendered. The effect handles something React cannot express directly in JSX.
+
+## 5. Guided Walkthrough
+
+Imagine a lesson reader that displays a title and updates the browser tab:
+
+\`\`\`tsx
+function LessonReader({ lessonTitle }: { lessonTitle: string }) {
+  useEffect(() => {
+    document.title = lessonTitle
+  }, [lessonTitle])
+
+  return <h1>{lessonTitle}</h1>
+}
+\`\`\`
+
+If \`lessonTitle\` changes, React renders the new heading. After that render, the effect updates \`document.title\`.
+
+Do not use an effect for work that can happen directly in an event:
+
+\`\`\`tsx
+function SaveButton() {
+  function handleClick() {
+    console.log('Save now')
+  }
+
+  return <button onClick={handleClick}>Save</button>
+}
+\`\`\`
+
+The click is already an event. It does not need an effect.
+
+## 6. Common Mistakes
+
+### Mistake 1: Using effects for every state change
+
+Most UI state should be rendered directly. You do not need an effect to calculate text, classes, or disabled states from current state.
+
+### Mistake 2: Moving event logic into effects
+
+If logic should happen because the learner clicked, typed, or submitted, put it in the event handler.
+
+### Mistake 3: Forgetting that effects run after render
+
+Effects do not block rendering. They synchronize after React updates the screen.
+
+## 7. Practice Task
+
+Build a \`LessonDocumentTitle\` component.
+
+Requirements:
+
+- accept a \`lessonTitle\` prop;
+- render the lesson title on the page;
+- use \`useEffect\` to update \`document.title\`;
+- include the correct dependency;
+- keep button or event logic out of the effect.
+
+## 8. Self-Check
+
+- The visible title comes from JSX.
+- The browser title is updated inside \`useEffect\`.
+- The effect depends on \`lessonTitle\`.
+- No event-only logic is placed inside the effect.
+
+## 9. Reflection
+
+How would you decide whether code belongs in render, an event handler, or an effect?
+
+## 10. Next Step
+
+Next, you will learn how dependency arrays tell React when an effect needs to synchronize again.`,
+    order: 2,
+    type: 'ARTICLE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'effect-dependencies',
+    title: 'Effect Dependencies',
+    description:
+      'Reason about dependency arrays and keep effects synchronized with current values.',
+    content: `# Effect Dependencies
+
+## 1. Lesson Goal
+
+Learn how effect dependencies describe the values an effect reads from the render.
+
+By the end, you should be able to choose dependencies by reasoning from the effect body instead of guessing.
+
+## 2. Why It Matters
+
+Dependency bugs are subtle. Missing dependencies can make an effect use stale values. Extra unnecessary dependencies can make an effect run more often than needed.
+
+Professional React work requires explaining why an effect runs when it does.
+
+## 3. Core Concept
+
+The dependency array tells React which rendered values the effect depends on.
+
+\`\`\`tsx
+useEffect(() => {
+  document.title = lessonTitle
+}, [lessonTitle])
+\`\`\`
+
+The effect reads \`lessonTitle\`, so \`lessonTitle\` belongs in the dependency array.
+
+An empty dependency array means the effect does not read changing values from render and only needs to run after the first render.
+
+## 4. Mental Model
+
+Read the effect body and ask: "Which values from this render does this synchronization use?"
+
+Those values are dependencies.
+
+The dependency array is not a schedule you manually tune. It is a description of what the effect needs to stay correct.
+
+## 5. Guided Walkthrough
+
+This effect depends on two values:
+
+\`\`\`tsx
+function ProgressTitle({
+  lessonTitle,
+  completedCount,
+}: {
+  lessonTitle: string
+  completedCount: number
+}) {
+  useEffect(() => {
+    document.title = \`\${lessonTitle} (\${completedCount} complete)\`
+  }, [lessonTitle, completedCount])
+
+  return <h1>{lessonTitle}</h1>
+}
+\`\`\`
+
+If either value changes, the document title must be synchronized again.
+
+Now compare a mount-only effect:
+
+\`\`\`tsx
+useEffect(() => {
+  console.log('Lesson reader mounted')
+}, [])
+\`\`\`
+
+This effect does not read changing props or state, so an empty array is reasonable.
+
+## 6. Common Mistakes
+
+### Mistake 1: Using an empty array to silence reruns
+
+An empty array is correct only when the effect does not need changing values from render.
+
+### Mistake 2: Thinking dependencies are optional notes
+
+Dependencies are part of the effect's correctness. Missing one can make the effect synchronize old data.
+
+### Mistake 3: Storing derived values in state just to avoid dependencies
+
+If a value can be calculated during render, calculate it during render. Do not move it into an effect to avoid dependency thinking.
+
+## 7. Practice Task
+
+Build a \`ProgressDocumentTitle\` component.
+
+Requirements:
+
+- accept \`lessonTitle\`, \`completedLessons\`, and \`totalLessons\` props;
+- render the progress summary in JSX;
+- use \`useEffect\` to update \`document.title\`;
+- include every value the effect reads;
+- avoid derived state.
+
+## 8. Self-Check
+
+- The dependency array matches the values used inside the effect.
+- The progress percentage or summary is derived during render.
+- The effect does not hide stale values.
+- The component stays easy to explain.
+
+## 9. Reflection
+
+What question can you ask yourself to identify the correct dependencies for an effect?
+
+## 10. Next Step
+
+Next, you will learn cleanup: how an effect disconnects from external work it started earlier.`,
+    order: 3,
+    type: 'ARTICLE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'effect-cleanup',
+    title: 'Effect Cleanup',
+    description:
+      'Clean up timers, subscriptions, and external work created by effects.',
+    content: `# Effect Cleanup
+
+## 1. Lesson Goal
+
+Learn when an effect should return a cleanup function and how cleanup prevents stale external work.
+
+By the end, you should be able to create and clean up a timer safely.
+
+## 2. Why It Matters
+
+Effects often connect to something outside React. If that work continues after the component changes or unmounts, it can cause bugs, duplicate updates, memory leaks, or confusing behavior.
+
+Cleanup is the habit that keeps synchronization responsible.
+
+## 3. Core Concept
+
+An effect can return a function. React calls that function before the effect runs again and when the component unmounts.
+
+\`\`\`tsx
+useEffect(() => {
+  const intervalId = window.setInterval(() => {
+    console.log('tick')
+  }, 1000)
+
+  return () => {
+    window.clearInterval(intervalId)
+  }
+}, [])
+\`\`\`
+
+The effect starts the timer. The cleanup stops it.
+
+## 4. Mental Model
+
+Think in pairs:
+
+- subscribe -> unsubscribe;
+- start timer -> stop timer;
+- add listener -> remove listener;
+- connect -> disconnect.
+
+If an effect starts something that can keep running, the cleanup should stop it.
+
+## 5. Guided Walkthrough
+
+A simple timer component needs state and an effect:
+
+\`\`\`tsx
+function ReadingTimer() {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSeconds((current) => current + 1)
+    }, 1000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
+
+  return <p>Reading for {seconds} seconds</p>
+}
+\`\`\`
+
+The effect starts once. The cleanup prevents the interval from continuing after the component is gone.
+
+Notice the updater function inside \`setSeconds\`. It avoids needing \`seconds\` in the dependency array.
+
+## 6. Common Mistakes
+
+### Mistake 1: Starting timers without stopping them
+
+Intervals continue until cleared. Always clean up timers created in effects.
+
+### Mistake 2: Cleaning up the wrong thing
+
+The cleanup should undo the exact external work started by that effect.
+
+### Mistake 3: Adding changing state as a dependency by accident
+
+For intervals that update based on previous state, an updater function often keeps the effect simpler and correct.
+
+## 7. Practice Task
+
+Build a \`FocusSessionTimer\` component.
+
+Requirements:
+
+- track elapsed seconds with state;
+- start an interval in \`useEffect\`;
+- update seconds safely with an updater function;
+- clean up the interval;
+- show the elapsed time and a short status message.
+
+## 8. Self-Check
+
+- The interval is created inside an effect.
+- The cleanup clears the same interval.
+- The state update uses an updater function.
+- The effect does not create multiple active intervals.
+
+## 9. Reflection
+
+What kinds of external work should make you look for a cleanup function?
+
+## 10. Next Step
+
+Next, you will learn \`useRef\`, a hook for storing stable values that should not cause re-renders.`,
+    order: 4,
+    type: 'ARTICLE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'useref',
+    title: 'useRef',
+    description:
+      'Use refs for stable mutable values that should not trigger rendering.',
+    content: `# useRef
+
+## 1. Lesson Goal
+
+Understand \`useRef\` as a stable container whose \`.current\` value can change without causing a render.
+
+By the end, you should be able to choose between state and ref for simple UI behavior.
+
+## 2. Why It Matters
+
+Not every value belongs in state. If changing a value should update the UI, use state. If the value is needed for coordination but does not need to render, a ref may be a better fit.
+
+Refs are common for DOM nodes, timer ids, previous values, and small mutable flags.
+
+## 3. Core Concept
+
+\`useRef\` returns an object with a \`.current\` property.
+
+\`\`\`tsx
+const renderCountRef = useRef(0)
+\`\`\`
+
+The object stays the same between renders. You can change \`.current\`, but React will not re-render because of that change.
+
+## 4. Mental Model
+
+State is for values that affect what the user sees.
+
+Ref is for values the component needs to remember, but the UI does not need to update immediately when they change.
+
+If the screen should change, reach for state first. If you need a stable box for coordination, consider a ref.
+
+## 5. Guided Walkthrough
+
+This component stores the latest draft length in a ref while state controls the visible input value:
+
+\`\`\`tsx
+function DraftTracker() {
+  const [draft, setDraft] = useState('')
+  const lastLengthRef = useRef(0)
+
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextDraft = event.target.value
+    lastLengthRef.current = nextDraft.length
+    setDraft(nextDraft)
+  }
+
+  return (
+    <label>
+      Draft
+      <input value={draft} onChange={handleChange} />
+    </label>
+  )
+}
+\`\`\`
+
+The visible input uses state. The ref remembers a value for logic without becoming another piece of rendered state.
+
+## 6. Common Mistakes
+
+### Mistake 1: Using refs to avoid learning state
+
+If the UI should update when a value changes, use state. Refs do not trigger renders.
+
+### Mistake 2: Reading and writing refs everywhere
+
+Refs are mutable. Keep their usage small and easy to reason about.
+
+### Mistake 3: Treating refs as global storage
+
+A ref belongs to one component instance. It is not shared application state.
+
+## 7. Practice Task
+
+Build a \`DraftAutosaveStatus\` component.
+
+Requirements:
+
+- keep the input value in state;
+- use a ref to store the last saved draft;
+- update the ref when the learner clicks Save;
+- show whether the current draft matches the last saved draft;
+- do not use the ref as the source of the input value.
+
+## 8. Self-Check
+
+- State controls the input.
+- The ref stores the last saved value.
+- Saving updates the ref.
+- The UI still renders from state and derived comparisons.
+
+## 9. Reflection
+
+How do you decide whether a value belongs in state or in a ref?
+
+## 10. Next Step
+
+Next, you will combine state, effects, refs, and clear boundaries into custom hooks.`,
+    order: 5,
+    type: 'ARTICLE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+  {
+    slug: 'custom-hooks',
+    title: 'Custom Hooks',
+    description:
+      'Extract reusable stateful behavior into focused custom hooks.',
+    content: `# Custom Hooks
+
+## 1. Lesson Goal
+
+Learn how custom hooks let you reuse stateful logic without copying component code.
+
+By the end, you should be able to extract a small hook that combines state, effects, and a clear return value.
+
+## 2. Why It Matters
+
+As components grow, repeated behavior appears: timers, saved drafts, document titles, subscriptions, toggles, and form helpers.
+
+Copying that logic across components creates drift. A custom hook lets you name the behavior and reuse it while keeping UI components focused on rendering.
+
+## 3. Core Concept
+
+A custom hook is a function whose name starts with \`use\` and that calls other hooks.
+
+\`\`\`tsx
+function useDocumentTitle(title: string) {
+  useEffect(() => {
+    document.title = title
+  }, [title])
+}
+\`\`\`
+
+Components can call the custom hook at the top level:
+
+\`\`\`tsx
+function LessonPageTitle({ title }: { title: string }) {
+  useDocumentTitle(title)
+
+  return <h1>{title}</h1>
+}
+\`\`\`
+
+The custom hook owns behavior. The component owns UI.
+
+## 4. Mental Model
+
+Extract a custom hook when you can name a reusable behavior, not just because a component has many lines.
+
+A good custom hook has:
+
+- a clear purpose;
+- focused inputs;
+- a predictable return value;
+- no hidden UI decisions.
+
+## 5. Guided Walkthrough
+
+Start with behavior inside one component:
+
+\`\`\`tsx
+function ReadingTimer() {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSeconds((current) => current + 1)
+    }, 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  return <p>{seconds} seconds</p>
+}
+\`\`\`
+
+Now extract the behavior:
+
+\`\`\`tsx
+function useElapsedSeconds() {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSeconds((current) => current + 1)
+    }, 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  return seconds
+}
+\`\`\`
+
+The component becomes simpler:
+
+\`\`\`tsx
+function ReadingTimer() {
+  const seconds = useElapsedSeconds()
+
+  return <p>{seconds} seconds</p>
+}
+\`\`\`
+
+## 6. Common Mistakes
+
+### Mistake 1: Extracting too early
+
+Wait until the behavior has a clear name or repeated use. Premature hooks can hide simple logic.
+
+### Mistake 2: Returning too much
+
+A custom hook should return what the component needs, not every internal detail.
+
+### Mistake 3: Putting JSX inside a hook
+
+Hooks should manage behavior. Components should render UI.
+
+## 7. Practice Task
+
+Build a \`usePersistentDraft\` hook and a \`LessonDraftEditor\` component.
+
+Requirements:
+
+- the hook accepts a storage key and initial value;
+- the hook stores draft text in state;
+- the hook synchronizes the draft to \`localStorage\` with an effect;
+- the component renders a controlled textarea;
+- the component uses the hook's returned value and setter.
+
+## 8. Self-Check
+
+- The custom hook starts with \`use\`.
+- The hook calls hooks only at the top level.
+- The hook owns state and synchronization logic.
+- The component owns the JSX and user-facing labels.
+
+## 9. Reflection
+
+What makes a piece of stateful behavior worth extracting into a custom hook?
+
+## 10. Next Step
+
+Next, you will move from hook behavior into routing, where React screens become navigable application flows.`,
+    order: 6,
+    type: 'EXERCISE',
+    difficulty: 'INTERMEDIATE',
+    isPublished: true,
+  },
+]
+
+const hooksStarterCodeBySlug = {
+  'why-hooks-exist': `import { useState } from 'react'
+
+export function LessonBookmarkPanel() {
+  // TODO: create top-level state for whether the lesson is bookmarked.
+
+  function handleToggleBookmark() {
+    // TODO: toggle the bookmark state.
+  }
+
+  return (
+    <section aria-labelledby="bookmark-heading">
+      <h2 id="bookmark-heading">Lesson bookmark</h2>
+
+      <p>{/* TODO: show the current bookmark status. */}</p>
+
+      <button onClick={handleToggleBookmark} type="button">
+        {/* TODO: show a different label for each state. */}
+      </button>
+
+      {/* TODO: show a short note only when the lesson is bookmarked. */}
+    </section>
+  )
+}`,
+  'useeffect-mental-model': `import { useEffect } from 'react'
+
+type LessonDocumentTitleProps = {
+  lessonTitle: string
+}
+
+export function LessonDocumentTitle({ lessonTitle }: LessonDocumentTitleProps) {
+  // TODO: synchronize document.title with the current lesson title.
+
+  return (
+    <section aria-labelledby="lesson-title-heading">
+      <h2 id="lesson-title-heading">{lessonTitle}</h2>
+      <p>This lesson title should also appear in the browser tab.</p>
+    </section>
+  )
+}`,
+  'effect-dependencies': `import { useEffect } from 'react'
+
+type ProgressDocumentTitleProps = {
+  lessonTitle: string
+  completedLessons: number
+  totalLessons: number
+}
+
+export function ProgressDocumentTitle({
+  lessonTitle,
+  completedLessons,
+  totalLessons,
+}: ProgressDocumentTitleProps) {
+  // TODO: derive a progress summary during render.
+  // TODO: synchronize document.title with the lesson title and progress summary.
+
+  return (
+    <section aria-labelledby="progress-heading">
+      <h2 id="progress-heading">{lessonTitle}</h2>
+      <p>{/* TODO: show the progress summary. */}</p>
+    </section>
+  )
+}`,
+  'effect-cleanup': `import { useEffect, useState } from 'react'
+
+export function FocusSessionTimer() {
+  const [seconds, setSeconds] = useState(0)
+
+  // TODO: start an interval in an effect.
+  // TODO: update seconds safely once per second.
+  // TODO: clean up the interval.
+
+  return (
+    <section aria-labelledby="focus-session-heading">
+      <h2 id="focus-session-heading">Focus session</h2>
+      <p>{/* TODO: show elapsed seconds. */}</p>
+      <p>{/* TODO: show a short status message. */}</p>
+    </section>
+  )
+}`,
+  useref: `import { useRef, useState } from 'react'
+
+export function DraftAutosaveStatus() {
+  const [draft, setDraft] = useState('')
+  // TODO: create a ref for the last saved draft.
+
+  function handleSave() {
+    // TODO: update the ref with the current draft.
+  }
+
+  // TODO: derive whether the current draft matches the last saved draft.
+
+  return (
+    <section aria-labelledby="draft-heading">
+      <h2 id="draft-heading">Draft</h2>
+
+      <label htmlFor="draft-text">Draft text</label>
+      <textarea
+        id="draft-text"
+        onChange={(event) => setDraft(event.target.value)}
+        value={draft}
+      />
+
+      <button onClick={handleSave} type="button">
+        Save draft
+      </button>
+
+      <p>{/* TODO: show whether the draft is saved or has unsaved changes. */}</p>
+    </section>
+  )
+}`,
+  'custom-hooks': `import { useEffect, useState } from 'react'
+
+function usePersistentDraft(storageKey: string, initialValue: string) {
+  // TODO: store the draft in state.
+  // TODO: synchronize draft changes to localStorage.
+  // TODO: return the draft value and setter.
+}
+
+export function LessonDraftEditor() {
+  // TODO: use usePersistentDraft for the lesson draft.
+
+  return (
+    <section aria-labelledby="lesson-draft-heading">
+      <h2 id="lesson-draft-heading">Lesson draft</h2>
+
+      <label htmlFor="lesson-draft">Draft notes</label>
+      <textarea id="lesson-draft" />
+
+      <p>{/* TODO: show a short autosave status. */}</p>
+    </section>
+  )
+}`,
+}
+
+const hooksPredictionTasksBySlug = {
+  'why-hooks-exist': {
+    title: 'Prediction',
+    description: 'Predict why hooks must follow stable call order.',
+    prompt: 'Why should hooks be called at the top level of a component?',
+    starterCode: `function Profile({ canEdit }: { canEdit: boolean }) {
+  if (canEdit) {
+    const [draft, setDraft] = useState('')
+  }
+
+  return null
+}`,
+    options: [
+      {
+        id: 'performance-only',
+        label: 'Mostly for performance, so React can skip unnecessary work.',
+      },
+      {
+        id: 'stable-order',
+        label:
+          'So React sees hook calls in the same order every render and connects the right state to the right slot.',
+      },
+      {
+        id: 'typescript-rule',
+        label: 'Because TypeScript cannot type hooks inside conditions.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'stable-order',
+      responses: {
+        'performance-only':
+          'Not quite. Stable hook order is about correctness first. Performance is not the main reason.',
+        'stable-order':
+          'Correct. React relies on hook call order to associate state and effects with a component instance.',
+        'typescript-rule':
+          'Not quite. This is a React rendering rule, not a TypeScript limitation.',
+      },
+    },
+    validation: {
+      correctOptionId: 'stable-order',
+    },
+    metadata: {
+      reason:
+        'Catches the common misconception that hook rules are arbitrary style rules.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+  'useeffect-mental-model': {
+    title: 'Prediction',
+    description: 'Distinguish effect logic from event logic.',
+    prompt: 'Which job is a good fit for useEffect?',
+    starterCode: null,
+    options: [
+      {
+        id: 'click-submit',
+        label: 'Submitting a form because the user clicked Submit.',
+      },
+      {
+        id: 'derive-label',
+        label: 'Calculating a button label from current state.',
+      },
+      {
+        id: 'document-title',
+        label:
+          'Updating document.title after the rendered lesson title changes.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'document-title',
+      responses: {
+        'click-submit':
+          'Not quite. A submit caused by a user action belongs in the event handler.',
+        'derive-label':
+          'Not quite. Derived UI text belongs in render, not in an effect.',
+        'document-title':
+          'Correct. The browser tab title is outside React, so an effect can synchronize it after render.',
+      },
+    },
+    validation: {
+      correctOptionId: 'document-title',
+    },
+    metadata: {
+      reason:
+        'Catches overusing effects for event handlers and derived UI state.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+  'effect-dependencies': {
+    title: 'Prediction',
+    description: 'Predict which values belong in an effect dependency array.',
+    prompt: 'What should be included in this effect dependency array?',
+    starterCode: `useEffect(() => {
+  document.title = \`\${lessonTitle} - \${completedLessons} complete\`
+}, [])`,
+    options: [
+      {
+        id: 'empty-array',
+        label: 'Keep [] because document.title only needs to be set once.',
+      },
+      {
+        id: 'used-values',
+        label:
+          'Include lessonTitle and completedLessons because the effect reads them.',
+      },
+      {
+        id: 'all-props',
+        label:
+          'Include every prop in the component, even if the effect does not read it.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'used-values',
+      responses: {
+        'empty-array':
+          'Not quite. The effect reads changing render values, so an empty array can leave the title stale.',
+        'used-values':
+          'Correct. Dependencies should match the rendered values the effect reads.',
+        'all-props':
+          'Not quite. Dependencies should describe what this effect uses, not every value nearby.',
+      },
+    },
+    validation: {
+      correctOptionId: 'used-values',
+    },
+    metadata: {
+      reason:
+        'Catches the misconception that dependency arrays are manual run schedules.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+}
+
 const reflectionValidation = {
   minWords: 6,
   minCharacters: 40,
@@ -2889,6 +3905,72 @@ function createStateAndEventsTasksForLesson(lesson) {
   return [
     createCodeTaskForLesson(lesson, 1),
     createReflectionTaskForLesson(lesson, 2),
+  ]
+}
+
+function createHooksCodeTaskForLesson(lesson, order) {
+  const starterCode = hooksStarterCodeBySlug[lesson.slug]
+
+  return {
+    title: 'Practice task',
+    description: lesson.description,
+    prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
+    starterCode,
+    options: undefined,
+    feedback: undefined,
+    validation: {
+      rejectUnchangedStarter: true,
+      starterCodeHash: hashStarterCode(starterCode),
+      normalization: 'trim',
+    },
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'hooks',
+      sourceSection: 'Practice Task',
+    },
+    type: 'CODE',
+    order,
+    isRequired: true,
+  }
+}
+
+function createHooksReflectionTaskForLesson(lesson, order) {
+  return {
+    title: 'Reflection',
+    description: 'Explain the concept in your own words before moving on.',
+    prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
+    starterCode: undefined,
+    options: undefined,
+    feedback: undefined,
+    validation: reflectionValidation,
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'hooks',
+      sourceSection: 'Reflection',
+    },
+    type: 'REFLECTION',
+    order,
+    isRequired: true,
+  }
+}
+
+function createHooksTasksForLesson(lesson) {
+  const predictionTask = hooksPredictionTasksBySlug[lesson.slug]
+
+  if (predictionTask) {
+    return [
+      {
+        ...predictionTask,
+        order: 1,
+      },
+      createHooksCodeTaskForLesson(lesson, 2),
+      createHooksReflectionTaskForLesson(lesson, 3),
+    ]
+  }
+
+  return [
+    createHooksCodeTaskForLesson(lesson, 1),
+    createHooksReflectionTaskForLesson(lesson, 2),
   ]
 }
 
@@ -3169,6 +4251,69 @@ async function main() {
     stateAndEventsTaskCount += tasks.length
   }
 
+  const hooksModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'hooks',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  for (const lesson of hooksLessons) {
+    await prisma.lesson.upsert({
+      where: {
+        moduleId_slug: {
+          moduleId: hooksModule.id,
+          slug: lesson.slug,
+        },
+      },
+      update: lesson,
+      create: {
+        ...lesson,
+        moduleId: hooksModule.id,
+      },
+    })
+  }
+
+  let hooksTaskCount = 0
+
+  for (const lesson of hooksLessons) {
+    const seededLesson = await prisma.lesson.findUniqueOrThrow({
+      where: {
+        moduleId_slug: {
+          moduleId: hooksModule.id,
+          slug: lesson.slug,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const tasks = createHooksTasksForLesson(lesson)
+
+    for (const task of tasks) {
+      await prisma.lessonTask.upsert({
+        where: {
+          lessonId_order: {
+            lessonId: seededLesson.id,
+            order: task.order,
+          },
+        },
+        update: task,
+        create: {
+          ...task,
+          lessonId: seededLesson.id,
+        },
+      })
+    }
+
+    hooksTaskCount += tasks.length
+  }
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -3187,6 +4332,8 @@ async function main() {
     `Seeded ${stateAndEventsLessons.length} State and Events lessons.`,
   )
   console.log(`Seeded ${stateAndEventsTaskCount} State and Events tasks.`)
+  console.log(`Seeded ${hooksLessons.length} Hooks lessons.`)
+  console.log(`Seeded ${hooksTaskCount} Hooks tasks.`)
 }
 
 main()
