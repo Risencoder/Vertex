@@ -7,6 +7,8 @@ import {
   getLessonProgress,
   LessonProgressApiError,
   type LessonProgress,
+  type LessonTaskProgress,
+  saveLessonTaskProgress,
 } from '@/shared/api/lesson-progress'
 import {
   getLessonByModuleAndTechnologySlug,
@@ -369,16 +371,56 @@ function getNextLessonFlowStep(
   return steps[currentStepIndex + 1]?.id ?? null
 }
 
-function normalizeAttempt(value: string, normalization?: string) {
-  if (normalization === 'trim') {
-    return value.trim()
-  }
-
-  return value
-}
-
 function getCorrectPredictionOptionId(task?: LessonTask) {
   return task?.validation?.correctOptionId ?? task?.feedback?.correctOptionId
+}
+
+function getTaskProgressByTaskId(
+  taskProgress: LessonTaskProgress[] | undefined,
+  lessonTaskId: string,
+) {
+  return taskProgress?.find(
+    (progress) => progress.lessonTaskId === lessonTaskId,
+  )
+}
+
+function getStringResponseValue(
+  progress: LessonTaskProgress | undefined,
+  keys: string[],
+) {
+  const response = progress?.response
+
+  if (!response || typeof response !== 'object') {
+    return null
+  }
+
+  for (const key of keys) {
+    const value = response[key]
+
+    if (typeof value === 'string') {
+      return value
+    }
+  }
+
+  return null
+}
+
+function upsertTaskProgressItem(
+  taskProgress: LessonTaskProgress[] | undefined,
+  updatedProgress: LessonTaskProgress,
+) {
+  const currentTaskProgress = taskProgress ?? []
+  const existingProgressIndex = currentTaskProgress.findIndex(
+    (progress) => progress.lessonTaskId === updatedProgress.lessonTaskId,
+  )
+
+  if (existingProgressIndex === -1) {
+    return [...currentTaskProgress, updatedProgress]
+  }
+
+  return currentTaskProgress.map((progress, index) =>
+    index === existingProgressIndex ? updatedProgress : progress,
+  )
 }
 
 export function LessonPage() {
@@ -397,12 +439,18 @@ export function LessonPage() {
   const [isCompletingLesson, setIsCompletingLesson] = useState(false)
   const [predictionAnswer, setPredictionAnswer] = useState<string | null>(null)
   const [isPredictionRevealed, setIsPredictionRevealed] = useState(false)
+  const [isSavingPrediction, setIsSavingPrediction] = useState(false)
+  const [predictionSaveError, setPredictionSaveError] = useState('')
   const [lessonFlowStep, setLessonFlowStep] =
     useState<LessonFlowStepId>('learn')
   const [practiceAttempt, setPracticeAttempt] = useState('')
   const [isPracticeAttemptSaved, setIsPracticeAttemptSaved] = useState(false)
+  const [isSavingPracticeAttempt, setIsSavingPracticeAttempt] = useState(false)
+  const [practiceSaveError, setPracticeSaveError] = useState('')
   const [reflectionAnswer, setReflectionAnswer] = useState('')
   const [isReflectionAccepted, setIsReflectionAccepted] = useState(false)
+  const [isSavingReflection, setIsSavingReflection] = useState(false)
+  const [reflectionSaveError, setReflectionSaveError] = useState('')
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -430,11 +478,17 @@ export function LessonPage() {
 
       setPredictionAnswer(null)
       setIsPredictionRevealed(false)
+      setIsSavingPrediction(false)
+      setPredictionSaveError('')
       setLessonFlowStep('learn')
       setPracticeAttempt('')
       setIsPracticeAttemptSaved(false)
+      setIsSavingPracticeAttempt(false)
+      setPracticeSaveError('')
       setReflectionAnswer('')
       setIsReflectionAccepted(false)
+      setIsSavingReflection(false)
+      setReflectionSaveError('')
 
       try {
         const lessonDetails = await getLessonByModuleAndTechnologySlug(
@@ -482,6 +536,67 @@ export function LessonPage() {
     }
   }, [lessonSlug, moduleSlug, technologySlug])
 
+  function restoreTaskInteractionState(
+    lessonDetails: LessonDetails,
+    progress: LessonProgress,
+  ) {
+    const tasks = lessonDetails.lesson.tasks ?? []
+    const predictionTask = getTaskByType(tasks, 'PREDICTION')
+    const codeTask = getTaskByType(tasks, 'CODE')
+    const reflectionTask = getTaskByType(tasks, 'REFLECTION')
+
+    if (predictionTask) {
+      const predictionProgress = getTaskProgressByTaskId(
+        progress.taskProgress,
+        predictionTask.id,
+      )
+      const selectedOptionId = getStringResponseValue(predictionProgress, [
+        'selectedOptionId',
+        'optionId',
+      ])
+
+      if (predictionProgress?.isCompleted && selectedOptionId) {
+        setPredictionAnswer(selectedOptionId)
+        setIsPredictionRevealed(true)
+        setPredictionSaveError('')
+      }
+    }
+
+    if (codeTask) {
+      const codeProgress = getTaskProgressByTaskId(
+        progress.taskProgress,
+        codeTask.id,
+      )
+      const savedAttempt = getStringResponseValue(codeProgress, [
+        'attempt',
+        'code',
+      ])
+
+      if (codeProgress?.isCompleted && savedAttempt !== null) {
+        setPracticeAttempt(savedAttempt)
+        setIsPracticeAttemptSaved(true)
+        setPracticeSaveError('')
+      }
+    }
+
+    if (reflectionTask) {
+      const reflectionProgress = getTaskProgressByTaskId(
+        progress.taskProgress,
+        reflectionTask.id,
+      )
+      const savedReflection = getStringResponseValue(reflectionProgress, [
+        'answer',
+        'reflection',
+      ])
+
+      if (reflectionProgress?.isCompleted && savedReflection !== null) {
+        setReflectionAnswer(savedReflection)
+        setIsReflectionAccepted(true)
+        setReflectionSaveError('')
+      }
+    }
+  }
+
   useEffect(() => {
     const abortController = new AbortController()
 
@@ -525,6 +640,7 @@ export function LessonPage() {
           data: progress,
           error: '',
         })
+        restoreTaskInteractionState(lessonState.data, progress)
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
@@ -553,6 +669,120 @@ export function LessonPage() {
       abortController.abort()
     }
   }, [lessonState, session.data, session.isPending])
+
+  function updateSavedTaskProgress(savedTaskProgress: LessonTaskProgress) {
+    setProgressState((currentState) => {
+      if (currentState.status !== 'success') {
+        return currentState
+      }
+
+      return {
+        status: 'success',
+        data: {
+          ...currentState.data,
+          taskProgress: upsertTaskProgressItem(
+            currentState.data.taskProgress,
+            savedTaskProgress,
+          ),
+        },
+        error: '',
+      }
+    })
+  }
+
+  function getSaveTaskProgressErrorMessage(error: unknown) {
+    if (error instanceof LessonProgressApiError && error.status === 401) {
+      return 'Sign in to save your progress.'
+    }
+
+    if (error instanceof LessonProgressApiError) {
+      return error.message
+    }
+
+    return 'Unable to save progress. Please try again later.'
+  }
+
+  async function handleSavePrediction(
+    lessonId: string,
+    task: LessonTask,
+    selectedOptionId: string,
+  ) {
+    if (isSavingPrediction || isPredictionRevealed) {
+      return
+    }
+
+    setIsSavingPrediction(true)
+    setPredictionSaveError('')
+
+    try {
+      const savedTaskProgress = await saveLessonTaskProgress(
+        lessonId,
+        task.id,
+        {
+          selectedOptionId,
+        },
+      )
+
+      updateSavedTaskProgress(savedTaskProgress)
+      setIsPredictionRevealed(true)
+    } catch (error) {
+      setPredictionSaveError(getSaveTaskProgressErrorMessage(error))
+    } finally {
+      setIsSavingPrediction(false)
+    }
+  }
+
+  async function handleSavePracticeAttempt(lessonId: string, task: LessonTask) {
+    if (isSavingPracticeAttempt || isPracticeAttemptSaved) {
+      return
+    }
+
+    setIsSavingPracticeAttempt(true)
+    setPracticeSaveError('')
+
+    try {
+      const savedTaskProgress = await saveLessonTaskProgress(
+        lessonId,
+        task.id,
+        {
+          attempt: practiceAttempt,
+        },
+      )
+
+      updateSavedTaskProgress(savedTaskProgress)
+      setIsPracticeAttemptSaved(true)
+    } catch (error) {
+      setPracticeSaveError(getSaveTaskProgressErrorMessage(error))
+    } finally {
+      setIsSavingPracticeAttempt(false)
+    }
+  }
+
+  async function handleSaveReflection(lessonId: string, task: LessonTask) {
+    if (isSavingReflection || isReflectionAccepted) {
+      return
+    }
+
+    setIsSavingReflection(true)
+    setReflectionSaveError('')
+
+    try {
+      const savedTaskProgress = await saveLessonTaskProgress(
+        lessonId,
+        task.id,
+        {
+          answer: reflectionAnswer,
+        },
+      )
+
+      updateSavedTaskProgress(savedTaskProgress)
+      setIsReflectionAccepted(true)
+    } catch (error) {
+      setReflectionSaveError(getSaveTaskProgressErrorMessage(error))
+    } finally {
+      setIsSavingReflection(false)
+    }
+  }
 
   async function handleCompleteLesson(lessonId: string) {
     if (isCompletingLesson) {
@@ -626,34 +856,27 @@ export function LessonPage() {
     lessonMarkdown,
     '## 7. Practice Task',
   )
-  const normalizedPracticeAttempt = normalizeAttempt(
-    practiceAttempt,
-    codeTask?.validation?.normalization,
-  )
-  const normalizedStarterCode = normalizeAttempt(
-    codeTask?.starterCode ?? '',
-    codeTask?.validation?.normalization,
-  )
-  const isUnchangedStarterAttempt =
-    Boolean(codeTask?.validation?.rejectUnchangedStarter) &&
-    normalizedPracticeAttempt === normalizedStarterCode
   const canSavePracticeAttempt =
-    practiceAttempt.trim().length > 0 && !isUnchangedStarterAttempt
+    practiceAttempt.trim().length > 0 &&
+    !isPracticeAttemptSaved &&
+    !isSavingPracticeAttempt
   const reflectionText = reflectionAnswer.trim()
   const reflectionCharacterCount = reflectionText.length
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
   const reflectionMinWords = reflectionTask?.validation?.minWords ?? 1
   const reflectionMinCharacters = reflectionTask?.validation?.minCharacters ?? 1
   const canAcceptReflection =
-    reflectionCharacterCount >= reflectionMinCharacters &&
-    reflectionWordCount >= reflectionMinWords
+    reflectionText.length > 0 && !isReflectionAccepted && !isSavingReflection
   const nextStepAfterLearn = getNextLessonFlowStep(lessonFlow, 'learn')
   const nextStepAfterPractice = getNextLessonFlowStep(lessonFlow, 'practice')
   const finalLessonFlowStep = lessonFlow[lessonFlow.length - 1]?.id
   const isAtFinalLessonFlowStep = lessonFlowStep === finalLessonFlowStep
   const requiresReflection = Boolean(reflectionTask?.isRequired)
   const canUseLessonFinishFlow =
-    !usesStepLessonFlow || !requiresReflection || isReflectionAccepted
+    !usesStepLessonFlow ||
+    isLessonCompleted ||
+    !requiresReflection ||
+    isReflectionAccepted
 
   return (
     <div className="grid gap-6">
@@ -795,6 +1018,7 @@ export function LessonPage() {
                             onChange={() => {
                               setPredictionAnswer(option.id)
                               setIsPredictionRevealed(false)
+                              setPredictionSaveError('')
                             }}
                             type="radio"
                             value={option.id}
@@ -824,6 +1048,11 @@ export function LessonPage() {
                         Choose an answer, then reveal the explanation.
                       </p>
                     )}
+                    {predictionSaveError ? (
+                      <p className="text-sm text-destructive" role="alert">
+                        {predictionSaveError}
+                      </p>
+                    ) : null}
                   </CardContent>
                   <CardFooter>
                     {isPredictionRevealed ? (
@@ -835,11 +1064,21 @@ export function LessonPage() {
                       </Button>
                     ) : (
                       <Button
-                        disabled={!predictionAnswer}
-                        onClick={() => setIsPredictionRevealed(true)}
+                        disabled={!predictionAnswer || isSavingPrediction}
+                        onClick={() => {
+                          if (predictionAnswer) {
+                            void handleSavePrediction(
+                              lessonDetails.lesson.id,
+                              predictionTask,
+                              predictionAnswer,
+                            )
+                          }
+                        }}
                         type="button"
                       >
-                        Reveal explanation
+                        {isSavingPrediction
+                          ? 'Saving...'
+                          : 'Reveal explanation'}
                       </Button>
                     )}
                   </CardFooter>
@@ -925,6 +1164,7 @@ export function LessonPage() {
                           onChange={(event) => {
                             setPracticeAttempt(event.target.value)
                             setIsPracticeAttemptSaved(false)
+                            setPracticeSaveError('')
                           }}
                           spellCheck={false}
                           value={practiceAttempt}
@@ -934,29 +1174,38 @@ export function LessonPage() {
                             className="text-sm font-medium text-primary"
                             role="status"
                           >
-                            Attempt saved locally. You can continue to
-                            reflection.
-                          </p>
-                        ) : isUnchangedStarterAttempt ? (
-                          <p className="text-sm text-muted-foreground">
-                            Change the starter code before saving your attempt.
+                            Attempt saved. You can continue to reflection.
                           </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
                             Save your attempt before continuing to reflection.
                           </p>
                         )}
+                        {practiceSaveError ? (
+                          <p className="text-sm text-destructive" role="alert">
+                            {practiceSaveError}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                     <Button
                       disabled={!canSavePracticeAttempt}
-                      onClick={() => setIsPracticeAttemptSaved(true)}
+                      onClick={() => {
+                        void handleSavePracticeAttempt(
+                          lessonDetails.lesson.id,
+                          codeTask,
+                        )
+                      }}
                       type="button"
                       variant="outline"
                     >
-                      Save attempt
+                      {isSavingPracticeAttempt
+                        ? 'Saving...'
+                        : isPracticeAttemptSaved
+                          ? 'Attempt saved'
+                          : 'Save attempt'}
                     </Button>
                     {nextStepAfterPractice ? (
                       <Button
@@ -1015,6 +1264,7 @@ export function LessonPage() {
                       onChange={(event) => {
                         setReflectionAnswer(event.target.value)
                         setIsReflectionAccepted(false)
+                        setReflectionSaveError('')
                       }}
                       value={reflectionAnswer}
                     />
@@ -1023,7 +1273,7 @@ export function LessonPage() {
                         className="text-sm font-medium text-primary"
                         role="status"
                       >
-                        Reflection saved locally.
+                        Reflection saved.
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground">
@@ -1033,16 +1283,28 @@ export function LessonPage() {
                         {reflectionCharacterCount} characters.
                       </p>
                     )}
+                    {reflectionSaveError ? (
+                      <p className="text-sm text-destructive" role="alert">
+                        {reflectionSaveError}
+                      </p>
+                    ) : null}
                     <div>
                       <Button
                         disabled={!canAcceptReflection || isReflectionAccepted}
-                        onClick={() => setIsReflectionAccepted(true)}
+                        onClick={() => {
+                          void handleSaveReflection(
+                            lessonDetails.lesson.id,
+                            reflectionTask,
+                          )
+                        }}
                         type="button"
                         variant="outline"
                       >
-                        {isReflectionAccepted
-                          ? 'Reflection saved'
-                          : 'Save reflection'}
+                        {isSavingReflection
+                          ? 'Saving...'
+                          : isReflectionAccepted
+                            ? 'Reflection saved'
+                            : 'Save reflection'}
                       </Button>
                     </div>
                   </div>
@@ -1062,7 +1324,9 @@ export function LessonPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {usesStepLessonFlow && !isReflectionAccepted ? (
+                    {usesStepLessonFlow &&
+                    !isReflectionAccepted &&
+                    !isLessonCompleted ? (
                       <p className="text-sm text-muted-foreground">
                         Save your reflection before marking this lesson
                         complete.
