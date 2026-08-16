@@ -269,6 +269,25 @@ export function findPublishedLessonByModuleAndTechnologySlug(
             },
           },
         },
+        tasks: {
+          orderBy: {
+            order: 'asc',
+          },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            prompt: true,
+            starterCode: true,
+            options: true,
+            feedback: true,
+            validation: true,
+            metadata: true,
+            type: true,
+            order: true,
+            isRequired: true,
+          },
+        },
       },
     })
     .then((lesson) => {
@@ -328,6 +347,7 @@ export function findPublishedLessonByModuleAndTechnologySlug(
           type: lesson.type,
           difficulty: lesson.difficulty,
           isPublished: lesson.isPublished,
+          tasks: lesson.tasks,
         },
         previousLesson,
         nextLesson,

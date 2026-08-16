@@ -22,6 +22,7 @@ enum LessonType {
 
 enum TaskType {
   READING
+  PREDICTION
   PRACTICE
   CODE
   REFLECTION
@@ -229,8 +230,15 @@ model LessonTask {
   lessonId    String
   title       String
   description String?
+  prompt      String?
+  starterCode String?
+  options     Json?
+  feedback    Json?
+  validation  Json?
+  metadata    Json?
   type        TaskType @default(PRACTICE)
   order       Int
+  isRequired  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
