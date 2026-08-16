@@ -1445,6 +1445,959 @@ Practice helps make component boundaries feel natural. Extract repeated UI, type
   },
 ]
 
+const componentsAndPropsLessonContentBySlug = {
+  'understanding-react-components': `# Understanding React components
+
+## 1. Lesson Goal
+
+Understand a React component as a named piece of UI with one clear responsibility.
+
+By the end, you should be able to look at a screen and identify which parts could become components and why.
+
+## 2. Why It Matters
+
+After React Basics, you can render JSX and data. The next skill is organization.
+
+Real product screens grow quickly. Without components, one file becomes a long mix of headings, buttons, lists, empty states, and labels. Components give that UI structure.
+
+## 3. Core Concept
+
+A component is usually a function that returns UI.
+
+\`\`\`tsx
+function WelcomePanel() {
+  return (
+    <section>
+      <h1>Welcome back</h1>
+      <p>Continue your learning path.</p>
+    </section>
+  )
+}
+\`\`\`
+
+The important part is not just the function. It is the responsibility: \`WelcomePanel\` owns the welcome section.
+
+## 4. Mental Model
+
+Think of a component as a labeled box around a meaningful UI idea.
+
+If you can give the box a useful name, it may be a component. If the name is vague, the boundary may be unclear.
+
+## 5. Guided Walkthrough
+
+Start from a simple screen:
+
+\`\`\`tsx
+function DashboardPreview() {
+  return (
+    <main>
+      <section>
+        <h1>Welcome back</h1>
+        <p>Continue your learning path.</p>
+      </section>
+
+      <section>
+        <h2>Next lesson</h2>
+        <p>JSX fundamentals</p>
+      </section>
+    </main>
+  )
+}
+\`\`\`
+
+Two sections have different jobs. Extracting them can make the parent easier to read:
+
+\`\`\`tsx
+function DashboardPreview() {
+  return (
+    <main>
+      <WelcomePanel />
+      <NextLessonPanel />
+    </main>
+  )
+}
+\`\`\`
+
+## 6. Common Mistakes
+
+### Mistake 1: Extracting without a reason
+
+Do not split code just to make more files. Split when the component name and responsibility are clear.
+
+### Mistake 2: Keeping everything in one component
+
+If a component has several unrelated sections, it becomes harder to scan and change safely.
+
+### Mistake 3: Naming components after appearance only
+
+\`BlueBox\` describes styling. \`NextLessonPanel\` describes purpose. Purpose usually ages better.
+
+## 7. Practice Task
+
+Build a \`CourseOverview\` screen from focused components.
+
+Requirements:
+
+1. Create a parent \`CourseOverview\` component.
+2. Extract a \`CourseHeader\` component.
+3. Extract a \`NextLessonPanel\` component.
+4. Extract a \`ProgressPanel\` component.
+5. Keep each component static for now.
+6. Give every component a clear responsibility.
+
+The goal is to practice seeing UI boundaries.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- Each component has a useful name.
+- Each component returns a meaningful piece of UI.
+- The parent component is easier to scan after extraction.
+- You did not add props before they were needed.
+- You can explain why each boundary exists.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+What makes a piece of UI worth extracting into a component?
+
+Your answer should mention responsibility, naming, or readability.
+
+## 10. Next Step
+
+Next, you will create functional components deliberately and learn the small rules that keep them predictable.`,
+  'creating-functional-components': `# Creating functional components
+
+## 1. Lesson Goal
+
+Create functional components that return clear JSX and can be composed inside other components.
+
+## 2. Why It Matters
+
+Most modern React code is written with function components. If you can write small function components confidently, you can read and contribute to real React codebases.
+
+This lesson is about the shape and habits of a good component, not advanced behavior.
+
+## 3. Core Concept
+
+A function component is a JavaScript or TypeScript function whose name starts with an uppercase letter and returns JSX.
+
+\`\`\`tsx
+function PageTitle() {
+  return <h1>Frontend Engineer</h1>
+}
+\`\`\`
+
+React treats uppercase JSX tags as components:
+
+\`\`\`tsx
+function Page() {
+  return <PageTitle />
+}
+\`\`\`
+
+## 4. Mental Model
+
+Think of a function component as a reusable UI sentence.
+
+The name tells you what the sentence is about. The returned JSX says it. Composition lets you put sentences together into a page.
+
+## 5. Guided Walkthrough
+
+Start with a component that returns one JSX tree:
+
+\`\`\`tsx
+function EmptyState() {
+  return (
+    <section>
+      <h2>No lessons yet</h2>
+      <p>New lessons will appear here soon.</p>
+    </section>
+  )
+}
+\`\`\`
+
+Then use it from another component:
+
+\`\`\`tsx
+function LessonsPanel() {
+  return (
+    <div>
+      <EmptyState />
+    </div>
+  )
+}
+\`\`\`
+
+## 6. Common Mistakes
+
+### Mistake 1: Calling components like normal functions in JSX
+
+Write \`<EmptyState />\`, not \`EmptyState()\`. JSX keeps component usage visible.
+
+### Mistake 2: Starting component names with lowercase letters
+
+Lowercase JSX names are treated like built-in DOM elements. Use uppercase names for your components.
+
+### Mistake 3: Returning disconnected sibling elements
+
+Return one JSX tree. Use a semantic wrapper or a fragment.
+
+## 7. Practice Task
+
+Build a \`LessonEmptyState\` component and use it inside \`LessonsPanel\`.
+
+Requirements:
+
+1. Create \`LessonEmptyState\`.
+2. Return a heading, short message, and one button.
+3. Create \`LessonsPanel\`.
+4. Render \`LessonEmptyState\` inside \`LessonsPanel\`.
+5. Keep both components focused and static.
+
+The goal is to practice component declaration and usage.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- Component names start with uppercase letters.
+- Components are used as JSX tags.
+- Each component returns one JSX tree.
+- The parent and child responsibilities are different.
+- You can explain where the child component is rendered.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why does React component usage look like \`<LessonEmptyState />\` instead of a normal function call?
+
+Your answer should mention readability, JSX, or component composition.
+
+## 10. Next Step
+
+Next, you will pass data into components so the same component can render different content.`,
+  'passing-data-with-props': `# Passing data with props
+
+## 1. Lesson Goal
+
+Use props to pass data from a parent component into a child component.
+
+## 2. Why It Matters
+
+A component becomes useful when it can render different data without being rewritten.
+
+For example, one \`LessonCard\` component should be able to show JSX Fundamentals, Components Overview, or State and Events depending on the props it receives.
+
+## 3. Core Concept
+
+Props are read-only inputs passed to a component through JSX attributes.
+
+\`\`\`tsx
+type LessonCardProps = {
+  title: string
+  description: string
+}
+
+function LessonCard({ title, description }: LessonCardProps) {
+  return (
+    <article>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </article>
+  )
+}
+\`\`\`
+
+The parent provides the values:
+
+\`\`\`tsx
+<LessonCard
+  title="Components and Props"
+  description="Create reusable UI with clear inputs."
+/>
+\`\`\`
+
+## 4. Mental Model
+
+Think of props as function parameters for UI.
+
+The parent owns the data. The child receives the data and renders it. The child should not secretly invent or mutate the parent's data.
+
+## 5. Guided Walkthrough
+
+Render multiple cards with different values:
+
+\`\`\`tsx
+function LessonGrid() {
+  return (
+    <>
+      <LessonCard title="JSX" description="Describe UI with syntax." />
+      <LessonCard title="Props" description="Pass data into components." />
+    </>
+  )
+}
+\`\`\`
+
+The component implementation is reused. The props make each usage specific.
+
+## 6. Common Mistakes
+
+### Mistake 1: Hardcoding data inside a reusable component
+
+If every card has the same title inside the component, it is not reusable yet.
+
+### Mistake 2: Passing one huge object too early
+
+Prefer explicit props while learning. They make the component contract easier to see.
+
+### Mistake 3: Trying to change props inside the child
+
+Props are inputs. Render from them. Later, you will learn how children can request changes through events.
+
+## 7. Practice Task
+
+Build a reusable \`LessonCard\` component with props.
+
+Requirements:
+
+1. Create a \`LessonCard\` component.
+2. Pass \`title\`, \`description\`, and \`difficulty\` as props.
+3. Render at least two cards with different values.
+4. Keep the card focused on display.
+5. Do not store props in state.
+
+The goal is to practice passing data clearly from parent to child.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- The card does not hardcode lesson-specific content.
+- Prop names describe what the component needs.
+- The parent provides different values.
+- The child treats props as read-only.
+- You can explain which component owns the data.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+Why do props make a component more reusable?
+
+Your answer should mention parent data, child inputs, or rendering different values.
+
+## 10. Next Step
+
+Next, you will use TypeScript to make prop contracts explicit and safer.`,
+  'props-and-typescript': `# Props and TypeScript
+
+## 1. Lesson Goal
+
+Define TypeScript types for component props so component inputs are clear and mistakes are caught earlier.
+
+## 2. Why It Matters
+
+In a real codebase, components are used by other developers and by your future self.
+
+Typed props make the component contract visible. They help catch missing values, wrong value types, and unclear names before the browser shows a broken UI.
+
+## 3. Core Concept
+
+A props type describes the values a component expects.
+
+\`\`\`tsx
+type ModuleCardProps = {
+  title: string
+  lessonCount: number
+  isPublished: boolean
+}
+\`\`\`
+
+Then the component uses that type:
+
+\`\`\`tsx
+function ModuleCard({ title, lessonCount, isPublished }: ModuleCardProps) {
+  return (
+    <article>
+      <h2>{title}</h2>
+      <p>{lessonCount} lessons</p>
+      <span>{isPublished ? 'Published' : 'Draft'}</span>
+    </article>
+  )
+}
+\`\`\`
+
+## 4. Mental Model
+
+Think of a props type as the component's checklist.
+
+Before someone can use the component correctly, they need to satisfy the checklist. TypeScript helps enforce it.
+
+## 5. Guided Walkthrough
+
+Start with the minimum useful shape:
+
+\`\`\`tsx
+type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
+
+type LessonCardProps = {
+  title: string
+  difficulty: Difficulty
+  lessonCount: number
+}
+\`\`\`
+
+Use the type where props enter the component:
+
+\`\`\`tsx
+function LessonCard({ title, difficulty, lessonCount }: LessonCardProps) {
+  return (
+    <article>
+      <h2>{title}</h2>
+      <p>{difficulty}</p>
+      <p>{lessonCount} lessons</p>
+    </article>
+  )
+}
+\`\`\`
+
+## 6. Common Mistakes
+
+### Mistake 1: Using \`any\` to silence the compiler
+
+\`any\` removes the help TypeScript is supposed to give. Name the shape instead.
+
+### Mistake 2: Passing more data than the component needs
+
+If a component only renders \`title\` and \`difficulty\`, do not pass an entire learning path object without a reason.
+
+### Mistake 3: Making types too clever
+
+Begin with clear simple types. Add complexity only when the component truly needs it.
+
+## 7. Practice Task
+
+Build a typed \`ModuleSummaryCard\` component.
+
+Requirements:
+
+1. Create a \`Difficulty\` union type.
+2. Create a \`ModuleSummaryCardProps\` type.
+3. Include \`title\`, \`description\`, \`difficulty\`, and \`lessonCount\`.
+4. Render all props inside the component.
+5. Render the component from a parent with valid values.
+
+The goal is to make the component contract explicit.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- You did not use \`any\`.
+- The props type includes only what the component needs.
+- The parent passes valid values.
+- The union type prevents unsupported difficulty labels.
+- You can explain what TypeScript would catch.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+How do typed props improve collaboration in a React codebase?
+
+Your answer should mention contracts, clarity, or catching mistakes early.
+
+## 10. Next Step
+
+Next, you will compose components together and decide which component owns which part of the UI.`,
+  'component-composition': `# Component composition
+
+## 1. Lesson Goal
+
+Compose small components into larger UI while keeping data ownership and boundaries easy to follow.
+
+## 2. Why It Matters
+
+Composition is how React apps scale. Pages arrange sections. Sections arrange cards, controls, and empty states. Each layer should have a clear job.
+
+Good composition keeps a screen readable without hiding how data moves.
+
+## 3. Core Concept
+
+Composition means using components inside other components.
+
+\`\`\`tsx
+function DashboardPage() {
+  return (
+    <main>
+      <PageHeader title="Dashboard" />
+      <ProgressSummary completedLessons={4} totalLessons={10} />
+    </main>
+  )
+}
+\`\`\`
+
+The parent decides the layout and passes data down.
+
+## 4. Mental Model
+
+Think of composition as arranging a team.
+
+The parent coordinates. Children handle focused responsibilities. Data flows down through props. A child should not reach sideways into another child's work.
+
+## 5. Guided Walkthrough
+
+Use props for data:
+
+\`\`\`tsx
+function PageHeader({ title }: { title: string }) {
+  return <h1>{title}</h1>
+}
+\`\`\`
+
+Use \`children\` when a component should wrap flexible content:
+
+\`\`\`tsx
+function Panel({ children }: { children: React.ReactNode }) {
+  return <section className="panel">{children}</section>
+}
+\`\`\`
+
+Compose them:
+
+\`\`\`tsx
+function DashboardPage() {
+  return (
+    <Panel>
+      <PageHeader title="Dashboard" />
+      <p>Continue your learning journey.</p>
+    </Panel>
+  )
+}
+\`\`\`
+
+## 6. Common Mistakes
+
+### Mistake 1: Making children own data they should only display
+
+If the parent knows the data, pass it down. Keep ownership visible.
+
+### Mistake 2: Using \`children\` for everything
+
+\`children\` is useful for flexible wrappers. Use named props when the component needs specific data.
+
+### Mistake 3: Creating hidden dependencies
+
+A child should not depend on unrelated page details. Pass the exact inputs it needs.
+
+## 7. Practice Task
+
+Build a composed \`LearningPanel\`.
+
+Requirements:
+
+1. Create a reusable \`Panel\` component that accepts \`children\`.
+2. Create a \`PanelHeader\` component with typed props.
+3. Create a \`LessonPreviewCard\` component with typed props.
+4. Compose them inside \`LearningPanel\`.
+5. Keep data ownership in \`LearningPanel\`.
+6. Pass only the props each child needs.
+
+The goal is to practice composition and ownership boundaries.
+
+## 8. Self-Check
+
+Before moving on, check that:
+
+- The parent owns the data.
+- Children receive data through props.
+- \`children\` is used only for flexible wrapping.
+- Component boundaries are clear.
+- You can explain the direction data flows.
+
+## 9. Reflection
+
+In your own words, explain this:
+
+What is the difference between passing data through props and passing UI through \`children\`?
+
+Your answer should mention specific inputs, flexible content, or composition.
+
+## 10. Next Step
+
+Next, you will combine extraction, props, typing, and composition in a focused practice build.`,
+  'components-and-props-practice': `# Components and props practice
+
+## 1. Lesson Goal
+
+Build a small typed component section that uses extraction, props, composition, and repeated data.
+
+## 2. Why It Matters
+
+This is the point where components stop being isolated examples. You need to turn repeated UI into a reusable component, type its props, pass data from a parent, and keep ownership clear.
+
+That is everyday React work.
+
+## 3. Core Concept
+
+A reusable component has three parts:
+
+1. A clear responsibility.
+2. A clear props contract.
+3. A parent that supplies data.
+
+\`\`\`tsx
+type TechnologyCardProps = {
+  name: string
+  description: string
+  lessonCount: number
+}
+\`\`\`
+
+The card displays. The parent owns the list.
+
+## 4. Mental Model
+
+Think in two layers:
+
+- Data layer: what information exists?
+- UI layer: which component displays each piece?
+
+The parent maps data to components. The child renders one item well.
+
+## 5. Guided Walkthrough
+
+Start with the repeated shape:
+
+\`\`\`tsx
+function TechnologyCard({ name, description, lessonCount }: TechnologyCardProps) {
+  return (
+    <article>
+      <h2>{name}</h2>
+      <p>{description}</p>
+      <span>{lessonCount} lessons</span>
+    </article>
+  )
+}
+\`\`\`
+
+Then render data from the parent:
+
+\`\`\`tsx
+function TechnologySection() {
+  return (
+    <section>
+      {technologies.map((technology) => (
+        <TechnologyCard
+          key={technology.slug}
+          name={technology.name}
+          description={technology.description}
+          lessonCount={technology.lessonCount}
+        />
+      ))}
+    </section>
+  )
+}
+\`\`\`
+
+The card does not know where the data came from. That keeps it reusable.
+
+## 6. Common Mistakes
+
+### Mistake 1: Copying card markup instead of extracting
+
+Repeated markup is a signal. Extract the card and pass different props.
+
+### Mistake 2: Letting the card own the whole list
+
+The list belongs to the parent. The card should render one item.
+
+### Mistake 3: Forgetting the empty state
+
+Even a practice component should handle the case where no technologies are available.
+
+## 7. Practice Task
+
+Build a \`TechnologySection\` with typed reusable cards.
+
+Requirements:
+
+1. Create a \`Technology\` type.
+2. Create a typed \`TechnologyCard\` component.
+3. Create local technology data with at least three items.
+4. Render one card for each item with a stable key.
+5. Add an empty state branch.
+6. Keep list ownership in \`TechnologySection\`.
+7. Pass only the props the card needs.
+
+The goal is to combine the full Components and Props module.
+
+## 8. Self-Check
+
+Before marking this module complete, check that:
+
+- Repeated UI is extracted into a component.
+- Props are typed.
+- The parent owns the array.
+- The card renders one item.
+- Keys are stable.
+- Empty state is handled.
+- You can explain the component boundaries.
+
+## 9. Reflection
+
+In three to five sentences, explain your component design:
+
+- Which component owns the data?
+- Which component receives props?
+- Where did you use composition?
+- Why are the props typed?
+
+This reflection prepares you to discuss component design during code review.
+
+## 10. Next Step
+
+Next, you will move into State and Events, where components become interactive through local state and user actions.`,
+}
+
+const componentsAndPropsLessonsForSeed = componentsAndPropsLessons.map(
+  (lesson) => ({
+    ...lesson,
+    content: componentsAndPropsLessonContentBySlug[lesson.slug],
+  }),
+)
+
+const componentsAndPropsStarterCodeBySlug = {
+  'understanding-react-components': `function CourseHeader() {
+  return null
+}
+
+function NextLessonPanel() {
+  return null
+}
+
+function ProgressPanel() {
+  return null
+}
+
+export function CourseOverview() {
+  return (
+    <main>
+      {/* TODO: compose the focused components here. */}
+    </main>
+  )
+}`,
+  'creating-functional-components': `function LessonEmptyState() {
+  return (
+    <section>
+      {/* TODO: render a heading, message, and button. */}
+    </section>
+  )
+}
+
+export function LessonsPanel() {
+  return (
+    <section aria-labelledby="lessons-panel-heading">
+      <h2 id="lessons-panel-heading">Lessons</h2>
+      {/* TODO: render LessonEmptyState as a component. */}
+    </section>
+  )
+}`,
+  'passing-data-with-props': `type LessonCardProps = {
+  // TODO: define title, description, and difficulty props.
+}
+
+function LessonCard(props: LessonCardProps) {
+  return (
+    <article>
+      {/* TODO: render values from props. */}
+    </article>
+  )
+}
+
+export function LessonGrid() {
+  return (
+    <section>
+      {/* TODO: render at least two LessonCard components with different props. */}
+    </section>
+  )
+}`,
+  'props-and-typescript': `type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
+
+type ModuleSummaryCardProps = {
+  // TODO: add title, description, difficulty, and lessonCount.
+}
+
+function ModuleSummaryCard(props: ModuleSummaryCardProps) {
+  return (
+    <article>
+      {/* TODO: render all typed props. */}
+    </article>
+  )
+}
+
+export function ModuleSummaryExample() {
+  return (
+    <section>
+      {/* TODO: render ModuleSummaryCard with valid values. */}
+    </section>
+  )
+}`,
+  'component-composition': `type PanelHeaderProps = {
+  // TODO: define the header props.
+}
+
+type LessonPreviewCardProps = {
+  // TODO: define the lesson preview props.
+}
+
+function Panel({ children }: { children: React.ReactNode }) {
+  return <section>{children}</section>
+}
+
+function PanelHeader(props: PanelHeaderProps) {
+  return null
+}
+
+function LessonPreviewCard(props: LessonPreviewCardProps) {
+  return null
+}
+
+export function LearningPanel() {
+  // TODO: keep the data here and pass only what children need.
+
+  return <Panel>{/* TODO: compose the panel content. */}</Panel>
+}`,
+  'components-and-props-practice': `type Technology = {
+  slug: string
+  name: string
+  description: string
+  lessonCount: number
+}
+
+type TechnologyCardProps = {
+  // TODO: define only the props the card needs.
+}
+
+function TechnologyCard(props: TechnologyCardProps) {
+  return (
+    <article>
+      {/* TODO: render one technology. */}
+    </article>
+  )
+}
+
+export function TechnologySection() {
+  const technologies: Technology[] = [
+    // TODO: add at least three technologies.
+  ]
+
+  // TODO: handle the empty state.
+
+  return (
+    <section aria-labelledby="technology-section-heading">
+      <h2 id="technology-section-heading">Technologies</h2>
+      {/* TODO: render TechnologyCard items from data. */}
+    </section>
+  )
+}`,
+}
+
+const componentsAndPropsPredictionTasksBySlug = {
+  'passing-data-with-props': {
+    title: 'Prediction',
+    description: 'Predict how props make a component reusable.',
+    prompt:
+      'What changes when a parent renders the same LessonCard with different props?',
+    starterCode: `<LessonCard title="JSX" description="Describe UI." />
+<LessonCard title="Props" description="Pass data into UI." />`,
+    options: [
+      {
+        id: 'same-output',
+        label:
+          'Both cards render the same content because the component function is the same.',
+      },
+      {
+        id: 'different-output',
+        label:
+          'Each card renders different content because props provide different inputs.',
+      },
+      {
+        id: 'props-mutated',
+        label: 'The child changes the props so each card can update itself.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'different-output',
+      responses: {
+        'same-output':
+          'Not quite. The component implementation is the same, but each usage receives different prop values.',
+        'different-output':
+          'Correct. Props are inputs from the parent, so the same component can render different data.',
+        'props-mutated':
+          'Not quite. Props are read-only inputs. The child renders from them instead of mutating them.',
+      },
+    },
+    validation: {
+      correctOptionId: 'different-output',
+    },
+    metadata: {
+      reason:
+        'Catches the misconception that reusable components must contain their own data.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+  'component-composition': {
+    title: 'Prediction',
+    description: 'Predict where ownership belongs in a composed UI.',
+    prompt:
+      'In a composed screen, where should shared lesson data usually live first?',
+    starterCode: null,
+    options: [
+      {
+        id: 'parent-owns',
+        label:
+          'In the parent that coordinates the section and passes needed values down.',
+      },
+      {
+        id: 'every-child-fetches',
+        label:
+          'Inside every child component so each child can find its own data.',
+      },
+      {
+        id: 'props-change',
+        label:
+          'Inside props, because child components can edit props directly.',
+      },
+    ],
+    feedback: {
+      correctOptionId: 'parent-owns',
+      responses: {
+        'parent-owns':
+          'Correct. The parent coordinates the data and passes focused inputs to children.',
+        'every-child-fetches':
+          'Not quite. That creates hidden dependencies and makes the UI harder to reason about.',
+        'props-change':
+          'Not quite. Props carry data down, but children should not edit props directly.',
+      },
+    },
+    validation: {
+      correctOptionId: 'parent-owns',
+    },
+    metadata: {
+      reason:
+        'Catches confusion around one-way data flow and ownership boundaries.',
+    },
+    type: 'PREDICTION',
+    isRequired: true,
+  },
+}
+
 const stateAndEventsLessons = [
   {
     slug: 'local-state-with-usestate',
@@ -1763,6 +2716,72 @@ function createReactBasicsTasksForLesson(lesson) {
   ]
 }
 
+function createComponentsAndPropsCodeTaskForLesson(lesson, order) {
+  const starterCode = componentsAndPropsStarterCodeBySlug[lesson.slug]
+
+  return {
+    title: 'Practice task',
+    description: lesson.description,
+    prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
+    starterCode,
+    options: undefined,
+    feedback: undefined,
+    validation: {
+      rejectUnchangedStarter: true,
+      starterCodeHash: hashStarterCode(starterCode),
+      normalization: 'trim',
+    },
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'components-and-props',
+      sourceSection: 'Practice Task',
+    },
+    type: 'CODE',
+    order,
+    isRequired: true,
+  }
+}
+
+function createComponentsAndPropsReflectionTaskForLesson(lesson, order) {
+  return {
+    title: 'Reflection',
+    description: 'Explain the concept in your own words before moving on.',
+    prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
+    starterCode: undefined,
+    options: undefined,
+    feedback: undefined,
+    validation: reflectionValidation,
+    metadata: {
+      source: 'apps/api/prisma/seed.mjs',
+      sourceModule: 'components-and-props',
+      sourceSection: 'Reflection',
+    },
+    type: 'REFLECTION',
+    order,
+    isRequired: true,
+  }
+}
+
+function createComponentsAndPropsTasksForLesson(lesson) {
+  const predictionTask = componentsAndPropsPredictionTasksBySlug[lesson.slug]
+
+  if (predictionTask) {
+    return [
+      {
+        ...predictionTask,
+        order: 1,
+      },
+      createComponentsAndPropsCodeTaskForLesson(lesson, 2),
+      createComponentsAndPropsReflectionTaskForLesson(lesson, 3),
+    ]
+  }
+
+  return [
+    createComponentsAndPropsCodeTaskForLesson(lesson, 1),
+    createComponentsAndPropsReflectionTaskForLesson(lesson, 2),
+  ]
+}
+
 function createCodeTaskForLesson(lesson, order) {
   const starterCode = stateAndEventsStarterCodeBySlug[lesson.slug]
 
@@ -2036,7 +3055,7 @@ async function main() {
     },
   })
 
-  for (const lesson of componentsAndPropsLessons) {
+  for (const lesson of componentsAndPropsLessonsForSeed) {
     await prisma.lesson.upsert({
       where: {
         moduleId_slug: {
@@ -2050,6 +3069,41 @@ async function main() {
         moduleId: componentsAndPropsModule.id,
       },
     })
+  }
+
+  let componentsAndPropsTaskCount = 0
+
+  for (const lesson of componentsAndPropsLessonsForSeed) {
+    const seededLesson = await prisma.lesson.findUniqueOrThrow({
+      where: {
+        moduleId_slug: {
+          moduleId: componentsAndPropsModule.id,
+          slug: lesson.slug,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const tasks = createComponentsAndPropsTasksForLesson(lesson)
+
+    for (const task of tasks) {
+      await prisma.lessonTask.upsert({
+        where: {
+          lessonId_order: {
+            lessonId: seededLesson.id,
+            order: task.order,
+          },
+        },
+        update: task,
+        create: {
+          ...task,
+          lessonId: seededLesson.id,
+        },
+      })
+    }
+
+    componentsAndPropsTaskCount += tasks.length
   }
 
   const stateAndEventsModule = await prisma.module.findUniqueOrThrow({
@@ -2124,7 +3178,10 @@ async function main() {
   console.log(`Seeded ${reactBasicsLessons.length} React Basics lessons.`)
   console.log(`Seeded ${reactBasicsTaskCount} React Basics tasks.`)
   console.log(
-    `Seeded ${componentsAndPropsLessons.length} Components and Props lessons.`,
+    `Seeded ${componentsAndPropsLessonsForSeed.length} Components and Props lessons.`,
+  )
+  console.log(
+    `Seeded ${componentsAndPropsTaskCount} Components and Props tasks.`,
   )
   console.log(
     `Seeded ${stateAndEventsLessons.length} State and Events lessons.`,
