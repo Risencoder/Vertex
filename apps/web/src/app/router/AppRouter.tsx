@@ -7,6 +7,7 @@ import { LessonPage } from '@/pages/lesson/LessonPage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { ModulePage } from '@/pages/module/ModulePage'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
+import { ProjectPage } from '@/pages/project/ProjectPage'
 import { RegisterPage } from '@/pages/register/RegisterPage'
 import { TechnologyPage } from '@/pages/technology/TechnologyPage'
 
@@ -23,6 +24,10 @@ export function AppRouter() {
         <Route
           path="technologies/:technologySlug/modules/:moduleSlug"
           element={<ModulePage />}
+        />
+        <Route
+          path="technologies/:technologySlug/projects/:projectSlug"
+          element={<ProjectPage />}
         />
         <Route path="technologies/:slug" element={<TechnologyPage />} />
         <Route path="login" element={<LoginPage />} />

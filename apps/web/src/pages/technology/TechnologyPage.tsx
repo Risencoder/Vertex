@@ -110,6 +110,46 @@ function ModuleCard({
   )
 }
 
+function CapstoneProjectCard({ technologySlug }: { technologySlug: string }) {
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardHeader>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex rounded-lg border border-primary/20 bg-background px-2 py-1 text-xs font-medium text-primary">
+            Build project
+          </span>
+          <span className="inline-flex rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-muted-foreground">
+            {formatDifficulty('ADVANCED')}
+          </span>
+        </div>
+        <CardTitle>React Capstone</CardTitle>
+        <CardDescription>
+          Build a small React application that combines component design, state,
+          hooks, routing, forms, and practical performance decisions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+          This is a project submission, not another lesson. Use it to turn the
+          React path into a reviewable product artifact.
+        </p>
+      </CardContent>
+      <CardFooter className="justify-start">
+        <Button
+          nativeButton={false}
+          render={
+            <Link
+              to={`/technologies/${technologySlug}/projects/react-capstone`}
+            />
+          }
+        >
+          Open Capstone
+        </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
 function formatSlugLabel(slug: string) {
   return slug
     .split('-')
@@ -299,6 +339,16 @@ export function TechnologyPage() {
               </Card>
             )}
           </section>
+
+          {technologyState.data.slug === 'react' ? (
+            <section className="grid gap-4">
+              <SectionHeader
+                description="Apply the React path in one focused build and prepare it for review."
+                title="Capstone Project"
+              />
+              <CapstoneProjectCard technologySlug={technologyState.data.slug} />
+            </section>
+          ) : null}
         </div>
       ) : null}
     </div>
