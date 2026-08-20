@@ -7,8 +7,8 @@ import {
 } from '../../generated/prisma/index.js'
 import { prisma } from '../../shared/prisma.ts'
 import {
+  getConfiguredMentorReviewer,
   isValidMentorReviewOutput,
-  localMockMentorReviewer,
   type MentorReviewContext,
   type MentorReviewResult,
 } from './mentor-reviewer.ts'
@@ -333,16 +333,19 @@ function isUniqueConstraintError(error: unknown) {
   )
 }
 
-function toUnavailableReviewResult(error: unknown): MentorReviewResult {
+function getPreviousReviewSummary(output: Prisma.JsonValue | null) {
+  return isRecord(output) && typeof output.summary === 'string'
+    ? output.summary
+    : null
+}
+
+function toUnavailableReviewResult(): MentorReviewResult {
   return {
     status: 'REVIEW_UNAVAILABLE',
     output: null,
-    provider: 'LOCAL_MOCK',
-    model: 'mentor-review-v1-contract',
-    errorMessage:
-      error instanceof Error
-        ? error.message
-        : 'Reviewer unavailable for this attempt.',
+    provider: 'MENTOR_REVIEWER',
+    model: 'unknown',
+    errorMessage: 'Reviewer unavailable for this attempt.',
   }
 }
 
@@ -650,6 +653,21 @@ export async function submitLessonTaskAttemptForReview(
     }
   }
 
+  const latestReview = await prisma.lessonTaskReview.findFirst({
+    where: {
+      lessonTaskAttempt: {
+        userId,
+        lessonTaskId,
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      output: true,
+    },
+  })
+
   const reviewContext: MentorReviewContext = {
     lesson: {
       title: task.lesson.title,
@@ -669,8 +687,12 @@ export async function submitLessonTaskAttemptForReview(
       validation: task.validation,
     },
     response: validationResult.response as Prisma.JsonValue,
+    previousReviewSummary: getPreviousReviewSummary(
+      latestReview?.output ?? null,
+    ),
   }
-  const rawReviewResult = await localMockMentorReviewer
+  const reviewer = getConfiguredMentorReviewer()
+  const rawReviewResult = await reviewer
     .reviewCodeAttempt(reviewContext)
     .catch(toUnavailableReviewResult)
   const reviewResult = validateMentorReviewResult(rawReviewResult)
