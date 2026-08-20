@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 import { useRootLayout } from '@/app/layouts/use-root-layout'
 import {
@@ -400,6 +400,14 @@ function getInitialLessonFlowStep(tasks: LessonTask[]): LessonFlowStepId {
   return getTaskByType(tasks, 'PREDICTION') ? 'predict' : 'learn'
 }
 
+function isLessonFlowStepId(value: string | null): value is LessonFlowStepId {
+  return lessonFlowSteps.some((step) => step.id === value)
+}
+
+function hasLessonFlowStep(steps: LessonFlowStep[], stepId: LessonFlowStepId) {
+  return steps.some((step) => step.id === stepId)
+}
+
 function getNextLessonFlowStep(
   steps: LessonFlowStep[],
   currentStep: LessonFlowStepId,
@@ -407,6 +415,108 @@ function getNextLessonFlowStep(
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
 
   return steps[currentStepIndex + 1]?.id ?? null
+}
+
+function getLessonFlowStepIndex(
+  steps: LessonFlowStep[],
+  stepId: LessonFlowStepId,
+) {
+  return steps.findIndex((step) => step.id === stepId)
+}
+
+function isTaskRequired(task?: LessonTask) {
+  return task?.isRequired === true
+}
+
+function getFirstBlockedLessonFlowStep({
+  canContinueAfterPractice,
+  isLessonCompleted,
+  isPredictionRevealed,
+  isReflectionAccepted,
+  predictionTask,
+  codeTask,
+  reflectionTask,
+}: {
+  canContinueAfterPractice: boolean
+  isLessonCompleted: boolean
+  isPredictionRevealed: boolean
+  isReflectionAccepted: boolean
+  predictionTask?: LessonTask
+  codeTask?: LessonTask
+  reflectionTask?: LessonTask
+}) {
+  if (isLessonCompleted) {
+    return null
+  }
+
+  if (isTaskRequired(predictionTask) && !isPredictionRevealed) {
+    return 'predict'
+  }
+
+  if (isTaskRequired(codeTask) && !canContinueAfterPractice) {
+    return 'practice'
+  }
+
+  if (isTaskRequired(reflectionTask) && !isReflectionAccepted) {
+    return 'reflect'
+  }
+
+  return null
+}
+
+function getAccessibleLessonFlowStep({
+  blockedStep,
+  requestedStep,
+  steps,
+}: {
+  blockedStep: LessonFlowStepId | null
+  requestedStep: LessonFlowStepId
+  steps: LessonFlowStep[]
+}) {
+  if (!blockedStep) {
+    return requestedStep
+  }
+
+  const requestedStepIndex = getLessonFlowStepIndex(steps, requestedStep)
+  const blockedStepIndex = getLessonFlowStepIndex(steps, blockedStep)
+
+  if (requestedStepIndex === -1) {
+    return blockedStep
+  }
+
+  if (blockedStepIndex !== -1 && requestedStepIndex > blockedStepIndex) {
+    return blockedStep
+  }
+
+  return requestedStep
+}
+
+function getResumeLessonFlowStep({
+  blockedStep,
+  hasStoredInteraction,
+  isLessonCompleted,
+  steps,
+  tasks,
+}: {
+  blockedStep: LessonFlowStepId | null
+  hasStoredInteraction: boolean
+  isLessonCompleted: boolean
+  steps: LessonFlowStep[]
+  tasks: LessonTask[]
+}) {
+  if (isLessonCompleted) {
+    return 'learn'
+  }
+
+  if (!hasStoredInteraction) {
+    return getInitialLessonFlowStep(tasks)
+  }
+
+  if (blockedStep) {
+    return blockedStep
+  }
+
+  return steps[steps.length - 1]?.id ?? 'learn'
 }
 
 function getCorrectPredictionOptionId(task?: LessonTask) {
@@ -692,6 +802,7 @@ function MentorReviewPanel({ state }: { state: MentorReviewState }) {
 
 export function LessonPage() {
   const { lessonSlug, moduleSlug, technologySlug } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useRootLayout()
   const [lessonState, setLessonState] = useState<LessonState>({
     status: 'loading',
@@ -708,8 +819,6 @@ export function LessonPage() {
   const [isPredictionRevealed, setIsPredictionRevealed] = useState(false)
   const [isSavingPrediction, setIsSavingPrediction] = useState(false)
   const [predictionSaveError, setPredictionSaveError] = useState('')
-  const [lessonFlowStep, setLessonFlowStep] =
-    useState<LessonFlowStepId>('learn')
   const [practiceAttempt, setPracticeAttempt] = useState('')
   const [isPracticeAttemptSaved, setIsPracticeAttemptSaved] = useState(false)
   const [isSavingPracticeAttempt, setIsSavingPracticeAttempt] = useState(false)
@@ -759,7 +868,6 @@ export function LessonPage() {
       setIsPredictionRevealed(false)
       setIsSavingPrediction(false)
       setPredictionSaveError('')
-      setLessonFlowStep('learn')
       setPracticeAttempt('')
       setIsPracticeAttemptSaved(false)
       setIsSavingPracticeAttempt(false)
@@ -793,7 +901,6 @@ export function LessonPage() {
           data: lessonDetails,
           error: '',
         })
-        setLessonFlowStep(getInitialLessonFlowStep(tasks))
         setPracticeAttempt(codeTask?.starterCode ?? '')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
@@ -1103,6 +1210,13 @@ export function LessonPage() {
     return 'Unable to save progress. Please try again later.'
   }
 
+  function setLessonFlowStep(step: LessonFlowStepId) {
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    nextSearchParams.set('step', step)
+    setSearchParams(nextSearchParams, { replace: true })
+  }
+
   async function handleSavePrediction(
     lessonId: string,
     task: LessonTask,
@@ -1386,13 +1500,101 @@ export function LessonPage() {
   const nextStepAfterLearn = getNextLessonFlowStep(lessonFlow, 'learn')
   const nextStepAfterPractice = getNextLessonFlowStep(lessonFlow, 'practice')
   const finalLessonFlowStep = lessonFlow[lessonFlow.length - 1]?.id
-  const isAtFinalLessonFlowStep = lessonFlowStep === finalLessonFlowStep
   const requiresReflection = Boolean(reflectionTask?.isRequired)
   const canUseLessonFinishFlow =
     !usesStepLessonFlow ||
     isLessonCompleted ||
     !requiresReflection ||
     isReflectionAccepted
+  const requestedLessonFlowStepValue = searchParams.get('step')
+  const requestedLessonFlowStep = isLessonFlowStepId(
+    requestedLessonFlowStepValue,
+  )
+    ? requestedLessonFlowStepValue
+    : null
+  const hasValidRequestedLessonFlowStep = Boolean(
+    requestedLessonFlowStep &&
+    hasLessonFlowStep(lessonFlow, requestedLessonFlowStep),
+  )
+  const hasStoredInteraction =
+    Boolean(
+      progressState.data?.taskProgress?.some(
+        (progress) => progress.isCompleted,
+      ),
+    ) || Boolean(mentorReviewState.review)
+  const isMentorReviewResolved =
+    !isCodeTaskMentorReviewEnabled ||
+    !session.data ||
+    mentorReviewState.status === 'success' ||
+    mentorReviewState.status === 'error'
+  const canResolvePersistedLessonFlow =
+    !session.isPending &&
+    (!session.data ||
+      progressState.status === 'success' ||
+      progressState.status === 'error') &&
+    isMentorReviewResolved
+  const blockedLessonFlowStep = canResolvePersistedLessonFlow
+    ? getFirstBlockedLessonFlowStep({
+        canContinueAfterPractice,
+        codeTask,
+        isLessonCompleted,
+        isPredictionRevealed,
+        isReflectionAccepted,
+        predictionTask,
+        reflectionTask,
+      })
+    : null
+  const fallbackLessonFlowStep = canResolvePersistedLessonFlow
+    ? getResumeLessonFlowStep({
+        blockedStep: blockedLessonFlowStep,
+        hasStoredInteraction,
+        isLessonCompleted,
+        steps: lessonFlow,
+        tasks: lessonTasks,
+      })
+    : getInitialLessonFlowStep(lessonTasks)
+  const lessonFlowStep =
+    usesStepLessonFlow &&
+    requestedLessonFlowStep &&
+    hasValidRequestedLessonFlowStep
+      ? canResolvePersistedLessonFlow
+        ? getAccessibleLessonFlowStep({
+            blockedStep: blockedLessonFlowStep,
+            requestedStep: requestedLessonFlowStep,
+            steps: lessonFlow,
+          })
+        : requestedLessonFlowStep
+      : fallbackLessonFlowStep
+  const isAtFinalLessonFlowStep = lessonFlowStep === finalLessonFlowStep
+
+  useEffect(() => {
+    if (
+      lessonState.status !== 'success' ||
+      !usesStepLessonFlow ||
+      (!hasValidRequestedLessonFlowStep && !canResolvePersistedLessonFlow)
+    ) {
+      return
+    }
+
+    if (requestedLessonFlowStepValue === lessonFlowStep) {
+      return
+    }
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    nextSearchParams.set('step', lessonFlowStep)
+    setSearchParams(nextSearchParams, { replace: true })
+  }, [
+    canResolvePersistedLessonFlow,
+    hasValidRequestedLessonFlowStep,
+    isMentorReviewResolved,
+    lessonFlowStep,
+    lessonState.status,
+    requestedLessonFlowStepValue,
+    searchParams,
+    setSearchParams,
+    usesStepLessonFlow,
+  ])
 
   return (
     <div className="grid gap-6">
