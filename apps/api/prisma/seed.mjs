@@ -117,10 +117,10 @@ const technologies = [
 const frontendEngineerTechnologies = [
   'html',
   'css',
+  'git',
   'javascript',
   'typescript',
   'react',
-  'git',
   'testing',
 ]
 
@@ -231,6 +231,17 @@ async function main() {
     },
     select: {
       id: true,
+    },
+  })
+
+  await prisma.learningPathTechnology.updateMany({
+    where: {
+      learningPathId: frontendEngineer.id,
+    },
+    data: {
+      order: {
+        increment: 1000,
+      },
     },
   })
 

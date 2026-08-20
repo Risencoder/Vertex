@@ -7,6 +7,11 @@ import {
   type LearningPathDetails,
   type Technology,
 } from '@/shared/api/learning-paths'
+import {
+  frontendEngineerPathCopy,
+  getRecommendedNextTechnology,
+  getUnmetPrerequisites,
+} from '@/shared/config/learning-path-guidance'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs'
@@ -49,27 +54,46 @@ type LearningPathState =
     }
 
 function TechnologyCard({
+  allTechnologies,
   learningPathSlug,
+  isRecommendedNext,
   technology,
 }: {
+  allTechnologies: Technology[]
   learningPathSlug: string
+  isRecommendedNext: boolean
   technology: Technology
 }) {
+  const unmetPrerequisites = getUnmetPrerequisites(technology, allTechnologies)
+
   return (
-    <Card size="sm">
+    <Card className={isRecommendedNext ? 'border-primary/30 bg-primary/5' : ''}>
       <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle>{technology.name}</CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex size-8 items-center justify-center rounded-full border bg-background text-sm font-semibold">
+            {technology.order}
+          </span>
+          {isRecommendedNext ? (
+            <span className="inline-flex rounded-lg border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+              Recommended next
+            </span>
+          ) : null}
+          <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            {technology.isRequired ? 'Core' : 'Optional'}
+          </span>
           {technology.progress.isCompleted ? (
-            <span className="inline-flex shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+            <span className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
               Completed
             </span>
           ) : null}
         </div>
-        <CardDescription>{technology.description}</CardDescription>
+        <div className="grid gap-2">
+          <CardTitle>{technology.name}</CardTitle>
+          <CardDescription>{technology.description}</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
               {technology.progress.completedLessons} of{' '}
@@ -83,9 +107,30 @@ function TechnologyCard({
             label={`${technology.name} progress`}
             value={technology.progress.percentage}
           />
+          {technology.progress.totalLessons === 0 ? (
+            <p className="text-sm leading-6 text-muted-foreground">
+              Guided lessons for this technology are not published yet. You can
+              still open it from the path.
+            </p>
+          ) : null}
+          {unmetPrerequisites.length > 0 ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+              <p className="font-medium">Recommended before this step</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {unmetPrerequisites.map((prerequisite) => (
+                  <li key={prerequisite.slug}>
+                    {prerequisite.label}{' '}
+                    <span className="text-amber-800/80">
+                      ({prerequisite.importance})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </CardContent>
-      <CardFooter className="justify-start">
+      <CardFooter className="flex-col items-start gap-2 sm:flex-row sm:items-center">
         <Button
           nativeButton={false}
           render={
@@ -96,8 +141,13 @@ function TechnologyCard({
           }
           variant="outline"
         >
-          Explore
+          {unmetPrerequisites.length > 0 ? 'Start anyway' : 'Explore'}
         </Button>
+        {unmetPrerequisites.length > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Start anyway. This is guidance, not a lock.
+          </p>
+        ) : null}
       </CardFooter>
     </Card>
   )
@@ -211,6 +261,9 @@ export function LearningPathPage() {
               <CardDescription>
                 {learningPathState.data.description}
               </CardDescription>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {frontendEngineerPathCopy.description}
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
@@ -246,19 +299,27 @@ export function LearningPathPage() {
           <Card>
             <CardHeader>
               <SectionHeader
-                description="Follow the core technologies in this learning path."
-                title="Technologies"
+                description="Move through the recommended sequence, or jump ahead when you already know the earlier material."
+                title="Recommended Journey"
               />
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {learningPathState.data.technologies.map((technology) => (
-                  <TechnologyCard
-                    key={technology.id}
-                    learningPathSlug={learningPathState.data.slug}
-                    technology={technology}
-                  />
-                ))}
+              <div className="grid gap-4">
+                {learningPathState.data.technologies.map((technology) => {
+                  const recommendedNext = getRecommendedNextTechnology(
+                    learningPathState.data.technologies,
+                  )
+
+                  return (
+                    <TechnologyCard
+                      allTechnologies={learningPathState.data.technologies}
+                      isRecommendedNext={recommendedNext?.id === technology.id}
+                      key={technology.id}
+                      learningPathSlug={learningPathState.data.slug}
+                      technology={technology}
+                    />
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

@@ -14,6 +14,8 @@ export type Technology = {
   slug: string
   name: string
   description: string | null
+  order: number
+  isRequired: boolean
   progress: {
     completedLessons: number
     totalLessons: number

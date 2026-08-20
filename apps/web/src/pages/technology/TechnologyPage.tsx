@@ -9,6 +9,7 @@ import {
   type TechnologyModule,
   type TechnologyProject,
 } from '@/shared/api/technologies'
+import { getTechnologyPrerequisites } from '@/shared/config/learning-path-guidance'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
 import { Breadcrumbs, type BreadcrumbItem } from '@/shared/ui/breadcrumbs'
@@ -181,6 +182,54 @@ function CapstoneProjectCard({
   )
 }
 
+function RecommendedBeforeTechnology({
+  fromLearningPathSlug,
+  technologySlug,
+}: {
+  fromLearningPathSlug?: string
+  technologySlug: string
+}) {
+  const prerequisites = getTechnologyPrerequisites(technologySlug)
+
+  if (prerequisites.length === 0) {
+    return null
+  }
+
+  return (
+    <Card className="border-amber-200 bg-amber-50/60">
+      <CardHeader>
+        <CardTitle>Recommended before React</CardTitle>
+        <CardDescription>
+          React stays open, but these foundations make the lessons and capstone
+          easier to reason about.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {prerequisites.map((prerequisite) => (
+            <Link
+              className="rounded-lg border bg-background p-3 text-sm transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              key={prerequisite.slug}
+              state={
+                fromLearningPathSlug ? { fromLearningPathSlug } : undefined
+              }
+              to={`/technologies/${prerequisite.slug}`}
+            >
+              <span className="block font-medium">{prerequisite.label}</span>
+              <span className="mt-1 block leading-6 text-muted-foreground">
+                {prerequisite.description}
+              </span>
+              <span className="mt-2 inline-flex rounded-md border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {prerequisite.importance}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function formatSlugLabel(slug: string) {
   return slug
     .split('-')
@@ -343,6 +392,11 @@ export function TechnologyPage() {
               </div>
             </CardContent>
           </Card>
+
+          <RecommendedBeforeTechnology
+            fromLearningPathSlug={locationState?.fromLearningPathSlug}
+            technologySlug={technologyState.data.slug}
+          />
 
           <section className="grid gap-4">
             <SectionHeader

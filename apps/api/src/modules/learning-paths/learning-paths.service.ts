@@ -43,6 +43,8 @@ export function findPublishedLearningPathBySlug(slug: string, userId?: string) {
             order: 'asc',
           },
           select: {
+            order: true,
+            isRequired: true,
             technology: {
               select: {
                 id: true,
@@ -85,52 +87,58 @@ export function findPublishedLearningPathBySlug(slug: string, userId?: string) {
         return null
       }
 
-      const technologies = learningPath.technologies.map(({ technology }) => {
-        const modules = technology.modules.map((module) => {
-          const totalLessons = module.lessons.length
-          const completedLessons = module.lessons.filter(
-            (lesson) => lesson.progress[0]?.status === ProgressStatus.COMPLETED,
+      const technologies = learningPath.technologies.map(
+        ({ isRequired, order, technology }) => {
+          const modules = technology.modules.map((module) => {
+            const totalLessons = module.lessons.length
+            const completedLessons = module.lessons.filter(
+              (lesson) =>
+                lesson.progress[0]?.status === ProgressStatus.COMPLETED,
+            ).length
+
+            return {
+              completedLessons,
+              totalLessons,
+              isCompleted:
+                totalLessons > 0 && completedLessons === totalLessons,
+            }
+          })
+          const completedLessons = modules.reduce(
+            (total, module) => total + module.completedLessons,
+            0,
+          )
+          const totalLessons = modules.reduce(
+            (total, module) => total + module.totalLessons,
+            0,
+          )
+          const completedModules = modules.filter(
+            (module) => module.isCompleted,
           ).length
+          const totalModules = modules.length
+          const isCompleted =
+            totalModules > 0 && completedModules === totalModules
 
           return {
-            completedLessons,
-            totalLessons,
-            isCompleted: totalLessons > 0 && completedLessons === totalLessons,
+            id: technology.id,
+            slug: technology.slug,
+            name: technology.title,
+            description: technology.description,
+            order,
+            isRequired,
+            progress: {
+              completedLessons,
+              totalLessons,
+              percentage:
+                totalLessons > 0
+                  ? Math.round((completedLessons / totalLessons) * 100)
+                  : 0,
+              completedModules,
+              totalModules,
+              isCompleted,
+            },
           }
-        })
-        const completedLessons = modules.reduce(
-          (total, module) => total + module.completedLessons,
-          0,
-        )
-        const totalLessons = modules.reduce(
-          (total, module) => total + module.totalLessons,
-          0,
-        )
-        const completedModules = modules.filter(
-          (module) => module.isCompleted,
-        ).length
-        const totalModules = modules.length
-        const isCompleted =
-          totalModules > 0 && completedModules === totalModules
-
-        return {
-          id: technology.id,
-          slug: technology.slug,
-          name: technology.title,
-          description: technology.description,
-          progress: {
-            completedLessons,
-            totalLessons,
-            percentage:
-              totalLessons > 0
-                ? Math.round((completedLessons / totalLessons) * 100)
-                : 0,
-            completedModules,
-            totalModules,
-            isCompleted,
-          },
-        }
-      })
+        },
+      )
       const completedLessons = technologies.reduce(
         (total, technology) => total + technology.progress.completedLessons,
         0,
