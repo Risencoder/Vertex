@@ -11,12 +11,12 @@
         "label": "It asks the server for a new HTML document for every navigation."
       },
       {
-        "id": "url-to-screen",
-        "label": "It maps browser URLs to React screens without a full document reload."
-      },
-      {
         "id": "replaces-state",
         "label": "It replaces local component state for all UI changes."
+      },
+      {
+        "id": "url-to-screen",
+        "label": "It maps browser URLs to React screens without a full document reload."
       }
     ],
     "feedback": {

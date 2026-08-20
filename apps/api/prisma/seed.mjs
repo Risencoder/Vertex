@@ -1085,12 +1085,12 @@ function Greeting() {
         label: 'Hello, {userName}',
       },
       {
-        id: 'evaluated-expression',
-        label: 'Hello, Ada',
-      },
-      {
         id: 'syntax-error',
         label: 'Nothing. Curly braces are not allowed in JSX.',
+      },
+      {
+        id: 'evaluated-expression',
+        label: 'Hello, Ada',
       },
     ],
     feedback: {
@@ -2292,14 +2292,14 @@ const componentsAndPropsPredictionTasksBySlug = {
 <LessonCard title="Props" description="Pass data into UI." />`,
     options: [
       {
-        id: 'same-output',
-        label:
-          'Both cards render the same content because the component function is the same.',
-      },
-      {
         id: 'different-output',
         label:
           'Each card renders different content because props provide different inputs.',
+      },
+      {
+        id: 'same-output',
+        label:
+          'Both cards render the same content because the component function is the same.',
       },
       {
         id: 'props-mutated',
@@ -3272,13 +3272,13 @@ const hooksPredictionTasksBySlug = {
         label: 'Mostly for performance, so React can skip unnecessary work.',
       },
       {
+        id: 'typescript-rule',
+        label: 'Because TypeScript cannot type hooks inside conditions.',
+      },
+      {
         id: 'stable-order',
         label:
           'So React sees hook calls in the same order every render and connects the right state to the right slot.',
-      },
-      {
-        id: 'typescript-rule',
-        label: 'Because TypeScript cannot type hooks inside conditions.',
       },
     ],
     feedback: {

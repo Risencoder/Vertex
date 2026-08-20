@@ -7,12 +7,12 @@
     "starterCode": "{ path: '/lessons/:lessonSlug', element: <LessonPage /> }",
     "options": [
       {
-        "id": "component-name",
-        "label": "The React component name that should be rendered."
-      },
-      {
         "id": "url-value",
         "label": "The changing value from the URL that identifies the requested lesson."
+      },
+      {
+        "id": "component-name",
+        "label": "The React component name that should be rendered."
       },
       {
         "id": "local-state",

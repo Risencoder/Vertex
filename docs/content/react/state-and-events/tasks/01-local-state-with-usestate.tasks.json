@@ -17,12 +17,12 @@
     ],
     "options": [
       {
-        "id": "increment-once",
-        "label": "The button always shows \"Clicked 1 time\"."
-      },
-      {
         "id": "increment-each-click",
         "label": "The number increases by 1 after every click."
+      },
+      {
+        "id": "increment-once",
+        "label": "The button always shows \"Clicked 1 time\"."
       },
       {
         "id": "no-change",
