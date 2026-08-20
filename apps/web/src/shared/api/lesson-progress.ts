@@ -33,7 +33,7 @@ export type MentorReviewOutput = {
   hints: string[]
   nextAction: 'CONTINUE' | 'IMPROVE_AND_RESUBMIT' | 'REVIEW_CONCEPT'
   shouldRetry: boolean
-  conceptTags?: string[]
+  conceptTags: string[]
 }
 
 export type LessonTaskAttempt = {

@@ -462,8 +462,48 @@ function getStringFromResponse(
   return null
 }
 
+function getRecordFromResponse(
+  response: Record<string, unknown> | null,
+  key: string,
+) {
+  const value = response?.[key]
+
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
 function getAttemptFromReviewAttempt(attempt: LessonTaskAttempt | null) {
   return getStringFromResponse(attempt?.response ?? null, ['attempt', 'code'])
+}
+
+function isUnreviewedFallbackProgress(progress?: LessonTaskProgress) {
+  if (!progress?.isCompleted || !progress.response) {
+    return false
+  }
+
+  const mentorReview = getRecordFromResponse(progress.response, 'mentorReview')
+
+  return (
+    mentorReview?.status === 'REVIEW_UNAVAILABLE' &&
+    mentorReview.continuedWithoutReview === true
+  )
+}
+
+function isMentorReviewReady(state: MentorReviewState) {
+  return (
+    state.status === 'success' &&
+    !state.isStale &&
+    state.review?.status === 'READY_TO_CONTINUE'
+  )
+}
+
+function isMentorReviewUnavailable(state: MentorReviewState) {
+  return (
+    state.status === 'success' &&
+    !state.isStale &&
+    state.review?.status === 'REVIEW_UNAVAILABLE'
+  )
 }
 
 function isMentorReviewEnabled(task?: LessonTask) {
@@ -530,8 +570,8 @@ function MentorReviewPanel({ state }: { state: MentorReviewState }) {
       <div className="grid gap-1">
         <p className="text-sm font-medium">Mentor Review</p>
         <p className="text-sm leading-6 text-muted-foreground">
-          This prototype uses LOCAL_MOCK development Mentor infrastructure. It
-          does not execute your code or generate a full solution.
+          Submit your code for review before continuing. The Mentor checks your
+          attempt without executing code or giving you a full solution.
         </p>
       </div>
 
@@ -572,17 +612,12 @@ function MentorReviewPanel({ state }: { state: MentorReviewState }) {
             <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
               {formatMentorReviewStatus(state.review.status)}
             </span>
-            {state.review.provider ? (
-              <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                {state.review.provider}
-              </span>
-            ) : null}
           </div>
 
           {state.review.status === 'REVIEW_UNAVAILABLE' ? (
             <p className="text-sm leading-6 text-muted-foreground">
-              Mentor Review is unavailable right now. Your code is still in the
-              editor, and you can retry when you are ready.
+              Mentor Review is unavailable right now. Your code is preserved.
+              Retry review, or continue without review if the outage persists.
             </p>
           ) : null}
 
@@ -1143,6 +1178,10 @@ export function LessonPage() {
       const result = await submitLessonTaskAttemptForReview(lessonId, task.id, {
         attempt: practiceAttempt,
       })
+      if (!result.review) {
+        throw new Error('Mentor Review was not returned.')
+      }
+
       const reviewedAttempt = getAttemptFromReviewAttempt(result.attempt) ?? ''
 
       setMentorReviewState({
@@ -1153,6 +1192,15 @@ export function LessonPage() {
         isStale: false,
         error: '',
       })
+      setIsPracticeAttemptSaved(result.review.status === 'READY_TO_CONTINUE')
+
+      const progress = await getLessonProgress(lessonId)
+      setProgressState({
+        status: 'success',
+        data: progress,
+        error: '',
+      })
+      restoreTaskInteractionState(lessonState.data!, progress)
     } catch (error) {
       setMentorReviewState((currentState) => ({
         status: 'error',
@@ -1164,6 +1212,40 @@ export function LessonPage() {
       }))
     } finally {
       setIsSubmittingMentorReview(false)
+    }
+  }
+
+  async function handleContinueWithoutReview(
+    lessonId: string,
+    task: LessonTask,
+  ) {
+    if (
+      isSavingPracticeAttempt ||
+      !isMentorReviewEnabled(task) ||
+      !isMentorReviewUnavailable(mentorReviewState)
+    ) {
+      return
+    }
+
+    setIsSavingPracticeAttempt(true)
+    setPracticeSaveError('')
+
+    try {
+      const savedTaskProgress = await saveLessonTaskProgress(
+        lessonId,
+        task.id,
+        {
+          attempt: practiceAttempt,
+          continueWithoutReview: true,
+        },
+      )
+
+      updateSavedTaskProgress(savedTaskProgress)
+      setIsPracticeAttemptSaved(true)
+    } catch (error) {
+      setPracticeSaveError(getSaveTaskProgressErrorMessage(error))
+    } finally {
+      setIsSavingPracticeAttempt(false)
     }
   }
 
@@ -1250,6 +1332,12 @@ export function LessonPage() {
   const codeTask = getTaskByType(lessonTasks, 'CODE')
   const reflectionTask = getTaskByType(lessonTasks, 'REFLECTION')
   const isCodeTaskMentorReviewEnabled = isMentorReviewEnabled(codeTask)
+  const codeTaskProgress = codeTask
+    ? getTaskProgressByTaskId(progressState.data?.taskProgress, codeTask.id)
+    : undefined
+  const hasUnreviewedFallbackProgress =
+    isCodeTaskMentorReviewEnabled &&
+    isUnreviewedFallbackProgress(codeTaskProgress)
   const lessonFlow = getLessonFlowSteps(lessonTasks)
   const usesStepLessonFlow = lessonTasks.some((task) =>
     ['PREDICTION', 'CODE', 'REFLECTION'].includes(task.type),
@@ -1268,6 +1356,7 @@ export function LessonPage() {
   )
   const canSavePracticeAttempt =
     practiceAttempt.trim().length > 0 &&
+    !isCodeTaskMentorReviewEnabled &&
     !isPracticeAttemptSaved &&
     !isSavingPracticeAttempt
   const canSubmitMentorReview =
@@ -1275,7 +1364,18 @@ export function LessonPage() {
     Boolean(codeTask) &&
     isCodeTaskMentorReviewEnabled &&
     practiceAttempt.trim().length > 0 &&
+    !isMentorReviewReady(mentorReviewState) &&
     !isSubmittingMentorReview
+  const canContinueWithoutReview =
+    Boolean(session.data) &&
+    Boolean(codeTask) &&
+    isCodeTaskMentorReviewEnabled &&
+    isMentorReviewUnavailable(mentorReviewState) &&
+    !isPracticeAttemptSaved &&
+    !isSavingPracticeAttempt
+  const canContinueAfterPractice = isCodeTaskMentorReviewEnabled
+    ? isMentorReviewReady(mentorReviewState) || hasUnreviewedFallbackProgress
+    : isPracticeAttemptSaved
   const reflectionText = reflectionAnswer.trim()
   const reflectionCharacterCount = reflectionText.length
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
@@ -1569,8 +1669,8 @@ export function LessonPage() {
                             className="text-sm leading-6 text-muted-foreground"
                             id="lesson-code-attempt-help"
                           >
-                            Edit the starter code below. Save your attempt when
-                            you have a version you would be ready to discuss.
+                            Edit the starter code below. Submit your attempt
+                            when you are ready for review.
                           </p>
                         </div>
                         <textarea
@@ -1594,7 +1694,21 @@ export function LessonPage() {
                           spellCheck={false}
                           value={practiceAttempt}
                         />
-                        {isPracticeAttemptSaved ? (
+                        {isCodeTaskMentorReviewEnabled ? (
+                          canContinueAfterPractice ? (
+                            <p
+                              className="text-sm font-medium text-primary"
+                              role="status"
+                            >
+                              You can continue to reflection.
+                            </p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              Submit for Mentor Review before continuing to
+                              reflection.
+                            </p>
+                          )
+                        ) : isPracticeAttemptSaved ? (
                           <p
                             className="text-sm font-medium text-primary"
                             role="status"
@@ -1645,26 +1759,49 @@ export function LessonPage() {
                             : 'Submit for Mentor Review'}
                       </Button>
                     ) : null}
-                    <Button
-                      disabled={!canSavePracticeAttempt}
-                      onClick={() => {
-                        void handleSavePracticeAttempt(
-                          lessonDetails.lesson.id,
-                          codeTask,
-                        )
-                      }}
-                      type="button"
-                      variant="outline"
-                    >
-                      {isSavingPracticeAttempt
-                        ? 'Saving...'
-                        : isPracticeAttemptSaved
-                          ? 'Attempt saved'
-                          : 'Save attempt'}
-                    </Button>
+                    {!isCodeTaskMentorReviewEnabled ? (
+                      <Button
+                        disabled={!canSavePracticeAttempt}
+                        onClick={() => {
+                          void handleSavePracticeAttempt(
+                            lessonDetails.lesson.id,
+                            codeTask,
+                          )
+                        }}
+                        type="button"
+                        variant="outline"
+                      >
+                        {isSavingPracticeAttempt
+                          ? 'Saving...'
+                          : isPracticeAttemptSaved
+                            ? 'Attempt saved'
+                            : 'Save attempt'}
+                      </Button>
+                    ) : null}
+                    {isCodeTaskMentorReviewEnabled &&
+                    mentorReviewState.review?.status ===
+                      'REVIEW_UNAVAILABLE' ? (
+                      <Button
+                        disabled={!canContinueWithoutReview}
+                        onClick={() => {
+                          void handleContinueWithoutReview(
+                            lessonDetails.lesson.id,
+                            codeTask,
+                          )
+                        }}
+                        type="button"
+                        variant="outline"
+                      >
+                        {isSavingPracticeAttempt
+                          ? 'Saving...'
+                          : isPracticeAttemptSaved
+                            ? 'Continuing without review'
+                            : 'Continue without review'}
+                      </Button>
+                    ) : null}
                     {nextStepAfterPractice ? (
                       <Button
-                        disabled={!isPracticeAttemptSaved}
+                        disabled={!canContinueAfterPractice}
                         onClick={() => setLessonFlowStep(nextStepAfterPractice)}
                         type="button"
                       >

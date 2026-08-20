@@ -129,6 +129,12 @@ function getJsonRecord(value: Prisma.JsonValue | null) {
   return isRecord(value) ? value : {}
 }
 
+function isMentorReviewEnabled(metadata: Prisma.JsonValue | null) {
+  const mentorReview = getJsonRecord(metadata).mentorReview
+
+  return isRecord(mentorReview) && getBoolean(mentorReview.enabled) === true
+}
+
 function getOptionIds(options: Prisma.JsonValue | null) {
   if (!Array.isArray(options)) {
     return []
@@ -235,6 +241,56 @@ function validateCodeResponse(
     response: {
       ...response,
       attempt,
+    },
+  }
+}
+
+function validateMentorFallbackResponse(
+  response: JsonRecord,
+  latestReview: {
+    status: string
+    lessonTaskAttempt: {
+      response: Prisma.JsonValue
+    }
+  } | null,
+): TaskValidationResult {
+  if (getBoolean(response.continueWithoutReview) !== true) {
+    return {
+      isValid: false,
+      message: 'Submit this attempt for Mentor Review before continuing.',
+    }
+  }
+
+  if (latestReview?.status !== 'REVIEW_UNAVAILABLE') {
+    return {
+      isValid: false,
+      message:
+        'Continue without review is available only when Mentor Review is unavailable.',
+    }
+  }
+
+  const reviewedAttempt = getString(
+    getJsonRecord(latestReview.lessonTaskAttempt.response).attempt,
+  )
+  const responseAttempt =
+    getString(response.attempt) ?? getString(response.code)
+
+  if (!reviewedAttempt || responseAttempt !== reviewedAttempt) {
+    return {
+      isValid: false,
+      message: 'Resubmit the current attempt before continuing without review.',
+    }
+  }
+
+  return {
+    isValid: true,
+    response: {
+      ...response,
+      attempt: reviewedAttempt,
+      mentorReview: {
+        status: 'REVIEW_UNAVAILABLE',
+        continuedWithoutReview: true,
+      },
     },
   }
 }
@@ -408,6 +464,41 @@ async function createAttemptAndReview(
             updatedAt: true,
           },
         })
+        const isReadyToContinue = reviewResult.status === 'READY_TO_CONTINUE'
+        await transaction.lessonTaskProgress.upsert({
+          where: {
+            userId_lessonTaskId: {
+              userId,
+              lessonTaskId,
+            },
+          },
+          update: {
+            response: {
+              ...response,
+              mentorReview: {
+                status: reviewResult.status,
+                reviewId: review.id,
+                attemptId: lessonTaskAttempt.id,
+              },
+            },
+            isCompleted: isReadyToContinue,
+            completedAt: isReadyToContinue ? new Date() : null,
+          },
+          create: {
+            userId,
+            lessonTaskId,
+            response: {
+              ...response,
+              mentorReview: {
+                status: reviewResult.status,
+                reviewId: review.id,
+                attemptId: lessonTaskAttempt.id,
+              },
+            },
+            isCompleted: isReadyToContinue,
+            completedAt: isReadyToContinue ? new Date() : null,
+          },
+        })
 
         return {
           attempt: lessonTaskAttempt,
@@ -460,6 +551,7 @@ export async function getLessonProgressForUser(
         },
         select: {
           id: true,
+          isRequired: true,
         },
       },
     },
@@ -506,11 +598,34 @@ export async function getLessonProgressForUser(
     ]),
   )
 
+  const taskProgressPayload = lesson.tasks.map(
+    (task) => taskProgressById.get(task.id) ?? defaultTaskProgress(task.id),
+  )
+  const requiredTaskIds = lesson.tasks
+    .filter((task) => task.isRequired)
+    .map((task) => task.id)
+  const completedRequiredTaskIds = new Set(
+    taskProgressPayload
+      .filter((progressItem) => progressItem.isCompleted)
+      .map((progressItem) => progressItem.lessonTaskId),
+  )
+  const hasIncompleteRequiredTasks = requiredTaskIds.some(
+    (taskId) => !completedRequiredTaskIds.has(taskId),
+  )
+  const storedProgress = progress ?? defaultLessonProgress(lessonId)
+  const effectiveProgress =
+    storedProgress.status === ProgressStatus.COMPLETED &&
+    hasIncompleteRequiredTasks
+      ? {
+          lessonId,
+          status: ProgressStatus.IN_PROGRESS,
+          completedAt: null,
+        }
+      : storedProgress
+
   return {
-    ...(progress ?? defaultLessonProgress(lessonId)),
-    taskProgress: lesson.tasks.map(
-      (task) => taskProgressById.get(task.id) ?? defaultTaskProgress(task.id),
-    ),
+    ...effectiveProgress,
+    taskProgress: taskProgressPayload,
   }
 }
 
@@ -534,6 +649,7 @@ export async function upsertLessonTaskProgressForUser(
       starterCode: true,
       options: true,
       validation: true,
+      metadata: true,
     },
   })
 
@@ -543,7 +659,37 @@ export async function upsertLessonTaskProgressForUser(
     }
   }
 
-  const validationResult = validateTaskResponse(task, response)
+  const isMentorCodeTask =
+    task.type === TaskType.CODE && isMentorReviewEnabled(task.metadata)
+  const latestReview = isMentorCodeTask
+    ? await prisma.lessonTaskReview.findFirst({
+        where: {
+          lessonTaskAttempt: {
+            userId,
+            lessonTaskId,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          status: true,
+          lessonTaskAttempt: {
+            select: {
+              response: true,
+            },
+          },
+        },
+      })
+    : null
+  const validationResult = isMentorCodeTask
+    ? isRecord(response)
+      ? validateMentorFallbackResponse(response, latestReview)
+      : ({
+          isValid: false,
+          message: 'Submit this attempt for Mentor Review before continuing.',
+        } satisfies TaskValidationResult)
+    : validateTaskResponse(task, response)
 
   if (!validationResult.isValid) {
     return {
@@ -637,6 +783,13 @@ export async function submitLessonTaskAttemptForReview(
     return {
       status: 'invalid',
       message: 'Mentor review is available for CODE tasks only.',
+    }
+  }
+
+  if (!isMentorReviewEnabled(task.metadata)) {
+    return {
+      status: 'invalid',
+      message: 'Mentor review is not enabled for this task.',
     }
   }
 
@@ -839,13 +992,6 @@ export async function completeLessonForUser(
     },
   })
 
-  if (existingProgress?.status === ProgressStatus.COMPLETED) {
-    return {
-      status: 'success',
-      progress: existingProgress,
-    }
-  }
-
   const requiredTaskIds = lesson.tasks.map((task) => task.id)
 
   if (requiredTaskIds.length > 0) {
@@ -873,6 +1019,13 @@ export async function completeLessonForUser(
         status: 'required-tasks-incomplete',
         missingTaskIds,
       }
+    }
+  }
+
+  if (existingProgress?.status === ProgressStatus.COMPLETED) {
+    return {
+      status: 'success',
+      progress: existingProgress,
     }
   }
 
