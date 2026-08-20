@@ -1,0 +1,66 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Combine route setup, navigation, params, and layouts in one small flow.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { createBrowserRouter, Link, Outlet, useParams } from 'react-router'",
+      "",
+      "function DashboardPage() {",
+      "  return <h1>Dashboard</h1>",
+      "}",
+      "",
+      "function LearningLayout() {",
+      "  return (",
+      "    <section>",
+      "      <nav aria-label=\"Learning navigation\">",
+      "        {/* TODO: add navigation links. */}",
+      "      </nav>",
+      "      {/* TODO: render child route content. */}",
+      "    </section>",
+      "  )",
+      "}",
+      "",
+      "function ModulePage() {",
+      "  // TODO: read moduleSlug.",
+      "  return <p>{/* TODO: show module identity. */}</p>",
+      "}",
+      "",
+      "function LessonPage() {",
+      "  // TODO: read moduleSlug and lessonSlug.",
+      "  return <p>{/* TODO: show lesson identity. */}</p>",
+      "}",
+      "",
+      "// TODO: create routes for dashboard, learning index, module detail, lesson detail, and not found."
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

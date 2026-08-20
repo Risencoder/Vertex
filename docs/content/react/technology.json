@@ -8,6 +8,10 @@
     {
       "slug": "state-and-events",
       "manifest": "state-and-events/module.json"
+    },
+    {
+      "slug": "routing",
+      "manifest": "routing/module.json"
     }
   ]
 }

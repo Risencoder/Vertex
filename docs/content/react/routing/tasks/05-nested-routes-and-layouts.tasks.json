@@ -1,0 +1,105 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict why Outlet is needed in a layout route.",
+    "prompt": "What does Outlet do in a nested route layout?",
+    "starterCode": [
+      "function LearningLayout() {",
+      "  return (",
+      "    <main>",
+      "      <h1>Learning</h1>",
+      "      <Outlet />",
+      "    </main>",
+      "  )",
+      "}"
+    ],
+    "options": [
+      {
+        "id": "loads-data",
+        "label": "It automatically loads data for every child route."
+      },
+      {
+        "id": "renders-child",
+        "label": "It marks where the matched child route should render."
+      },
+      {
+        "id": "creates-link",
+        "label": "It creates navigation links for child routes."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "renders-child",
+      "responses": {
+        "loads-data": "Not quite. Outlet is about rendering nested route content, not automatic data loading.",
+        "renders-child": "Correct. The parent layout stays visible and Outlet shows the matched child route.",
+        "creates-link": "Not quite. Links are created with Link or NavLink. Outlet renders child content."
+      }
+    },
+    "validation": {
+      "correctOptionId": "renders-child"
+    },
+    "metadata": {
+      "reason": "Catches the common confusion between layout rendering, links, and data loading."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use nested routes to share layout while changing page content.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { Outlet } from 'react-router'",
+      "",
+      "function LearningLayout() {",
+      "  return (",
+      "    <section aria-labelledby=\"learning-heading\">",
+      "      <h1 id=\"learning-heading\">Learning</h1>",
+      "      {/* TODO: render matched child route content here. */}",
+      "    </section>",
+      "  )",
+      "}",
+      "",
+      "function LearningIndexPage() {",
+      "  return <p>Choose a module.</p>",
+      "}",
+      "",
+      "function ModulesPage() {",
+      "  return <p>Modules will appear here.</p>",
+      "}",
+      "",
+      "// TODO: define a parent route and child routes."
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

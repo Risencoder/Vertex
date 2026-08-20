@@ -1,0 +1,87 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict what a dynamic route parameter represents.",
+    "prompt": "In the route /lessons/:lessonSlug, what does lessonSlug represent?",
+    "starterCode": "{ path: '/lessons/:lessonSlug', element: <LessonPage /> }",
+    "options": [
+      {
+        "id": "component-name",
+        "label": "The React component name that should be rendered."
+      },
+      {
+        "id": "url-value",
+        "label": "The changing value from the URL that identifies the requested lesson."
+      },
+      {
+        "id": "local-state",
+        "label": "A local state variable that stores which button was clicked."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "url-value",
+      "responses": {
+        "component-name": "Not quite. The route element chooses the component. The parameter is the value from the URL.",
+        "url-value": "Correct. A URL parameter captures a dynamic part of the path so the page can identify the requested resource.",
+        "local-state": "Not quite. The URL already carries the identity, so the page should read it from route params."
+      }
+    },
+    "validation": {
+      "correctOptionId": "url-value"
+    },
+    "metadata": {
+      "reason": "Catches confusion between URL identity, component selection, and local state."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use URL parameters to render detail pages from route state.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useParams } from 'react-router'",
+      "",
+      "export function LessonPage() {",
+      "  // TODO: read lessonSlug from the route params.",
+      "  // TODO: handle a missing slug.",
+      "  // TODO: render a small loading or detail placeholder.",
+      "",
+      "  return <section>{/* TODO: render the lesson identity. */}</section>",
+      "}",
+      "",
+      "// TODO: define a route pattern for /lessons/:lessonSlug."
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

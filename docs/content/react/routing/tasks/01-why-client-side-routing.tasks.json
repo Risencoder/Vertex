@@ -1,0 +1,95 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict what client-side routing changes.",
+    "prompt": "What is the main job of client-side routing in a React app?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "server-renders-every-page",
+        "label": "It asks the server for a new HTML document for every navigation."
+      },
+      {
+        "id": "url-to-screen",
+        "label": "It maps browser URLs to React screens without a full document reload."
+      },
+      {
+        "id": "replaces-state",
+        "label": "It replaces local component state for all UI changes."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "url-to-screen",
+      "responses": {
+        "server-renders-every-page": "Not quite. That describes traditional full document navigation. Client-side routing keeps the app running and changes the rendered route.",
+        "url-to-screen": "Correct. Client-side routing connects URLs to React-rendered screens while preserving app runtime.",
+        "replaces-state": "Not quite. Routing identifies screens. Local state still handles interaction inside a screen."
+      }
+    },
+    "validation": {
+      "correctOptionId": "url-to-screen"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that routing is either server-only or a replacement for state."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Understand why React apps use client-side routing and what problem it solves.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "function DashboardPage() {",
+      "  return <h1>Dashboard</h1>",
+      "}",
+      "",
+      "function LessonsPage() {",
+      "  return <h1>Lessons</h1>",
+      "}",
+      "",
+      "function ProjectsPage() {",
+      "  return <h1>Projects</h1>",
+      "}",
+      "",
+      "function SettingsPage() {",
+      "  return <h1>Settings</h1>",
+      "}",
+      "",
+      "// TODO: create a route plan for these screens.",
+      "// TODO: include a not-found route.",
+      "// TODO: keep route identity in paths, not local state."
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

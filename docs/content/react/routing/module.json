@@ -1,0 +1,76 @@
+{
+  "slug": "routing",
+  "title": "Routing",
+  "description": "Build multi-page flows with client-side routing.",
+  "order": 5,
+  "difficulty": "INTERMEDIATE",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "why-client-side-routing",
+      "title": "Why Client-Side Routing",
+      "description": "Understand why React apps use client-side routing and what problem it solves.",
+      "content": "01-why-client-side-routing.md",
+      "tasks": "tasks/01-why-client-side-routing.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "router-setup-and-route-matching",
+      "title": "Router Setup and Route Matching",
+      "description": "Set up browser routing and reason about how URL paths match route definitions.",
+      "content": "02-router-setup-and-route-matching.md",
+      "tasks": "tasks/02-router-setup-and-route-matching.tasks.json",
+      "order": 2,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "navigation-with-link-and-navlink",
+      "title": "Navigation with Link and NavLink",
+      "description": "Use route-aware navigation without forcing full page reloads.",
+      "content": "03-navigation-with-link-and-navlink.md",
+      "tasks": "tasks/03-navigation-with-link-and-navlink.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "dynamic-routes-and-url-parameters",
+      "title": "Dynamic Routes and URL Parameters",
+      "description": "Use URL parameters to render detail pages from route state.",
+      "content": "04-dynamic-routes-and-url-parameters.md",
+      "tasks": "tasks/04-dynamic-routes-and-url-parameters.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "nested-routes-and-layouts",
+      "title": "Nested Routes and Layouts",
+      "description": "Use nested routes to share layout while changing page content.",
+      "content": "05-nested-routes-and-layouts.md",
+      "tasks": "tasks/05-nested-routes-and-layouts.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "routing-practice",
+      "title": "Routing Practice",
+      "description": "Combine route setup, navigation, params, and layouts in one small flow.",
+      "content": "06-routing-practice.md",
+      "tasks": "tasks/06-routing-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    }
+  ]
+}

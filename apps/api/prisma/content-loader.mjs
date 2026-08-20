@@ -144,7 +144,7 @@ function validateCatalog() {
   }
 }
 
-function validateTechnologyManifest() {
+function loadReactTechnologyManifest() {
   const technologyPath = resolve(contentRoot, 'react/technology.json')
   const technology = readJsonFile(technologyPath)
 
@@ -152,17 +152,26 @@ function validateTechnologyManifest() {
   assertString(technology.slug, 'technology.slug')
   assertArray(technology.modules, 'technology.modules')
 
-  const stateAndEventsModule = technology.modules.find(
-    (module) => module?.slug === 'state-and-events',
-  )
-
-  if (!stateAndEventsModule) {
-    throw new Error('react/technology.json must reference state-and-events.')
-  }
+  return technology
 }
 
-function validateLesson(lesson, index) {
-  const label = `state-and-events lesson ${index + 1}`
+function findReactModuleManifest(moduleSlug) {
+  const technology = loadReactTechnologyManifest()
+  const moduleReference = technology.modules.find(
+    (module) => module?.slug === moduleSlug,
+  )
+
+  if (!moduleReference) {
+    throw new Error(`react/technology.json must reference ${moduleSlug}.`)
+  }
+
+  assertString(moduleReference.manifest, `${moduleSlug}.manifest`)
+
+  return resolve(contentRoot, 'react', moduleReference.manifest)
+}
+
+function validateLesson(lesson, index, moduleSlug) {
+  const label = `${moduleSlug} lesson ${index + 1}`
 
   assertRecord(lesson, label)
   assertString(lesson.slug, `${label}.slug`)
@@ -297,8 +306,8 @@ function normalizeTask(task, lesson, content, index) {
   }
 }
 
-function normalizeLesson(lesson, moduleRoot, index) {
-  validateLesson(lesson, index)
+function normalizeLesson(lesson, moduleRoot, index, moduleSlug) {
+  validateLesson(lesson, index, moduleSlug)
 
   const contentPath = resolve(moduleRoot, lesson.content)
   const tasksPath = resolve(moduleRoot, lesson.tasks)
@@ -334,14 +343,14 @@ function normalizeLesson(lesson, moduleRoot, index) {
   }
 }
 
-export function loadStateAndEventsContent() {
+export function loadReactModuleContent(moduleSlug) {
   validateCatalog()
-  validateTechnologyManifest()
 
-  const moduleRoot = resolve(contentRoot, 'react/state-and-events')
-  const moduleManifest = readJsonFile(resolve(moduleRoot, 'module.json'))
+  const moduleManifestPath = findReactModuleManifest(moduleSlug)
+  const moduleRoot = dirname(moduleManifestPath)
+  const moduleManifest = readJsonFile(moduleManifestPath)
 
-  assertRecord(moduleManifest, 'state-and-events/module.json')
+  assertRecord(moduleManifest, `${moduleSlug}/module.json`)
   assertString(moduleManifest.slug, 'module.slug')
   assertString(moduleManifest.title, 'module.title')
   assertString(moduleManifest.description, 'module.description')
@@ -350,8 +359,10 @@ export function loadStateAndEventsContent() {
   assertBoolean(moduleManifest.isPublished, 'module.isPublished')
   assertArray(moduleManifest.lessons, 'module.lessons')
 
-  if (moduleManifest.slug !== 'state-and-events') {
-    throw new Error('State and Events loader can only load state-and-events.')
+  if (moduleManifest.slug !== moduleSlug) {
+    throw new Error(
+      `Expected module slug ${moduleSlug}, received ${moduleManifest.slug}.`,
+    )
   }
 
   if (!supportedDifficulties.has(moduleManifest.difficulty)) {
@@ -360,7 +371,7 @@ export function loadStateAndEventsContent() {
     )
   }
 
-  validateSequentialOrders(moduleManifest.lessons, 'state-and-events lesson')
+  validateSequentialOrders(moduleManifest.lessons, `${moduleSlug} lesson`)
 
   return {
     module: {
@@ -372,7 +383,11 @@ export function loadStateAndEventsContent() {
       isPublished: moduleManifest.isPublished,
     },
     lessons: moduleManifest.lessons.map((lesson, index) =>
-      normalizeLesson(lesson, moduleRoot, index),
+      normalizeLesson(lesson, moduleRoot, index, moduleSlug),
     ),
   }
+}
+
+export function loadStateAndEventsContent() {
+  return loadReactModuleContent('state-and-events')
 }

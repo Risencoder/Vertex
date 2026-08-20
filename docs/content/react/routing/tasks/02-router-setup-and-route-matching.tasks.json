@@ -1,0 +1,58 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Set up browser routing and reason about how URL paths match route definitions.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { createBrowserRouter, RouterProvider } from 'react-router'",
+      "",
+      "function DashboardPage() {",
+      "  return <h1>Dashboard</h1>",
+      "}",
+      "",
+      "function LearningPathsPage() {",
+      "  return <h1>Learning Paths</h1>",
+      "}",
+      "",
+      "function SettingsPage() {",
+      "  return <h1>Settings</h1>",
+      "}",
+      "",
+      "function NotFoundPage() {",
+      "  return <h1>Page not found</h1>",
+      "}",
+      "",
+      "// TODO: create a browser router with /, /learning-paths, /settings, and *.",
+      "// TODO: render the router provider from App."
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

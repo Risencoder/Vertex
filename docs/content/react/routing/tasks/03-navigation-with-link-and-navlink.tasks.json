@@ -1,0 +1,49 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use route-aware navigation without forcing full page reloads.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { Link, NavLink } from 'react-router'",
+      "",
+      "export function AppNavigation() {",
+      "  return (",
+      "    <nav aria-label=\"Main navigation\">",
+      "      {/* TODO: add route navigation for Dashboard, Learning Paths, and Settings. */}",
+      "      {/* TODO: use NavLink where active styling helps. */}",
+      "      {/* TODO: keep future or disabled items non-interactive. */}",
+      "    </nav>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/routing",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

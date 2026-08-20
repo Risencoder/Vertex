@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url'
 
 import { PrismaPg } from '@prisma/adapter-pg'
 
-import { loadStateAndEventsContent } from './content-loader.mjs'
+import {
+  loadReactModuleContent,
+  loadStateAndEventsContent,
+} from './content-loader.mjs'
 import { PrismaClient } from '../src/generated/prisma/index.js'
 
 const prismaRoot = dirname(fileURLToPath(import.meta.url))
@@ -145,6 +148,7 @@ const frontendEngineerTechnologies = [
 ]
 
 const stateAndEventsContent = loadStateAndEventsContent()
+const routingContent = loadReactModuleContent('routing')
 
 const reactModules = [
   {
@@ -172,14 +176,7 @@ const reactModules = [
     difficulty: 'INTERMEDIATE',
     isPublished: true,
   },
-  {
-    slug: 'routing',
-    title: 'Routing',
-    description: 'Build multi-page flows with client-side routing.',
-    order: 5,
-    difficulty: 'INTERMEDIATE',
-    isPublished: true,
-  },
+  routingContent.module,
   {
     slug: 'forms',
     title: 'Forms',
@@ -3611,6 +3608,63 @@ function createHooksTasksForLesson(lesson) {
   ]
 }
 
+async function seedContentModuleLessons(moduleContent, moduleId) {
+  for (const lesson of moduleContent.lessons) {
+    const { tasks: _tasks, ...lessonData } = lesson
+
+    await prisma.lesson.upsert({
+      where: {
+        moduleId_slug: {
+          moduleId,
+          slug: lessonData.slug,
+        },
+      },
+      update: lessonData,
+      create: {
+        ...lessonData,
+        moduleId,
+      },
+    })
+  }
+
+  let taskCount = 0
+
+  for (const lesson of moduleContent.lessons) {
+    const seededLesson = await prisma.lesson.findUniqueOrThrow({
+      where: {
+        moduleId_slug: {
+          moduleId,
+          slug: lesson.slug,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const { tasks } = lesson
+
+    for (const task of tasks) {
+      await prisma.lessonTask.upsert({
+        where: {
+          lessonId_key: {
+            lessonId: seededLesson.id,
+            key: task.key,
+          },
+        },
+        update: task,
+        create: {
+          ...task,
+          lessonId: seededLesson.id,
+        },
+      })
+    }
+
+    taskCount += tasks.length
+  }
+
+  return taskCount
+}
+
 async function main() {
   for (const learningPath of learningPaths) {
     await prisma.learningPath.upsert({
@@ -3837,58 +3891,10 @@ async function main() {
     },
   })
 
-  for (const lesson of stateAndEventsContent.lessons) {
-    const { tasks: _tasks, ...lessonData } = lesson
-
-    await prisma.lesson.upsert({
-      where: {
-        moduleId_slug: {
-          moduleId: stateAndEventsModule.id,
-          slug: lessonData.slug,
-        },
-      },
-      update: lessonData,
-      create: {
-        ...lessonData,
-        moduleId: stateAndEventsModule.id,
-      },
-    })
-  }
-
-  let stateAndEventsTaskCount = 0
-
-  for (const lesson of stateAndEventsContent.lessons) {
-    const seededLesson = await prisma.lesson.findUniqueOrThrow({
-      where: {
-        moduleId_slug: {
-          moduleId: stateAndEventsModule.id,
-          slug: lesson.slug,
-        },
-      },
-      select: {
-        id: true,
-      },
-    })
-    const { tasks } = lesson
-
-    for (const task of tasks) {
-      await prisma.lessonTask.upsert({
-        where: {
-          lessonId_key: {
-            lessonId: seededLesson.id,
-            key: task.key,
-          },
-        },
-        update: task,
-        create: {
-          ...task,
-          lessonId: seededLesson.id,
-        },
-      })
-    }
-
-    stateAndEventsTaskCount += tasks.length
-  }
+  const stateAndEventsTaskCount = await seedContentModuleLessons(
+    stateAndEventsContent,
+    stateAndEventsModule.id,
+  )
 
   const hooksModule = await prisma.module.findUniqueOrThrow({
     where: {
@@ -3953,6 +3959,23 @@ async function main() {
     hooksTaskCount += tasks.length
   }
 
+  const routingModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'routing',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  const routingTaskCount = await seedContentModuleLessons(
+    routingContent,
+    routingModule.id,
+  )
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -3973,6 +3996,8 @@ async function main() {
   console.log(`Seeded ${stateAndEventsTaskCount} State and Events tasks.`)
   console.log(`Seeded ${hooksLessons.length} Hooks lessons.`)
   console.log(`Seeded ${hooksTaskCount} Hooks tasks.`)
+  console.log(`Seeded ${routingContent.lessons.length} Routing lessons.`)
+  console.log(`Seeded ${routingTaskCount} Routing tasks.`)
 }
 
 main()
