@@ -1,4 +1,7 @@
-import { ProgressStatus } from '../../generated/prisma/index.js'
+import {
+  ProgressStatus,
+  type SubmissionStatus,
+} from '../../generated/prisma/index.js'
 import { prisma } from '../../shared/prisma.ts'
 
 type PublishedLearningPath = Awaited<
@@ -11,6 +14,20 @@ type PublishedTechnology =
 type PublishedModule = PublishedTechnology['modules'][number]
 
 type PublishedLesson = PublishedModule['lessons'][number]
+
+type PublishedProject = PublishedTechnology['projects'][number]
+
+type DashboardProject = {
+  id: string
+  slug: string
+  title: string
+  technologySlug: string
+  technologyTitle: string
+  learningPathSlug: string
+  learningPathTitle: string
+  submissionStatus: SubmissionStatus | null
+  submittedAt: Date | null
+}
 
 function isLessonCompleted(lesson: PublishedLesson) {
   return lesson.progress[0]?.status === ProgressStatus.COMPLETED
@@ -36,6 +53,12 @@ function isLearningPathCompleted(learningPath: PublishedLearningPath) {
     learningPath.technologies.every(({ technology }) =>
       isTechnologyCompleted(technology),
     )
+  )
+}
+
+function isProjectSubmitted(project: DashboardProject) {
+  return (
+    project.submissionStatus !== null && project.submissionStatus !== 'DRAFT'
   )
 }
 
@@ -67,6 +90,29 @@ function getPublishedLearningPathTree(userId: string) {
               id: true,
               slug: true,
               title: true,
+              projects: {
+                where: {
+                  isPublished: true,
+                },
+                orderBy: {
+                  title: 'asc',
+                },
+                select: {
+                  id: true,
+                  slug: true,
+                  title: true,
+                  submissions: {
+                    where: {
+                      userId,
+                    },
+                    select: {
+                      status: true,
+                      submittedAt: true,
+                    },
+                    take: 1,
+                  },
+                },
+              },
               modules: {
                 where: {
                   isPublished: true,
@@ -117,10 +163,29 @@ export async function getDashboardForUser(userId: string) {
   const technologies = new Map<string, PublishedTechnology>()
   const modules = new Map<string, PublishedModule>()
   const lessons = new Map<string, PublishedLesson>()
+  const projects = new Map<string, DashboardProject>()
 
   learningPaths.forEach((learningPath) => {
     learningPath.technologies.forEach(({ technology }) => {
       technologies.set(technology.id, technology)
+
+      technology.projects.forEach((project: PublishedProject) => {
+        const [submission] = project.submissions
+
+        if (!projects.has(project.id)) {
+          projects.set(project.id, {
+            id: project.id,
+            slug: project.slug,
+            title: project.title,
+            technologySlug: technology.slug,
+            technologyTitle: technology.title,
+            learningPathSlug: learningPath.slug,
+            learningPathTitle: learningPath.title,
+            submissionStatus: submission?.status ?? null,
+            submittedAt: submission?.submittedAt ?? null,
+          })
+        }
+      })
 
       technology.modules.forEach((module) => {
         modules.set(module.id, module)
@@ -153,10 +218,16 @@ export async function getDashboardForUser(userId: string) {
         ),
       )
       .find(({ lesson }) => !isLessonCompleted(lesson)) ?? null
+  const continueProject =
+    !continueLearning &&
+    Array.from(projects.values()).find(
+      (project) => project.submissionStatus === null,
+    )
 
   return {
     continueLearning: continueLearning
       ? {
+          type: 'lesson' as const,
           learningPathSlug: continueLearning.learningPath.slug,
           learningPathTitle: continueLearning.learningPath.title,
           technologySlug: continueLearning.technology.slug,
@@ -166,7 +237,26 @@ export async function getDashboardForUser(userId: string) {
           lessonSlug: continueLearning.lesson.slug,
           lessonTitle: continueLearning.lesson.title,
         }
-      : null,
+      : continueProject
+        ? {
+            type: 'project' as const,
+            learningPathSlug: continueProject.learningPathSlug,
+            learningPathTitle: continueProject.learningPathTitle,
+            technologySlug: continueProject.technologySlug,
+            technologyTitle: continueProject.technologyTitle,
+            projectSlug: continueProject.slug,
+            projectTitle: continueProject.title,
+            submissionStatus: continueProject.submissionStatus,
+            submittedAt: continueProject.submittedAt,
+          }
+        : null,
+    projects: {
+      submitted: Array.from(projects.values()).filter((project) =>
+        isProjectSubmitted(project),
+      ).length,
+      total: projects.size,
+      items: Array.from(projects.values()),
+    },
     statistics: {
       learningPathsCompleted: learningPaths.filter((learningPath) =>
         isLearningPathCompleted(learningPath),

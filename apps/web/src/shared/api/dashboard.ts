@@ -1,16 +1,48 @@
 import { API_BASE_URL } from '@/shared/config/api'
 
+type ProjectSubmissionStatus =
+  'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'REVIEWED' | 'NEEDS_CHANGES'
+
 export type DashboardSummary = {
-  continueLearning: {
-    learningPathSlug: string
-    learningPathTitle: string
-    technologySlug: string
-    technologyTitle: string
-    moduleSlug: string
-    moduleTitle: string
-    lessonSlug: string
-    lessonTitle: string
-  } | null
+  continueLearning:
+    | {
+        type: 'lesson'
+        learningPathSlug: string
+        learningPathTitle: string
+        technologySlug: string
+        technologyTitle: string
+        moduleSlug: string
+        moduleTitle: string
+        lessonSlug: string
+        lessonTitle: string
+      }
+    | {
+        type: 'project'
+        learningPathSlug: string
+        learningPathTitle: string
+        technologySlug: string
+        technologyTitle: string
+        projectSlug: string
+        projectTitle: string
+        submissionStatus: ProjectSubmissionStatus | null
+        submittedAt: string | null
+      }
+    | null
+  projects: {
+    submitted: number
+    total: number
+    items: {
+      id: string
+      slug: string
+      title: string
+      technologySlug: string
+      technologyTitle: string
+      learningPathSlug: string
+      learningPathTitle: string
+      submissionStatus: ProjectSubmissionStatus | null
+      submittedAt: string | null
+    }[]
+  }
   statistics: {
     learningPathsCompleted: number
     learningPathsTotal: number

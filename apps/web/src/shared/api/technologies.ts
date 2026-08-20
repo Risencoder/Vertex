@@ -16,6 +16,19 @@ export type TechnologyModule = {
   }
 }
 
+type ProjectSubmissionStatus =
+  'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'REVIEWED' | 'NEEDS_CHANGES'
+
+export type TechnologyProject = {
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+  submissionStatus: ProjectSubmissionStatus | null
+  submittedAt: string | null
+}
+
 export type ModuleLesson = {
   id: string
   slug: string
@@ -95,6 +108,7 @@ export type TechnologyDetails = {
   category: string | null
   isPublished: boolean
   modules: TechnologyModule[]
+  projects: TechnologyProject[]
   progress: {
     completedLessons: number
     totalLessons: number

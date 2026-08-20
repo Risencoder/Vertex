@@ -22,6 +22,31 @@ export function findPublishedTechnologyBySlugForUser(
         description: true,
         category: true,
         isPublished: true,
+        projects: {
+          where: {
+            isPublished: true,
+          },
+          orderBy: {
+            title: 'asc',
+          },
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            description: true,
+            difficulty: true,
+            submissions: {
+              where: {
+                userId: userId ?? '',
+              },
+              select: {
+                status: true,
+                submittedAt: true,
+              },
+              take: 1,
+            },
+          },
+        },
         modules: {
           where: {
             isPublished: true,
@@ -112,6 +137,19 @@ export function findPublishedTechnologyBySlugForUser(
         category: technology.category,
         isPublished: technology.isPublished,
         modules,
+        projects: technology.projects.map((project) => {
+          const [submission] = project.submissions
+
+          return {
+            id: project.id,
+            slug: project.slug,
+            title: project.title,
+            description: project.description,
+            difficulty: project.difficulty,
+            submissionStatus: submission?.status ?? null,
+            submittedAt: submission?.submittedAt ?? null,
+          }
+        }),
         progress: {
           completedLessons,
           totalLessons,

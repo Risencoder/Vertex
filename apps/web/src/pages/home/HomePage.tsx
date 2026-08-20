@@ -73,6 +73,30 @@ type DashboardProps = {
   }
 }
 
+function formatProjectStatus(status: string | null) {
+  if (status === 'SUBMITTED') {
+    return 'Submitted / awaiting review'
+  }
+
+  if (status === 'IN_REVIEW') {
+    return 'In review'
+  }
+
+  if (status === 'NEEDS_CHANGES') {
+    return 'Needs changes'
+  }
+
+  if (status === 'REVIEWED') {
+    return 'Reviewed'
+  }
+
+  if (status === 'DRAFT') {
+    return 'Draft'
+  }
+
+  return 'Not started'
+}
+
 function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
   const continueLearning = dashboard.continueLearning
 
@@ -103,7 +127,7 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
             </CardDescription>
           </div>
           <span className="w-fit rounded-lg border border-primary/20 bg-background px-2 py-1 text-xs font-medium text-primary">
-            Next lesson
+            {continueLearning.type === 'lesson' ? 'Next lesson' : 'Build step'}
           </span>
         </div>
       </CardHeader>
@@ -115,11 +139,20 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
               {continueLearning.technologyTitle}
             </p>
             <p className="mt-1 font-heading text-2xl font-semibold leading-tight">
-              {continueLearning.lessonTitle}
+              {continueLearning.type === 'lesson'
+                ? continueLearning.lessonTitle
+                : continueLearning.projectTitle}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Module: {continueLearning.moduleTitle}
+              {continueLearning.type === 'lesson'
+                ? `Module: ${continueLearning.moduleTitle}`
+                : 'Submit your capstone when your React lessons are complete.'}
             </p>
+            {continueLearning.type === 'project' ? (
+              <p className="mt-2 text-sm font-medium text-primary">
+                {formatProjectStatus(continueLearning.submissionStatus)}
+              </p>
+            ) : null}
           </div>
         </div>
       </CardContent>
@@ -128,12 +161,16 @@ function ContinueLearningCard({ dashboard }: { dashboard: DashboardSummary }) {
           nativeButton={false}
           render={
             <Link
-              to={`/technologies/${continueLearning.technologySlug}/modules/${continueLearning.moduleSlug}/lessons/${continueLearning.lessonSlug}`}
+              to={
+                continueLearning.type === 'lesson'
+                  ? `/technologies/${continueLearning.technologySlug}/modules/${continueLearning.moduleSlug}/lessons/${continueLearning.lessonSlug}`
+                  : `/technologies/${continueLearning.technologySlug}/projects/${continueLearning.projectSlug}`
+              }
             />
           }
           size="lg"
         >
-          Continue
+          {continueLearning.type === 'lesson' ? 'Continue' : 'Open Capstone'}
         </Button>
       </CardFooter>
     </Card>
@@ -384,9 +421,9 @@ function AuthenticatedDashboard({ user }: DashboardProps) {
             value={`${dashboardState.data.statistics.overallProgress}%`}
           />
           <DashboardMetricCard
-            description="Projects completed."
+            description={`${dashboardState.data.projects.submitted} of ${dashboardState.data.projects.total} projects submitted.`}
             title="Projects"
-            value="0"
+            value={`${dashboardState.data.projects.submitted}/${dashboardState.data.projects.total}`}
           />
           <DashboardMetricCard
             description="Achievements unlocked."

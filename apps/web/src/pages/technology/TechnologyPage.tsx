@@ -7,6 +7,7 @@ import {
   TechnologiesApiError,
   type TechnologyDetails,
   type TechnologyModule,
+  type TechnologyProject,
 } from '@/shared/api/technologies'
 import { formatDifficulty } from '@/shared/lib/labels'
 import { Button } from '@/shared/ui/button'
@@ -110,7 +111,37 @@ function ModuleCard({
   )
 }
 
-function CapstoneProjectCard({ technologySlug }: { technologySlug: string }) {
+function formatProjectStatus(status: string | null) {
+  if (status === 'SUBMITTED') {
+    return 'Submitted / awaiting review'
+  }
+
+  if (status === 'IN_REVIEW') {
+    return 'In review'
+  }
+
+  if (status === 'NEEDS_CHANGES') {
+    return 'Needs changes'
+  }
+
+  if (status === 'REVIEWED') {
+    return 'Reviewed'
+  }
+
+  if (status === 'DRAFT') {
+    return 'Draft'
+  }
+
+  return 'Not started'
+}
+
+function CapstoneProjectCard({
+  project,
+  technologySlug,
+}: {
+  project: TechnologyProject
+  technologySlug: string
+}) {
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
@@ -119,14 +150,14 @@ function CapstoneProjectCard({ technologySlug }: { technologySlug: string }) {
             Build project
           </span>
           <span className="inline-flex rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-muted-foreground">
-            {formatDifficulty('ADVANCED')}
+            {formatDifficulty(project.difficulty)}
+          </span>
+          <span className="inline-flex rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-muted-foreground">
+            {formatProjectStatus(project.submissionStatus)}
           </span>
         </div>
-        <CardTitle>React Capstone</CardTitle>
-        <CardDescription>
-          Build a small React application that combines component design, state,
-          hooks, routing, forms, and practical performance decisions.
-        </CardDescription>
+        <CardTitle>{project.title}</CardTitle>
+        <CardDescription>{project.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -139,11 +170,11 @@ function CapstoneProjectCard({ technologySlug }: { technologySlug: string }) {
           nativeButton={false}
           render={
             <Link
-              to={`/technologies/${technologySlug}/projects/react-capstone`}
+              to={`/technologies/${technologySlug}/projects/${project.slug}`}
             />
           }
         >
-          Open Capstone
+          {project.submissionStatus ? 'Review Submission' : 'Open Capstone'}
         </Button>
       </CardFooter>
     </Card>
@@ -340,13 +371,19 @@ export function TechnologyPage() {
             )}
           </section>
 
-          {technologyState.data.slug === 'react' ? (
+          {technologyState.data.projects.length > 0 ? (
             <section className="grid gap-4">
               <SectionHeader
-                description="Apply the React path in one focused build and prepare it for review."
+                description="Apply the lesson path in one focused build and prepare it for review."
                 title="Capstone Project"
               />
-              <CapstoneProjectCard technologySlug={technologyState.data.slug} />
+              {technologyState.data.projects.map((project) => (
+                <CapstoneProjectCard
+                  key={project.id}
+                  project={project}
+                  technologySlug={technologyState.data.slug}
+                />
+              ))}
             </section>
           ) : null}
         </div>
