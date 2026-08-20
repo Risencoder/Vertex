@@ -1,0 +1,9 @@
+{
+  "slug": "react-capstone",
+  "title": "React Capstone",
+  "description": "Build a small React application that combines component design, state, hooks, routing, forms, and practical performance decisions.",
+  "brief": "react-capstone.md",
+  "difficulty": "ADVANCED",
+  "learningPathSlug": "frontend-engineer",
+  "isPublished": true
+}

@@ -170,6 +170,22 @@ function findReactModuleManifest(moduleSlug) {
   return resolve(contentRoot, 'react', moduleReference.manifest)
 }
 
+function findReactProjectManifest(projectSlug) {
+  const technology = loadReactTechnologyManifest()
+  const projects = Array.isArray(technology.projects) ? technology.projects : []
+  const projectReference = projects.find(
+    (project) => project?.slug === projectSlug,
+  )
+
+  if (!projectReference) {
+    throw new Error(`react/technology.json must reference ${projectSlug}.`)
+  }
+
+  assertString(projectReference.manifest, `${projectSlug}.manifest`)
+
+  return resolve(contentRoot, 'react', projectReference.manifest)
+}
+
 function validateLesson(lesson, index, moduleSlug) {
   const label = `${moduleSlug} lesson ${index + 1}`
 
@@ -385,6 +401,48 @@ export function loadReactModuleContent(moduleSlug) {
     lessons: moduleManifest.lessons.map((lesson, index) =>
       normalizeLesson(lesson, moduleRoot, index, moduleSlug),
     ),
+  }
+}
+
+export function loadReactProjectContent(projectSlug) {
+  validateCatalog()
+
+  const projectManifestPath = findReactProjectManifest(projectSlug)
+  const projectRoot = dirname(projectManifestPath)
+  const projectManifest = readJsonFile(projectManifestPath)
+
+  assertRecord(projectManifest, `${projectSlug}.json`)
+  assertString(projectManifest.slug, 'project.slug')
+  assertString(projectManifest.title, 'project.title')
+  assertString(projectManifest.description, 'project.description')
+  assertString(projectManifest.brief, 'project.brief')
+  assertString(projectManifest.difficulty, 'project.difficulty')
+  assertBoolean(projectManifest.isPublished, 'project.isPublished')
+
+  if (projectManifest.slug !== projectSlug) {
+    throw new Error(
+      `Expected project slug ${projectSlug}, received ${projectManifest.slug}.`,
+    )
+  }
+
+  if (!supportedDifficulties.has(projectManifest.difficulty)) {
+    throw new Error(
+      `Unsupported project difficulty: ${projectManifest.difficulty}`,
+    )
+  }
+
+  if (typeof projectManifest.learningPathSlug !== 'undefined') {
+    assertString(projectManifest.learningPathSlug, 'project.learningPathSlug')
+  }
+
+  return {
+    slug: projectManifest.slug,
+    title: projectManifest.title,
+    description: projectManifest.description,
+    brief: readTextFile(resolve(projectRoot, projectManifest.brief)),
+    difficulty: projectManifest.difficulty,
+    isPublished: projectManifest.isPublished,
+    learningPathSlug: projectManifest.learningPathSlug,
   }
 }
 

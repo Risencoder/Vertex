@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 import {
+  loadReactProjectContent,
   loadReactModuleContent,
   loadStateAndEventsContent,
 } from './content-loader.mjs'
@@ -151,6 +152,7 @@ const stateAndEventsContent = loadStateAndEventsContent()
 const routingContent = loadReactModuleContent('routing')
 const formsContent = loadReactModuleContent('forms')
 const performanceContent = loadReactModuleContent('performance')
+const reactCapstoneProject = loadReactProjectContent('react-capstone')
 
 const reactModules = [
   {
@@ -3997,6 +3999,47 @@ async function main() {
     performanceModule.id,
   )
 
+  const reactCapstoneLearningPathId = reactCapstoneProject.learningPathSlug
+    ? (
+        await prisma.learningPath.findUniqueOrThrow({
+          where: {
+            slug: reactCapstoneProject.learningPathSlug,
+          },
+          select: {
+            id: true,
+          },
+        })
+      ).id
+    : null
+  const reactCapstoneProjectData = {
+    slug: reactCapstoneProject.slug,
+    title: reactCapstoneProject.title,
+    description: reactCapstoneProject.description,
+    brief: reactCapstoneProject.brief,
+    difficulty: reactCapstoneProject.difficulty,
+    isPublished: reactCapstoneProject.isPublished,
+  }
+  const reactCapstone = await prisma.project.upsert({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: reactCapstoneProject.slug,
+      },
+    },
+    update: {
+      ...reactCapstoneProjectData,
+      learningPathId: reactCapstoneLearningPathId,
+    },
+    create: {
+      ...reactCapstoneProjectData,
+      technologyId: reactTechnology.id,
+      learningPathId: reactCapstoneLearningPathId,
+    },
+    select: {
+      id: true,
+    },
+  })
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -4025,6 +4068,7 @@ async function main() {
     `Seeded ${performanceContent.lessons.length} Performance lessons.`,
   )
   console.log(`Seeded ${performanceTaskCount} Performance tasks.`)
+  console.log(`Seeded React Capstone project: ${reactCapstone.id}.`)
 }
 
 main()
