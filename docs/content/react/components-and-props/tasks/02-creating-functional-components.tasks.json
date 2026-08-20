@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Create simple React function components with clear output.",
+    "prompt": "## 7. Practice Task\n\nBuild a `LessonEmptyState` component and use it inside `LessonsPanel`.\n\nRequirements:\n\n1. Create `LessonEmptyState`.\n2. Return a heading, short message, and one button.\n3. Create `LessonsPanel`.\n4. Render `LessonEmptyState` inside `LessonsPanel`.\n5. Keep both components focused and static.\n\nThe goal is to practice component declaration and usage.",
+    "starterCode": "function LessonEmptyState() {\n  return (\n    <section>\n      {/* TODO: render a heading, message, and button. */}\n    </section>\n  )\n}\n\nexport function LessonsPanel() {\n  return (\n    <section aria-labelledby=\"lessons-panel-heading\">\n      <h2 id=\"lessons-panel-heading\">Lessons</h2>\n      {/* TODO: render LessonEmptyState as a component. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy does React component usage look like `<LessonEmptyState />` instead of a normal function call?\n\nYour answer should mention readability, JSX, or component composition.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

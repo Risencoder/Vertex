@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict why hooks must follow stable call order.",
+    "prompt": "Why should hooks be called at the top level of a component?",
+    "starterCode": "function Profile({ canEdit }: { canEdit: boolean }) {\n  if (canEdit) {\n    const [draft, setDraft] = useState('')\n  }\n\n  return null\n}",
+    "options": [
+      {
+        "id": "performance-only",
+        "label": "Mostly for performance, so React can skip unnecessary work."
+      },
+      {
+        "id": "typescript-rule",
+        "label": "Because TypeScript cannot type hooks inside conditions."
+      },
+      {
+        "id": "stable-order",
+        "label": "So React sees hook calls in the same order every render and connects the right state to the right slot."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "stable-order",
+      "responses": {
+        "performance-only": "Not quite. Stable hook order is about correctness first. Performance is not the main reason.",
+        "stable-order": "Correct. React relies on hook call order to associate state and effects with a component instance.",
+        "typescript-rule": "Not quite. This is a React rendering rule, not a TypeScript limitation."
+      }
+    },
+    "validation": {
+      "correctOptionId": "stable-order"
+    },
+    "metadata": {
+      "reason": "Catches the common misconception that hook rules are arbitrary style rules."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Understand what hooks solve and how hook rules keep components predictable.",
+    "prompt": "## 7. Practice Task\n\nBuild a `LessonBookmarkPanel` component.\n\nRequirements:\n\n- use `useState` at the top level;\n- let the learner toggle a bookmark on and off;\n- show a different status message for bookmarked and unbookmarked states;\n- show an optional note only when bookmarked;\n- keep hook calls outside conditions.",
+    "starterCode": "import { useState } from 'react'\n\nexport function LessonBookmarkPanel() {\n  // TODO: create top-level state for whether the lesson is bookmarked.\n\n  function handleToggleBookmark() {\n    // TODO: toggle the bookmark state.\n  }\n\n  return (\n    <section aria-labelledby=\"bookmark-heading\">\n      <h2 id=\"bookmark-heading\">Lesson bookmark</h2>\n\n      <p>{/* TODO: show the current bookmark status. */}</p>\n\n      <button onClick={handleToggleBookmark} type=\"button\">\n        {/* TODO: show a different label for each state. */}\n      </button>\n\n      {/* TODO: show a short note only when the lesson is bookmarked. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nWhy does React need hooks to be called in the same order on every render?",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

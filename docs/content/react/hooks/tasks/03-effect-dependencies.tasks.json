@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict which values belong in an effect dependency array.",
+    "prompt": "What should be included in this effect dependency array?",
+    "starterCode": "useEffect(() => {\n  document.title = `${lessonTitle} - ${completedLessons} complete`\n}, [])",
+    "options": [
+      {
+        "id": "empty-array",
+        "label": "Keep [] because document.title only needs to be set once."
+      },
+      {
+        "id": "used-values",
+        "label": "Include lessonTitle and completedLessons because the effect reads them."
+      },
+      {
+        "id": "all-props",
+        "label": "Include every prop in the component, even if the effect does not read it."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "used-values",
+      "responses": {
+        "empty-array": "Not quite. The effect reads changing render values, so an empty array can leave the title stale.",
+        "used-values": "Correct. Dependencies should match the rendered values the effect reads.",
+        "all-props": "Not quite. Dependencies should describe what this effect uses, not every value nearby."
+      }
+    },
+    "validation": {
+      "correctOptionId": "used-values"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that dependency arrays are manual run schedules."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Reason about dependency arrays and keep effects synchronized with current values.",
+    "prompt": "## 7. Practice Task\n\nBuild a `ProgressDocumentTitle` component.\n\nRequirements:\n\n- accept `lessonTitle`, `completedLessons`, and `totalLessons` props;\n- render the progress summary in JSX;\n- use `useEffect` to update `document.title`;\n- include every value the effect reads;\n- avoid derived state.",
+    "starterCode": "import { useEffect } from 'react'\n\ntype ProgressDocumentTitleProps = {\n  lessonTitle: string\n  completedLessons: number\n  totalLessons: number\n}\n\nexport function ProgressDocumentTitle({\n  lessonTitle,\n  completedLessons,\n  totalLessons,\n}: ProgressDocumentTitleProps) {\n  // TODO: derive a progress summary during render.\n  // TODO: synchronize document.title with the lesson title and progress summary.\n\n  return (\n    <section aria-labelledby=\"progress-heading\">\n      <h2 id=\"progress-heading\">{lessonTitle}</h2>\n      <p>{/* TODO: show the progress summary. */}</p>\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nWhat question can you ask yourself to identify the correct dependencies for an effect?",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

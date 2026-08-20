@@ -12,8 +12,20 @@
   ],
   "modules": [
     {
+      "slug": "react-basics",
+      "manifest": "react-basics/module.json"
+    },
+    {
+      "slug": "components-and-props",
+      "manifest": "components-and-props/module.json"
+    },
+    {
       "slug": "state-and-events",
       "manifest": "state-and-events/module.json"
+    },
+    {
+      "slug": "hooks",
+      "manifest": "hooks/module.json"
     },
     {
       "slug": "routing",

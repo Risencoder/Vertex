@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use refs for stable mutable values that should not trigger rendering.",
+    "prompt": "## 7. Practice Task\n\nBuild a `DraftAutosaveStatus` component.\n\nRequirements:\n\n- keep the input value in state;\n- use a ref to store the last saved draft;\n- update the ref when the learner clicks Save;\n- show whether the current draft matches the last saved draft;\n- do not use the ref as the source of the input value.",
+    "starterCode": "import { useRef, useState } from 'react'\n\nexport function DraftAutosaveStatus() {\n  const [draft, setDraft] = useState('')\n  // TODO: create a ref for the last saved draft.\n\n  function handleSave() {\n    // TODO: update the ref with the current draft.\n  }\n\n  // TODO: derive whether the current draft matches the last saved draft.\n\n  return (\n    <section aria-labelledby=\"draft-heading\">\n      <h2 id=\"draft-heading\">Draft</h2>\n\n      <label htmlFor=\"draft-text\">Draft text</label>\n      <textarea\n        id=\"draft-text\"\n        onChange={(event) => setDraft(event.target.value)}\n        value={draft}\n      />\n\n      <button onClick={handleSave} type=\"button\">\n        Save draft\n      </button>\n\n      <p>{/* TODO: show whether the draft is saved or has unsaved changes. */}</p>\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nHow do you decide whether a value belongs in state or in a ref?",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

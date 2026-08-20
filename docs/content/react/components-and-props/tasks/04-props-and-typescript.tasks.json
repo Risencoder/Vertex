@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Type component props so mistakes are caught early.",
+    "prompt": "## 7. Practice Task\n\nBuild a typed `ModuleSummaryCard` component.\n\nRequirements:\n\n1. Create a `Difficulty` union type.\n2. Create a `ModuleSummaryCardProps` type.\n3. Include `title`, `description`, `difficulty`, and `lessonCount`.\n4. Render all props inside the component.\n5. Render the component from a parent with valid values.\n\nThe goal is to make the component contract explicit.",
+    "starterCode": "type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'\n\ntype ModuleSummaryCardProps = {\n  // TODO: add title, description, difficulty, and lessonCount.\n}\n\nfunction ModuleSummaryCard(props: ModuleSummaryCardProps) {\n  return (\n    <article>\n      {/* TODO: render all typed props. */}\n    </article>\n  )\n}\n\nexport function ModuleSummaryExample() {\n  return (\n    <section>\n      {/* TODO: render ModuleSummaryCard with valid values. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nHow do typed props improve collaboration in a React codebase?\n\nYour answer should mention contracts, clarity, or catching mistakes early.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

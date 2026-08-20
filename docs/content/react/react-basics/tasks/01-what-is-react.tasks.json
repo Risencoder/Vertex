@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict what React is responsible for.",
+    "prompt": "Which statement best describes React in a frontend application?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "complete-platform",
+        "label": "React is a complete platform that handles UI, database, authentication, and deployment."
+      },
+      {
+        "id": "ui-library",
+        "label": "React is a UI library for building interfaces from components."
+      },
+      {
+        "id": "css-replacement",
+        "label": "React replaces HTML and CSS with JavaScript."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "ui-library",
+      "responses": {
+        "complete-platform": "Not quite. React focuses on UI. A full product still needs routing, data, auth, styling, testing, and deployment decisions.",
+        "ui-library": "Correct. React helps you build user interfaces by composing components and rendering UI from data.",
+        "css-replacement": "Not quite. React still uses markup concepts and styling. It organizes UI with components rather than replacing HTML and CSS entirely."
+      }
+    },
+    "validation": {
+      "correctOptionId": "ui-library"
+    },
+    "metadata": {
+      "reason": "Clarifies the most common beginner misconception about React scope."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Learn what React is and where it fits in modern web apps.",
+    "prompt": "## 7. Practice Task\n\nBuild a small `LearningStatus` component.\n\nRequirements:\n\n1. Render a section with a heading.\n2. Show the name of a learning path.\n3. Show how many lessons are available.\n4. Show a short message that explains what the learner should do next.\n5. Keep the component focused on displaying UI only.\n\nThe goal is to practice thinking in components, not to add state or fetch data.",
+    "starterCode": "export function LearningStatus() {\n  const pathName = 'React Basics'\n  const lessonCount = 6\n\n  return (\n    <section aria-labelledby=\"learning-status-heading\">\n      <h2 id=\"learning-status-heading\">{/* TODO: show the path name. */}</h2>\n      <p>{/* TODO: show how many lessons are available. */}</p>\n      <p>{/* TODO: tell the learner what to do next. */}</p>\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy is React useful for building interfaces that change over time?\n\nYour answer should mention components or describing UI from data.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

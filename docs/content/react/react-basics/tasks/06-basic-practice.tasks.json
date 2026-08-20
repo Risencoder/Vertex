@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Practice the React basics by building a small UI section.",
+    "prompt": "## 7. Practice Task\n\nBuild a `LearningPathPreview` component.\n\nRequirements:\n\n1. Create a `LessonCard` component.\n2. Create local lesson data with at least three lessons.\n3. Render the lessons with `map`.\n4. Use a stable key.\n5. Show title, description, and difficulty for each lesson.\n6. Include an empty state branch.\n7. Keep the UI static; do not add state yet.\n\nThe goal is to combine the module fundamentals into one coherent UI.",
+    "starterCode": "type Lesson = {\n  slug: string\n  title: string\n  description: string\n  difficulty: string\n}\n\nfunction LessonCard() {\n  // TODO: decide what data this card needs.\n  return null\n}\n\nexport function LearningPathPreview() {\n  const lessons: Lesson[] = [\n    // TODO: add at least three lessons.\n  ]\n\n  // TODO: handle the empty state.\n\n  return (\n    <section aria-labelledby=\"learning-path-preview-heading\">\n      <h2 id=\"learning-path-preview-heading\">React Basics</h2>\n      {/* TODO: render lesson cards from data. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn three to five sentences, explain your component design:\n\n- Which parts became separate components?\n- What data did you render?\n- Where did you use a stable key?\n- What would change if the lesson data came from an API later?\n\nThis reflection prepares you to discuss basic React UI work in review.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

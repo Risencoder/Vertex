@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Render values and lists from data in React components.",
+    "prompt": "## 7. Practice Task\n\nBuild a `LessonOverviewList` component.\n\nRequirements:\n\n1. Create an array of lesson objects with `slug`, `title`, and `difficulty`.\n2. Render one list item for each lesson.\n3. Use a stable key.\n4. Show the lesson title and difficulty.\n5. Add an empty state branch.\n\nThe goal is to practice turning arrays into UI.",
+    "starterCode": "type Lesson = {\n  slug: string\n  title: string\n  difficulty: string\n}\n\nconst lessons: Lesson[] = [\n  // TODO: add at least three lesson objects.\n]\n\nexport function LessonOverviewList() {\n  // TODO: handle the empty state.\n\n  return (\n    <ul>\n      {/* TODO: render lessons with map and a stable key. */}\n    </ul>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy is a stable key important when rendering a list?\n\nYour answer should mention helping React track items across renders.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

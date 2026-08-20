@@ -1,0 +1,76 @@
+{
+  "slug": "hooks",
+  "title": "Hooks",
+  "description": "Use React hooks to manage stateful component behavior.",
+  "order": 4,
+  "difficulty": "INTERMEDIATE",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "why-hooks-exist",
+      "title": "Why Hooks Exist",
+      "description": "Understand what hooks solve and how hook rules keep components predictable.",
+      "content": "01-why-hooks-exist.md",
+      "tasks": "tasks/01-why-hooks-exist.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "useeffect-mental-model",
+      "title": "useEffect Mental Model",
+      "description": "Understand effects as synchronization after render, not as event handlers.",
+      "content": "02-useeffect-mental-model.md",
+      "tasks": "tasks/02-useeffect-mental-model.tasks.json",
+      "order": 2,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "effect-dependencies",
+      "title": "Effect Dependencies",
+      "description": "Reason about dependency arrays and keep effects synchronized with current values.",
+      "content": "03-effect-dependencies.md",
+      "tasks": "tasks/03-effect-dependencies.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "effect-cleanup",
+      "title": "Effect Cleanup",
+      "description": "Clean up timers, subscriptions, and external work created by effects.",
+      "content": "04-effect-cleanup.md",
+      "tasks": "tasks/04-effect-cleanup.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "useref",
+      "title": "useRef",
+      "description": "Use refs for stable mutable values that should not trigger rendering.",
+      "content": "05-useref.md",
+      "tasks": "tasks/05-useref.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "custom-hooks",
+      "title": "Custom Hooks",
+      "description": "Extract reusable stateful behavior into focused custom hooks.",
+      "content": "06-custom-hooks.md",
+      "tasks": "tasks/06-custom-hooks.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    }
+  ]
+}

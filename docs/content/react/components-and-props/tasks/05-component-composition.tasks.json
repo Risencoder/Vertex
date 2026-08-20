@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict where ownership belongs in a composed UI.",
+    "prompt": "In a composed screen, where should shared lesson data usually live first?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "parent-owns",
+        "label": "In the parent that coordinates the section and passes needed values down."
+      },
+      {
+        "id": "every-child-fetches",
+        "label": "Inside every child component so each child can find its own data."
+      },
+      {
+        "id": "props-change",
+        "label": "Inside props, because child components can edit props directly."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "parent-owns",
+      "responses": {
+        "parent-owns": "Correct. The parent coordinates the data and passes focused inputs to children.",
+        "every-child-fetches": "Not quite. That creates hidden dependencies and makes the UI harder to reason about.",
+        "props-change": "Not quite. Props carry data down, but children should not edit props directly."
+      }
+    },
+    "validation": {
+      "correctOptionId": "parent-owns"
+    },
+    "metadata": {
+      "reason": "Catches confusion around one-way data flow and ownership boundaries."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Combine small components into larger UI sections.",
+    "prompt": "## 7. Practice Task\n\nBuild a composed `LearningPanel`.\n\nRequirements:\n\n1. Create a reusable `Panel` component that accepts `children`.\n2. Create a `PanelHeader` component with typed props.\n3. Create a `LessonPreviewCard` component with typed props.\n4. Compose them inside `LearningPanel`.\n5. Keep data ownership in `LearningPanel`.\n6. Pass only the props each child needs.\n\nThe goal is to practice composition and ownership boundaries.",
+    "starterCode": "type PanelHeaderProps = {\n  // TODO: define the header props.\n}\n\ntype LessonPreviewCardProps = {\n  // TODO: define the lesson preview props.\n}\n\nfunction Panel({ children }: { children: React.ReactNode }) {\n  return <section>{children}</section>\n}\n\nfunction PanelHeader(props: PanelHeaderProps) {\n  return null\n}\n\nfunction LessonPreviewCard(props: LessonPreviewCardProps) {\n  return null\n}\n\nexport function LearningPanel() {\n  // TODO: keep the data here and pass only what children need.\n\n  return <Panel>{/* TODO: compose the panel content. */}</Panel>\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhat is the difference between passing data through props and passing UI through `children`?\n\nYour answer should mention specific inputs, flexible content, or composition.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict how props make a component reusable.",
+    "prompt": "What changes when a parent renders the same LessonCard with different props?",
+    "starterCode": "<LessonCard title=\"JSX\" description=\"Describe UI.\" />\n<LessonCard title=\"Props\" description=\"Pass data into UI.\" />",
+    "options": [
+      {
+        "id": "different-output",
+        "label": "Each card renders different content because props provide different inputs."
+      },
+      {
+        "id": "same-output",
+        "label": "Both cards render the same content because the component function is the same."
+      },
+      {
+        "id": "props-mutated",
+        "label": "The child changes the props so each card can update itself."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "different-output",
+      "responses": {
+        "same-output": "Not quite. The component implementation is the same, but each usage receives different prop values.",
+        "different-output": "Correct. Props are inputs from the parent, so the same component can render different data.",
+        "props-mutated": "Not quite. Props are read-only inputs. The child renders from them instead of mutating them."
+      }
+    },
+    "validation": {
+      "correctOptionId": "different-output"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that reusable components must contain their own data."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Pass values into components using props.",
+    "prompt": "## 7. Practice Task\n\nBuild a reusable `LessonCard` component with props.\n\nRequirements:\n\n1. Create a `LessonCard` component.\n2. Pass `title`, `description`, and `difficulty` as props.\n3. Render at least two cards with different values.\n4. Keep the card focused on display.\n5. Do not store props in state.\n\nThe goal is to practice passing data clearly from parent to child.",
+    "starterCode": "type LessonCardProps = {\n  // TODO: define title, description, and difficulty props.\n}\n\nfunction LessonCard(props: LessonCardProps) {\n  return (\n    <article>\n      {/* TODO: render values from props. */}\n    </article>\n  )\n}\n\nexport function LessonGrid() {\n  return (\n    <section>\n      {/* TODO: render at least two LessonCard components with different props. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy do props make a component more reusable?\n\nYour answer should mention parent data, child inputs, or rendering different values.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "components-and-props",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "slug": "react-basics",
+  "title": "React Basics",
+  "description": "Understand React fundamentals and the component model.",
+  "order": 1,
+  "difficulty": "BEGINNER",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "what-is-react",
+      "title": "What is React?",
+      "description": "Learn what React is and where it fits in modern web apps.",
+      "content": "01-what-is-react.md",
+      "tasks": "tasks/01-what-is-react.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "setting-up-a-react-project",
+      "title": "Setting up a React project",
+      "description": "Create a local React project and understand the file layout.",
+      "content": "02-setting-up-a-react-project.md",
+      "tasks": "tasks/02-setting-up-a-react-project.tasks.json",
+      "order": 2,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "jsx-fundamentals",
+      "title": "JSX fundamentals",
+      "description": "Write JSX and understand how it describes UI structure.",
+      "content": "03-jsx-fundamentals.md",
+      "tasks": "tasks/03-jsx-fundamentals.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "components-overview",
+      "title": "Components overview",
+      "description": "Break UI into small, reusable React components.",
+      "content": "04-components-overview.md",
+      "tasks": "tasks/04-components-overview.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "rendering-data",
+      "title": "Rendering data",
+      "description": "Render values and lists from data in React components.",
+      "content": "05-rendering-data.md",
+      "tasks": "tasks/05-rendering-data.tasks.json",
+      "order": 5,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "basic-practice",
+      "title": "Basic practice",
+      "description": "Practice the React basics by building a small UI section.",
+      "content": "06-basic-practice.md",
+      "tasks": "tasks/06-basic-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    }
+  ]
+}

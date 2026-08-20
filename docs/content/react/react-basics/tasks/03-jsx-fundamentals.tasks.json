@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Predict how JSX connects JavaScript values to UI.",
+    "prompt": "What appears in the paragraph when this component renders?",
+    "starterCode": "const userName = 'Ada'\n\nfunction Greeting() {\n  return <p>Hello, {userName}</p>\n}",
+    "options": [
+      {
+        "id": "literal-expression",
+        "label": "Hello, {userName}"
+      },
+      {
+        "id": "syntax-error",
+        "label": "Nothing. Curly braces are not allowed in JSX."
+      },
+      {
+        "id": "evaluated-expression",
+        "label": "Hello, Ada"
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "evaluated-expression",
+      "responses": {
+        "literal-expression": "Not quite. Curly braces open a JavaScript expression, so React uses the value of the variable.",
+        "evaluated-expression": "Correct. JSX evaluates the expression inside curly braces and renders the variable value.",
+        "syntax-error": "Not quite. Curly braces are the normal way to place JavaScript expressions inside JSX."
+      }
+    },
+    "validation": {
+      "correctOptionId": "evaluated-expression"
+    },
+    "metadata": {
+      "reason": "Prediction helps learners distinguish JSX text from JavaScript expressions."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Write JSX and understand how it describes UI structure.",
+    "prompt": "## 7. Practice Task\n\nBuild a `ProfileBadge` component.\n\nRequirements:\n\n1. Create constants for a user name, role, and completed lesson count.\n2. Render the values inside JSX using curly braces.\n3. Add a CSS class using `className`.\n4. Return one valid JSX tree.\n5. Keep expressions small and readable.\n\nThe goal is to practice JSX syntax, not styling complexity.",
+    "starterCode": "export function ProfileBadge() {\n  const userName = 'Ada'\n  const role = 'Frontend learner'\n  const completedLessons = 3\n\n  return (\n    <section>\n      {/* TODO: use JSX expressions to render the values above. */}\n      {/* TODO: add a className to one element. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy does JSX allow JavaScript expressions inside markup-like UI?\n\nYour answer should mention connecting data or values to rendered UI.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

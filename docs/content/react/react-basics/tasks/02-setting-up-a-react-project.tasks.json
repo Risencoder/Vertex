@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Create a local React project and understand the file layout.",
+    "prompt": "## 7. Practice Task\n\nBuild a small `ProjectMap` component that explains a React project structure.\n\nRequirements:\n\n1. Show three items: package scripts, source folder, and app entry point.\n2. Give each item a short practical description.\n3. Use clear headings and paragraphs.\n4. Keep the component static.\n5. Do not add routing, state, or data fetching.\n\nThe goal is to explain the project structure as UI.",
+    "starterCode": "export function ProjectMap() {\n  const projectParts = [\n    // TODO: add package scripts, source folder, and app entry point.\n  ]\n\n  return (\n    <section aria-labelledby=\"project-map-heading\">\n      <h2 id=\"project-map-heading\">Project map</h2>\n\n      {/* TODO: render each project part with a short description. */}\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nIn your own words, explain this:\n\nWhy is understanding the project entry point useful before building features?\n\nYour answer should mention debugging, navigation through the codebase, or confidence changing files.",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "react-basics",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

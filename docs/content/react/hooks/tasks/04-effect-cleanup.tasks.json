@@ -1,0 +1,39 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Clean up timers, subscriptions, and external work created by effects.",
+    "prompt": "## 7. Practice Task\n\nBuild a `FocusSessionTimer` component.\n\nRequirements:\n\n- track elapsed seconds with state;\n- start an interval in `useEffect`;\n- update seconds safely with an updater function;\n- clean up the interval;\n- show the elapsed time and a short status message.",
+    "starterCode": "import { useEffect, useState } from 'react'\n\nexport function FocusSessionTimer() {\n  const [seconds, setSeconds] = useState(0)\n\n  // TODO: start an interval in an effect.\n  // TODO: update seconds safely once per second.\n  // TODO: clean up the interval.\n\n  return (\n    <section aria-labelledby=\"focus-session-heading\">\n      <h2 id=\"focus-session-heading\">Focus session</h2>\n      <p>{/* TODO: show elapsed seconds. */}</p>\n      <p>{/* TODO: show a short status message. */}</p>\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nWhat kinds of external work should make you look for a cleanup function?",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

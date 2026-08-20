@@ -1,0 +1,76 @@
+{
+  "slug": "components-and-props",
+  "title": "Components and Props",
+  "description": "Create reusable components and pass data with props.",
+  "order": 2,
+  "difficulty": "BEGINNER",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "understanding-react-components",
+      "title": "Understanding React components",
+      "description": "Understand what components are and why React apps use them.",
+      "content": "01-understanding-react-components.md",
+      "tasks": "tasks/01-understanding-react-components.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "creating-functional-components",
+      "title": "Creating functional components",
+      "description": "Create simple React function components with clear output.",
+      "content": "02-creating-functional-components.md",
+      "tasks": "tasks/02-creating-functional-components.tasks.json",
+      "order": 2,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "passing-data-with-props",
+      "title": "Passing data with props",
+      "description": "Pass values into components using props.",
+      "content": "03-passing-data-with-props.md",
+      "tasks": "tasks/03-passing-data-with-props.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "props-and-typescript",
+      "title": "Props and TypeScript",
+      "description": "Type component props so mistakes are caught early.",
+      "content": "04-props-and-typescript.md",
+      "tasks": "tasks/04-props-and-typescript.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "component-composition",
+      "title": "Component composition",
+      "description": "Combine small components into larger UI sections.",
+      "content": "05-component-composition.md",
+      "tasks": "tasks/05-component-composition.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "components-and-props-practice",
+      "title": "Components and props practice",
+      "description": "Practice building typed components from repeated UI.",
+      "content": "06-components-and-props-practice.md",
+      "tasks": "tasks/06-components-and-props-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    }
+  ]
+}

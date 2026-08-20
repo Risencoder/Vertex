@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Prediction",
+    "description": "Distinguish effect logic from event logic.",
+    "prompt": "Which job is a good fit for useEffect?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "click-submit",
+        "label": "Submitting a form because the user clicked Submit."
+      },
+      {
+        "id": "derive-label",
+        "label": "Calculating a button label from current state."
+      },
+      {
+        "id": "document-title",
+        "label": "Updating document.title after the rendered lesson title changes."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "document-title",
+      "responses": {
+        "click-submit": "Not quite. A submit caused by a user action belongs in the event handler.",
+        "derive-label": "Not quite. Derived UI text belongs in render, not in an effect.",
+        "document-title": "Correct. The browser tab title is outside React, so an effect can synchronize it after render."
+      }
+    },
+    "validation": {
+      "correctOptionId": "document-title"
+    },
+    "metadata": {
+      "reason": "Catches overusing effects for event handlers and derived UI state."
+    },
+    "type": "PREDICTION",
+    "isRequired": true,
+    "key": "prediction-main",
+    "order": 1
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Understand effects as synchronization after render, not as event handlers.",
+    "prompt": "## 7. Practice Task\n\nBuild a `LessonDocumentTitle` component.\n\nRequirements:\n\n- accept a `lessonTitle` prop;\n- render the lesson title on the page;\n- use `useEffect` to update `document.title`;\n- include the correct dependency;\n- keep button or event logic out of the effect.",
+    "starterCode": "import { useEffect } from 'react'\n\ntype LessonDocumentTitleProps = {\n  lessonTitle: string\n}\n\nexport function LessonDocumentTitle({ lessonTitle }: LessonDocumentTitleProps) {\n  // TODO: synchronize document.title with the current lesson title.\n\n  return (\n    <section aria-labelledby=\"lesson-title-heading\">\n      <h2 id=\"lesson-title-heading\">{lessonTitle}</h2>\n      <p>This lesson title should also appear in the browser tab.</p>\n    </section>\n  )\n}",
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "prompt": "## 9. Reflection\n\nHow would you decide whether code belongs in render, an event handler, or an effect?",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "apps/api/prisma/seed.mjs",
+      "sourceModule": "hooks",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]
