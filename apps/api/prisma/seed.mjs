@@ -3670,6 +3670,7 @@ function createReactBasicsCodeTaskForLesson(lesson, order) {
   const starterCode = reactBasicsStarterCodeBySlug[lesson.slug]
 
   return {
+    key: 'practice-main',
     title: 'Practice task',
     description: lesson.description,
     prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
@@ -3694,6 +3695,7 @@ function createReactBasicsCodeTaskForLesson(lesson, order) {
 
 function createReactBasicsReflectionTaskForLesson(lesson, order) {
   return {
+    key: 'reflection-main',
     title: 'Reflection',
     description: 'Explain the concept in your own words before moving on.',
     prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
@@ -3719,6 +3721,7 @@ function createReactBasicsTasksForLesson(lesson) {
     return [
       {
         ...predictionTask,
+        key: 'prediction-main',
         order: 1,
       },
       createReactBasicsCodeTaskForLesson(lesson, 2),
@@ -3736,6 +3739,7 @@ function createComponentsAndPropsCodeTaskForLesson(lesson, order) {
   const starterCode = componentsAndPropsStarterCodeBySlug[lesson.slug]
 
   return {
+    key: 'practice-main',
     title: 'Practice task',
     description: lesson.description,
     prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
@@ -3760,6 +3764,7 @@ function createComponentsAndPropsCodeTaskForLesson(lesson, order) {
 
 function createComponentsAndPropsReflectionTaskForLesson(lesson, order) {
   return {
+    key: 'reflection-main',
     title: 'Reflection',
     description: 'Explain the concept in your own words before moving on.',
     prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
@@ -3785,6 +3790,7 @@ function createComponentsAndPropsTasksForLesson(lesson) {
     return [
       {
         ...predictionTask,
+        key: 'prediction-main',
         order: 1,
       },
       createComponentsAndPropsCodeTaskForLesson(lesson, 2),
@@ -3802,6 +3808,7 @@ function createCodeTaskForLesson(lesson, order) {
   const starterCode = stateAndEventsStarterCodeBySlug[lesson.slug]
 
   return {
+    key: 'practice-main',
     title: 'Practice task',
     description: lesson.description,
     prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
@@ -3825,6 +3832,7 @@ function createCodeTaskForLesson(lesson, order) {
 
 function createReflectionTaskForLesson(lesson, order) {
   return {
+    key: 'reflection-main',
     title: 'Reflection',
     description: 'Explain the concept in your own words before moving on.',
     prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
@@ -3844,6 +3852,7 @@ function createReflectionTaskForLesson(lesson, order) {
 
 function createLocalStatePredictionTask() {
   return {
+    key: 'prediction-main',
     title: 'Prediction',
     description: 'Predict how React state changes what appears on screen.',
     prompt: 'What happens each time the button is clicked?',
@@ -3912,6 +3921,7 @@ function createHooksCodeTaskForLesson(lesson, order) {
   const starterCode = hooksStarterCodeBySlug[lesson.slug]
 
   return {
+    key: 'practice-main',
     title: 'Practice task',
     description: lesson.description,
     prompt: extractMarkdownSection(lesson.content, '## 7. Practice Task'),
@@ -3936,6 +3946,7 @@ function createHooksCodeTaskForLesson(lesson, order) {
 
 function createHooksReflectionTaskForLesson(lesson, order) {
   return {
+    key: 'reflection-main',
     title: 'Reflection',
     description: 'Explain the concept in your own words before moving on.',
     prompt: extractMarkdownSection(lesson.content, '## 9. Reflection'),
@@ -3961,6 +3972,7 @@ function createHooksTasksForLesson(lesson) {
     return [
       {
         ...predictionTask,
+        key: 'prediction-main',
         order: 1,
       },
       createHooksCodeTaskForLesson(lesson, 2),
@@ -4109,9 +4121,9 @@ async function main() {
     for (const task of tasks) {
       await prisma.lessonTask.upsert({
         where: {
-          lessonId_order: {
+          lessonId_key: {
             lessonId: seededLesson.id,
-            order: task.order,
+            key: task.key,
           },
         },
         update: task,
@@ -4172,9 +4184,9 @@ async function main() {
     for (const task of tasks) {
       await prisma.lessonTask.upsert({
         where: {
-          lessonId_order: {
+          lessonId_key: {
             lessonId: seededLesson.id,
-            order: task.order,
+            key: task.key,
           },
         },
         update: task,
@@ -4235,9 +4247,9 @@ async function main() {
     for (const task of tasks) {
       await prisma.lessonTask.upsert({
         where: {
-          lessonId_order: {
+          lessonId_key: {
             lessonId: seededLesson.id,
-            order: task.order,
+            key: task.key,
           },
         },
         update: task,
@@ -4298,9 +4310,9 @@ async function main() {
     for (const task of tasks) {
       await prisma.lessonTask.upsert({
         where: {
-          lessonId_order: {
+          lessonId_key: {
             lessonId: seededLesson.id,
-            order: task.order,
+            key: task.key,
           },
         },
         update: task,

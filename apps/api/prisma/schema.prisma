@@ -229,6 +229,7 @@ model Lesson {
 model LessonTask {
   id          String               @id @default(uuid())
   lessonId    String
+  key         String
   title       String
   description String?
   prompt      String?
@@ -245,7 +246,7 @@ model LessonTask {
   lesson      Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   progress    LessonTaskProgress[]
 
-  @@unique([lessonId, order])
+  @@unique([lessonId, key])
   @@map("lesson_tasks")
 }
 
