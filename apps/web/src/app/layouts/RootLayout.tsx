@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { authClient } from '@/shared/api/auth-client'
 import { Button } from '@/shared/ui/button'
@@ -158,6 +158,7 @@ function AuthenticatedShell({
   children: React.ReactNode
   session: LayoutSession
 }) {
+  const navigate = useNavigate()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -180,8 +181,9 @@ function AuthenticatedShell({
         return
       }
 
-      await session.refetch()
       setIsMobileNavOpen(false)
+      await session.refetch().catch(() => undefined)
+      void navigate('/login', { replace: true })
     } catch {
       setLogoutError('Unable to connect to the server. Please try again.')
     } finally {
