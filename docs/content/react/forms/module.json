@@ -1,0 +1,76 @@
+{
+  "slug": "forms",
+  "title": "Forms",
+  "description": "Create accessible forms with validation and submission states.",
+  "order": 6,
+  "difficulty": "INTERMEDIATE",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "form-state-and-controlled-inputs",
+      "title": "Form State and Controlled Inputs",
+      "description": "Use controlled inputs as the foundation for reliable form workflows.",
+      "content": "01-form-state-and-controlled-inputs.md",
+      "tasks": "tasks/01-form-state-and-controlled-inputs.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "handling-form-submission",
+      "title": "Handling Form Submission",
+      "description": "Handle form submit events without losing React state or user context.",
+      "content": "02-handling-form-submission.md",
+      "tasks": "tasks/02-handling-form-submission.tasks.json",
+      "order": 2,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "validation-and-error-messages",
+      "title": "Validation and Error Messages",
+      "description": "Design validation that guides users instead of only blocking them.",
+      "content": "03-validation-and-error-messages.md",
+      "tasks": "tasks/03-validation-and-error-messages.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "multiple-fields-and-form-state",
+      "title": "Multiple Fields and Form State",
+      "description": "Manage related form fields without making updates fragile.",
+      "content": "04-multiple-fields-and-form-state.md",
+      "tasks": "tasks/04-multiple-fields-and-form-state.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "reusable-form-patterns",
+      "title": "Reusable Form Patterns",
+      "description": "Extract form structure carefully without hiding important behavior.",
+      "content": "05-reusable-form-patterns.md",
+      "tasks": "tasks/05-reusable-form-patterns.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "forms-practice",
+      "title": "Forms Practice",
+      "description": "Combine form state, submission, validation, and reusable structure in one workflow.",
+      "content": "06-forms-practice.md",
+      "tasks": "tasks/06-forms-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    }
+  ]
+}

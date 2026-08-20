@@ -1,0 +1,67 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Build a controlled profile basics form with a live preview.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type Role = 'student' | 'mentor' | 'builder'",
+      "",
+      "export function ProfileBasicsForm() {",
+      "  // TODO: store name, role, and bio as controlled form state.",
+      "  // TODO: derive whether the form has enough information to preview.",
+      "",
+      "  return (",
+      "    <form>",
+      "      <label htmlFor=\"profile-name\">Name</label>",
+      "      <input id=\"profile-name\" />",
+      "",
+      "      <label htmlFor=\"profile-role\">Role</label>",
+      "      <select id=\"profile-role\">",
+      "        <option value=\"student\">Student</option>",
+      "        <option value=\"mentor\">Mentor</option>",
+      "        <option value=\"builder\">Builder</option>",
+      "      </select>",
+      "",
+      "      <label htmlFor=\"profile-bio\">Bio</label>",
+      "      <textarea id=\"profile-bio\" />",
+      "",
+      "      <section aria-live=\"polite\">",
+      "        {/* TODO: render a profile preview from the current form state. */}",
+      "      </section>",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

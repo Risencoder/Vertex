@@ -1,0 +1,80 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Build a complete project submission form workflow.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type ProjectSubmission = {",
+      "  title: string",
+      "  repositoryUrl: string",
+      "  notes: string",
+      "}",
+      "",
+      "type SubmissionErrors = Partial<Record<keyof ProjectSubmission, string>>",
+      "type SubmitStatus = 'idle' | 'success'",
+      "",
+      "function Field(props: {",
+      "  id: string",
+      "  label: string",
+      "  error?: string",
+      "  children: React.ReactNode",
+      "}) {",
+      "  // TODO: render a reusable label/error wrapper.",
+      "  return <div>{props.children}</div>",
+      "}",
+      "",
+      "export function ProjectSubmissionForm() {",
+      "  // TODO: store the submission draft, validation errors, status, and submitted summary.",
+      "",
+      "  function validate(form: ProjectSubmission): SubmissionErrors {",
+      "    // TODO: validate title, repositoryUrl, and notes.",
+      "    return {}",
+      "  }",
+      "",
+      "  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {",
+      "    event.preventDefault()",
+      "    // TODO: validate before showing success.",
+      "    // TODO: show field-level errors or a success summary from submitted values.",
+      "  }",
+      "",
+      "  return (",
+      "    <form onSubmit={handleSubmit}>",
+      "      {/* TODO: build the three controlled fields with Field. */}",
+      "      <button type=\"submit\">Submit project</button>",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

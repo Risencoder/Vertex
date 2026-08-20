@@ -149,6 +149,7 @@ const frontendEngineerTechnologies = [
 
 const stateAndEventsContent = loadStateAndEventsContent()
 const routingContent = loadReactModuleContent('routing')
+const formsContent = loadReactModuleContent('forms')
 
 const reactModules = [
   {
@@ -177,15 +178,7 @@ const reactModules = [
     isPublished: true,
   },
   routingContent.module,
-  {
-    slug: 'forms',
-    title: 'Forms',
-    description:
-      'Create accessible forms with validation and submission states.',
-    order: 6,
-    difficulty: 'INTERMEDIATE',
-    isPublished: true,
-  },
+  formsContent.module,
   {
     slug: 'performance',
     title: 'Performance',
@@ -3976,6 +3969,23 @@ async function main() {
     routingModule.id,
   )
 
+  const formsModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'forms',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  const formsTaskCount = await seedContentModuleLessons(
+    formsContent,
+    formsModule.id,
+  )
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -3998,6 +4008,8 @@ async function main() {
   console.log(`Seeded ${hooksTaskCount} Hooks tasks.`)
   console.log(`Seeded ${routingContent.lessons.length} Routing lessons.`)
   console.log(`Seeded ${routingTaskCount} Routing tasks.`)
+  console.log(`Seeded ${formsContent.lessons.length} Forms lessons.`)
+  console.log(`Seeded ${formsTaskCount} Forms tasks.`)
 }
 
 main()

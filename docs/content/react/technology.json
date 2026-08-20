@@ -12,6 +12,10 @@
     {
       "slug": "routing",
       "manifest": "routing/module.json"
+    },
+    {
+      "slug": "forms",
+      "manifest": "forms/module.json"
     }
   ]
 }

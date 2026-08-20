@@ -1,0 +1,99 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict what useful validation should provide.",
+    "prompt": "A form disables the submit button when the email is invalid, but it does not show any message. What is the main problem?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "no-problem",
+        "label": "There is no problem because invalid data cannot be submitted."
+      },
+      {
+        "id": "state-breaks",
+        "label": "React state will stop updating."
+      },
+      {
+        "id": "no-recovery-guidance",
+        "label": "The user may not know what is wrong or how to fix it."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "no-recovery-guidance",
+      "responses": {
+        "no-problem": "Not quite. Blocking invalid data is only part of validation. Users still need clear recovery guidance.",
+        "no-recovery-guidance": "Correct. Good validation explains the problem near the field and helps the user recover.",
+        "state-breaks": "Not quite. Validation UI does not stop React state from updating."
+      }
+    },
+    "validation": {
+      "correctOptionId": "no-recovery-guidance"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that validation is only about preventing submit."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Add useful validation and accessible field-level feedback.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "export function PasswordResetForm() {",
+      "  // TODO: store the email value.",
+      "  // TODO: store an email error and success state.",
+      "",
+      "  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {",
+      "    event.preventDefault()",
+      "    // TODO: validate the email and show a field-level error when invalid.",
+      "    // TODO: clear the error and show success when valid.",
+      "  }",
+      "",
+      "  return (",
+      "    <form onSubmit={handleSubmit}>",
+      "      <label htmlFor=\"reset-email\">Email</label>",
+      "      <input id=\"reset-email\" type=\"email\" />",
+      "",
+      "      {/* TODO: render an accessible error message connected to the input. */}",
+      "",
+      "      <button type=\"submit\">Send reset link</button>",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

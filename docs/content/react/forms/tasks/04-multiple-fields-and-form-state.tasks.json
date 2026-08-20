@@ -1,0 +1,74 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Manage several related fields as one typed form draft.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type ProfileForm = {",
+      "  displayName: string",
+      "  location: string",
+      "  learningGoal: string",
+      "}",
+      "",
+      "export function ProfileSettingsForm() {",
+      "  const [form, setForm] = useState<ProfileForm>({",
+      "    displayName: '',",
+      "    location: '',",
+      "    learningGoal: '',",
+      "  })",
+      "",
+      "  function updateField(field: keyof ProfileForm, value: string) {",
+      "    // TODO: update only the requested field while preserving the rest.",
+      "  }",
+      "",
+      "  // TODO: derive how many fields are complete.",
+      "",
+      "  return (",
+      "    <form>",
+      "      <label htmlFor=\"display-name\">Display name</label>",
+      "      <input id=\"display-name\" value={form.displayName} />",
+      "",
+      "      <label htmlFor=\"location\">Location</label>",
+      "      <input id=\"location\" value={form.location} />",
+      "",
+      "      <label htmlFor=\"learning-goal\">Learning goal</label>",
+      "      <textarea id=\"learning-goal\" value={form.learningGoal} />",
+      "",
+      "      {/* TODO: render completed field count and summary preview. */}",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

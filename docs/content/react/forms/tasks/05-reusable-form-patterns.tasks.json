@@ -1,0 +1,100 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict what should and should not be extracted from a form.",
+    "prompt": "A team wants reusable forms. Which extraction is usually the safest first step?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "generic-form-engine",
+        "label": "Create one generic form engine for every future form."
+      },
+      {
+        "id": "field-structure",
+        "label": "Extract repeated field label, help text, and error layout."
+      },
+      {
+        "id": "hide-state",
+        "label": "Move all field state into a child component so the form cannot see it."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "field-structure",
+      "responses": {
+        "generic-form-engine": "Not quite. A generic engine is usually too early before several real forms prove the same needs.",
+        "field-structure": "Correct. Repeated field structure is a narrow, useful extraction that keeps behavior visible.",
+        "hide-state": "Not quite. Hiding the state can make validation and submit behavior harder to reason about."
+      }
+    },
+    "validation": {
+      "correctOptionId": "field-structure"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that reuse should start with a broad form abstraction."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Extract a small reusable field wrapper while keeping behavior local.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type FormFieldProps = {",
+      "  id: string",
+      "  label: string",
+      "  error?: string",
+      "  children: React.ReactNode",
+      "}",
+      "",
+      "function FormField(props: FormFieldProps) {",
+      "  // TODO: render label, children, and optional error message.",
+      "  return <div>{props.children}</div>",
+      "}",
+      "",
+      "export function AccountForm() {",
+      "  // TODO: own email/display name state, errors, and submit behavior here.",
+      "",
+      "  return (",
+      "    <form>",
+      "      {/* TODO: use FormField for each input without hiding form behavior. */}",
+      "      <button type=\"submit\">Save account</button>",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

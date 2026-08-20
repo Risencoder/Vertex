@@ -1,0 +1,103 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict what happens when a React form submits normally.",
+    "prompt": "A React form has controlled inputs, but its submit handler does not call event.preventDefault(). What is the most likely result?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "browser-submits-document",
+        "label": "The browser performs its default form submission and may reload the page."
+      },
+      {
+        "id": "react-keeps-control",
+        "label": "React keeps control because the inputs are controlled."
+      },
+      {
+        "id": "button-disabled",
+        "label": "The submit button automatically becomes disabled."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "browser-submits-document",
+      "responses": {
+        "react-keeps-control": "Not quite. Controlled inputs keep field values in React state, but they do not cancel the browser's default submit behavior.",
+        "browser-submits-document": "Correct. A form submit is still an HTML form submit unless your handler prevents the default behavior.",
+        "button-disabled": "Not quite. Buttons do not automatically disable during submit. You need state for that."
+      }
+    },
+    "validation": {
+      "correctOptionId": "browser-submits-document"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that controlled inputs automatically replace native form behavior."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Handle a form submission while preserving React state and user context.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type SubmitStatus = 'idle' | 'submitting' | 'success'",
+      "",
+      "export function NewsletterSignupForm() {",
+      "  // TODO: store name, email, submit status, and submitted summary.",
+      "",
+      "  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {",
+      "    // TODO: prevent the browser's default form submission.",
+      "    // TODO: use the current form state to create a submitted summary.",
+      "    // TODO: show a submitting state before showing success.",
+      "  }",
+      "",
+      "  return (",
+      "    <form onSubmit={handleSubmit}>",
+      "      <label htmlFor=\"signup-name\">Name</label>",
+      "      <input id=\"signup-name\" />",
+      "",
+      "      <label htmlFor=\"signup-email\">Email</label>",
+      "      <input id=\"signup-email\" type=\"email\" />",
+      "",
+      "      <button type=\"submit\">Join newsletter</button>",
+      "",
+      "      {/* TODO: render the submitted summary after a successful submit. */}",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/forms",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]
