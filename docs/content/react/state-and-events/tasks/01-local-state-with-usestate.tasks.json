@@ -83,7 +83,10 @@
     },
     "metadata": {
       "source": "docs/content/react/state-and-events",
-      "sourceSection": "Practice Task"
+      "sourceSection": "Practice Task",
+      "mentorReview": {
+        "enabled": true
+      }
     },
     "type": "CODE",
     "order": 2,

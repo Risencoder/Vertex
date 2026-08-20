@@ -4,10 +4,14 @@ import { Link, useParams } from 'react-router'
 import { useRootLayout } from '@/app/layouts/use-root-layout'
 import {
   completeLesson,
+  getLatestLessonTaskReview,
   getLessonProgress,
   LessonProgressApiError,
+  submitLessonTaskAttemptForReview,
   type LessonProgress,
+  type LessonTaskAttempt,
   type LessonTaskProgress,
+  type LessonTaskReview,
   saveLessonTaskProgress,
 } from '@/shared/api/lesson-progress'
 import {
@@ -74,6 +78,40 @@ type ProgressState =
   | {
       status: 'error'
       data: null
+      error: string
+    }
+
+type MentorReviewState =
+  | {
+      status: 'idle'
+      attempt: null
+      review: null
+      reviewedAttempt: string
+      isStale: boolean
+      error: string
+    }
+  | {
+      status: 'loading'
+      attempt: LessonTaskAttempt | null
+      review: LessonTaskReview | null
+      reviewedAttempt: string
+      isStale: boolean
+      error: string
+    }
+  | {
+      status: 'success'
+      attempt: LessonTaskAttempt | null
+      review: LessonTaskReview | null
+      reviewedAttempt: string
+      isStale: boolean
+      error: string
+    }
+  | {
+      status: 'error'
+      attempt: LessonTaskAttempt | null
+      review: LessonTaskReview | null
+      reviewedAttempt: string
+      isStale: boolean
       error: string
     }
 
@@ -405,6 +443,41 @@ function getStringResponseValue(
   return null
 }
 
+function getStringFromResponse(
+  response: Record<string, unknown> | null,
+  keys: string[],
+) {
+  if (!response) {
+    return null
+  }
+
+  for (const key of keys) {
+    const value = response[key]
+
+    if (typeof value === 'string') {
+      return value
+    }
+  }
+
+  return null
+}
+
+function getAttemptFromReviewAttempt(attempt: LessonTaskAttempt | null) {
+  return getStringFromResponse(attempt?.response ?? null, ['attempt', 'code'])
+}
+
+function isMentorReviewEnabled(task?: LessonTask) {
+  const mentorReview = task?.metadata?.mentorReview
+
+  return (
+    mentorReview !== null &&
+    typeof mentorReview === 'object' &&
+    !Array.isArray(mentorReview) &&
+    'enabled' in mentorReview &&
+    mentorReview.enabled === true
+  )
+}
+
 function upsertTaskProgressItem(
   taskProgress: LessonTaskProgress[] | undefined,
   updatedProgress: LessonTaskProgress,
@@ -420,6 +493,165 @@ function upsertTaskProgressItem(
 
   return currentTaskProgress.map((progress, index) =>
     index === existingProgressIndex ? updatedProgress : progress,
+  )
+}
+
+function formatMentorReviewStatus(status: string) {
+  if (status === 'READY_TO_CONTINUE') {
+    return 'Ready to continue'
+  }
+
+  if (status === 'NEEDS_IMPROVEMENT') {
+    return 'Needs improvement'
+  }
+
+  return 'Review unavailable'
+}
+
+function formatMentorNextAction(action: string) {
+  if (action === 'CONTINUE') {
+    return 'Continue'
+  }
+
+  if (action === 'IMPROVE_AND_RESUBMIT') {
+    return 'Improve and resubmit'
+  }
+
+  return 'Review concept'
+}
+
+function MentorReviewPanel({ state }: { state: MentorReviewState }) {
+  if (state.status === 'idle') {
+    return null
+  }
+
+  return (
+    <div className="grid gap-4 rounded-lg border bg-background p-4">
+      <div className="grid gap-1">
+        <p className="text-sm font-medium">Mentor Review</p>
+        <p className="text-sm leading-6 text-muted-foreground">
+          This prototype uses LOCAL_MOCK development Mentor infrastructure. It
+          does not execute your code or generate a full solution.
+        </p>
+      </div>
+
+      {state.status === 'loading' ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          Loading Mentor Review...
+        </p>
+      ) : null}
+
+      {state.status === 'error' ? (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+
+      {state.isStale && state.review ? (
+        <div
+          className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-800"
+          role="status"
+        >
+          This review is for an earlier attempt. Submit again when you are ready
+          to review your updated code.
+        </div>
+      ) : null}
+
+      {state.status === 'success' && !state.review ? (
+        <p className="text-sm text-muted-foreground">
+          No Mentor Review has been submitted for this practice task yet.
+        </p>
+      ) : null}
+
+      {state.review ? (
+        <div className="grid gap-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              Attempt #{state.attempt?.attemptNumber ?? '-'}
+            </span>
+            <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {formatMentorReviewStatus(state.review.status)}
+            </span>
+            {state.review.provider ? (
+              <span className="inline-flex rounded-lg border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                {state.review.provider}
+              </span>
+            ) : null}
+          </div>
+
+          {state.review.status === 'REVIEW_UNAVAILABLE' ? (
+            <p className="text-sm leading-6 text-muted-foreground">
+              Mentor Review is unavailable right now. Your code is still in the
+              editor, and you can retry when you are ready.
+            </p>
+          ) : null}
+
+          {state.review.output ? (
+            <div className="grid gap-4">
+              <div className="grid gap-1">
+                <p className="text-sm font-medium">Summary</p>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {state.review.output.summary}
+                </p>
+              </div>
+
+              {state.review.output.strengths.length > 0 ? (
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium">Strengths</p>
+                  <ul className="grid gap-2 text-sm leading-6 text-muted-foreground">
+                    {state.review.output.strengths.map((strength) => (
+                      <li key={strength}>- {strength}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {state.review.output.issues.length > 0 ? (
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium">Issues</p>
+                  <div className="grid gap-2">
+                    {state.review.output.issues.map((issue) => (
+                      <div
+                        className="rounded-lg border bg-muted/30 p-3"
+                        key={`${issue.severity}-${issue.title}`}
+                      >
+                        <p className="text-sm font-medium">
+                          {issue.title}{' '}
+                          <span className="text-xs text-muted-foreground">
+                            {issue.severity}
+                          </span>
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {issue.explanation}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {state.review.output.hints.length > 0 ? (
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium">Hints</p>
+                  <ul className="grid gap-2 text-sm leading-6 text-muted-foreground">
+                    {state.review.output.hints.map((hint) => (
+                      <li key={hint}>- {hint}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-sm font-medium">Next action</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {formatMentorNextAction(state.review.output.nextAction)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -447,6 +679,18 @@ export function LessonPage() {
   const [isPracticeAttemptSaved, setIsPracticeAttemptSaved] = useState(false)
   const [isSavingPracticeAttempt, setIsSavingPracticeAttempt] = useState(false)
   const [practiceSaveError, setPracticeSaveError] = useState('')
+  const [mentorReviewState, setMentorReviewState] = useState<MentorReviewState>(
+    {
+      status: 'idle',
+      attempt: null,
+      review: null,
+      reviewedAttempt: '',
+      isStale: false,
+      error: '',
+    },
+  )
+  const [isSubmittingMentorReview, setIsSubmittingMentorReview] =
+    useState(false)
   const [reflectionAnswer, setReflectionAnswer] = useState('')
   const [isReflectionAccepted, setIsReflectionAccepted] = useState(false)
   const [isSavingReflection, setIsSavingReflection] = useState(false)
@@ -485,6 +729,15 @@ export function LessonPage() {
       setIsPracticeAttemptSaved(false)
       setIsSavingPracticeAttempt(false)
       setPracticeSaveError('')
+      setMentorReviewState({
+        status: 'idle',
+        attempt: null,
+        review: null,
+        reviewedAttempt: '',
+        isStale: false,
+        error: '',
+      })
+      setIsSubmittingMentorReview(false)
       setReflectionAnswer('')
       setIsReflectionAccepted(false)
       setIsSavingReflection(false)
@@ -670,6 +923,119 @@ export function LessonPage() {
     }
   }, [lessonState, session.data, session.isPending])
 
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    async function loadMentorReview() {
+      if (lessonState.status !== 'success') {
+        setMentorReviewState({
+          status: 'idle',
+          attempt: null,
+          review: null,
+          reviewedAttempt: '',
+          isStale: false,
+          error: '',
+        })
+        return
+      }
+
+      const codeTask = getTaskByType(
+        lessonState.data.lesson.tasks ?? [],
+        'CODE',
+      )
+
+      if (!isMentorReviewEnabled(codeTask)) {
+        setMentorReviewState({
+          status: 'idle',
+          attempt: null,
+          review: null,
+          reviewedAttempt: '',
+          isStale: false,
+          error: '',
+        })
+        return
+      }
+
+      if (session.isPending) {
+        return
+      }
+
+      if (!session.data || !codeTask) {
+        setMentorReviewState({
+          status: 'idle',
+          attempt: null,
+          review: null,
+          reviewedAttempt: '',
+          isStale: false,
+          error: '',
+        })
+        return
+      }
+
+      setMentorReviewState((currentState) => ({
+        status: 'loading',
+        attempt: currentState.attempt,
+        review: currentState.review,
+        reviewedAttempt: currentState.reviewedAttempt,
+        isStale: currentState.isStale,
+        error: '',
+      }))
+
+      try {
+        const result = await getLatestLessonTaskReview(
+          lessonState.data.lesson.id,
+          codeTask.id,
+          abortController.signal,
+        )
+        const restoredAttempt = getAttemptFromReviewAttempt(result.attempt)
+
+        if (restoredAttempt !== null) {
+          setPracticeAttempt(restoredAttempt)
+        }
+
+        setMentorReviewState({
+          status: 'success',
+          attempt: result.attempt,
+          review: result.review,
+          reviewedAttempt: restoredAttempt ?? '',
+          isStale: false,
+          error: '',
+        })
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        if (error instanceof LessonProgressApiError && error.status === 401) {
+          setMentorReviewState({
+            status: 'idle',
+            attempt: null,
+            review: null,
+            reviewedAttempt: '',
+            isStale: false,
+            error: '',
+          })
+          return
+        }
+
+        setMentorReviewState({
+          status: 'error',
+          attempt: null,
+          review: null,
+          reviewedAttempt: '',
+          isStale: false,
+          error: 'Unable to load mentor review. Please try again later.',
+        })
+      }
+    }
+
+    void loadMentorReview()
+
+    return () => {
+      abortController.abort()
+    }
+  }, [lessonState, session.data, session.isPending])
+
   function updateSavedTaskProgress(savedTaskProgress: LessonTaskProgress) {
     setProgressState((currentState) => {
       if (currentState.status !== 'success') {
@@ -758,6 +1124,49 @@ export function LessonPage() {
     }
   }
 
+  async function handleSubmitMentorReview(lessonId: string, task: LessonTask) {
+    if (isSubmittingMentorReview || !isMentorReviewEnabled(task)) {
+      return
+    }
+
+    setIsSubmittingMentorReview(true)
+    setMentorReviewState((currentState) => ({
+      status: 'loading',
+      attempt: currentState.attempt,
+      review: currentState.review,
+      reviewedAttempt: currentState.reviewedAttempt,
+      isStale: currentState.isStale,
+      error: '',
+    }))
+
+    try {
+      const result = await submitLessonTaskAttemptForReview(lessonId, task.id, {
+        attempt: practiceAttempt,
+      })
+      const reviewedAttempt = getAttemptFromReviewAttempt(result.attempt) ?? ''
+
+      setMentorReviewState({
+        status: 'success',
+        attempt: result.attempt,
+        review: result.review,
+        reviewedAttempt,
+        isStale: false,
+        error: '',
+      })
+    } catch (error) {
+      setMentorReviewState((currentState) => ({
+        status: 'error',
+        attempt: currentState.attempt,
+        review: currentState.review,
+        reviewedAttempt: currentState.reviewedAttempt,
+        isStale: currentState.isStale,
+        error: getSaveTaskProgressErrorMessage(error),
+      }))
+    } finally {
+      setIsSubmittingMentorReview(false)
+    }
+  }
+
   async function handleSaveReflection(lessonId: string, task: LessonTask) {
     if (isSavingReflection || isReflectionAccepted) {
       return
@@ -840,6 +1249,7 @@ export function LessonPage() {
   const predictionTask = getTaskByType(lessonTasks, 'PREDICTION')
   const codeTask = getTaskByType(lessonTasks, 'CODE')
   const reflectionTask = getTaskByType(lessonTasks, 'REFLECTION')
+  const isCodeTaskMentorReviewEnabled = isMentorReviewEnabled(codeTask)
   const lessonFlow = getLessonFlowSteps(lessonTasks)
   const usesStepLessonFlow = lessonTasks.some((task) =>
     ['PREDICTION', 'CODE', 'REFLECTION'].includes(task.type),
@@ -860,6 +1270,12 @@ export function LessonPage() {
     practiceAttempt.trim().length > 0 &&
     !isPracticeAttemptSaved &&
     !isSavingPracticeAttempt
+  const canSubmitMentorReview =
+    Boolean(session.data) &&
+    Boolean(codeTask) &&
+    isCodeTaskMentorReviewEnabled &&
+    practiceAttempt.trim().length > 0 &&
+    !isSubmittingMentorReview
   const reflectionText = reflectionAnswer.trim()
   const reflectionCharacterCount = reflectionText.length
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
@@ -1162,9 +1578,18 @@ export function LessonPage() {
                           className="min-h-80 w-full resize-y rounded-lg border bg-muted/30 p-4 font-mono text-sm leading-6 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ring"
                           id="lesson-code-attempt"
                           onChange={(event) => {
-                            setPracticeAttempt(event.target.value)
+                            const nextAttempt = event.target.value
+
+                            setPracticeAttempt(nextAttempt)
                             setIsPracticeAttemptSaved(false)
                             setPracticeSaveError('')
+                            setMentorReviewState((currentState) => ({
+                              ...currentState,
+                              isStale: Boolean(
+                                currentState.review &&
+                                nextAttempt !== currentState.reviewedAttempt,
+                              ),
+                            }))
                           }}
                           spellCheck={false}
                           value={practiceAttempt}
@@ -1186,10 +1611,40 @@ export function LessonPage() {
                             {practiceSaveError}
                           </p>
                         ) : null}
+
+                        {isCodeTaskMentorReviewEnabled ? (
+                          <div className="grid gap-3">
+                            {!session.isPending && !session.data ? (
+                              <p className="text-sm text-muted-foreground">
+                                Sign in to submit this attempt for Mentor
+                                Review.
+                              </p>
+                            ) : null}
+                            <MentorReviewPanel state={mentorReviewState} />
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    {isCodeTaskMentorReviewEnabled ? (
+                      <Button
+                        disabled={!canSubmitMentorReview}
+                        onClick={() => {
+                          void handleSubmitMentorReview(
+                            lessonDetails.lesson.id,
+                            codeTask,
+                          )
+                        }}
+                        type="button"
+                      >
+                        {isSubmittingMentorReview
+                          ? 'Submitting...'
+                          : mentorReviewState.review
+                            ? 'Resubmit for Mentor Review'
+                            : 'Submit for Mentor Review'}
+                      </Button>
+                    ) : null}
                     <Button
                       disabled={!canSavePracticeAttempt}
                       onClick={() => {

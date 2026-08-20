@@ -19,6 +19,49 @@ export type LessonTaskProgress = {
   completedAt: string | null
 }
 
+export type MentorReviewStatus =
+  'NEEDS_IMPROVEMENT' | 'READY_TO_CONTINUE' | 'REVIEW_UNAVAILABLE'
+
+export type MentorReviewOutput = {
+  summary: string
+  strengths: string[]
+  issues: {
+    title: string
+    explanation: string
+    severity: 'minor' | 'important'
+  }[]
+  hints: string[]
+  nextAction: 'CONTINUE' | 'IMPROVE_AND_RESUBMIT' | 'REVIEW_CONCEPT'
+  shouldRetry: boolean
+  conceptTags?: string[]
+}
+
+export type LessonTaskAttempt = {
+  id: string
+  lessonTaskId: string
+  response: NonNullable<LessonTaskProgressResponse>
+  attemptNumber: number
+  submittedAt: string
+  createdAt: string
+}
+
+export type LessonTaskReview = {
+  id: string
+  lessonTaskAttemptId: string
+  status: MentorReviewStatus
+  output: MentorReviewOutput | null
+  provider: string | null
+  model: string | null
+  errorMessage: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type LessonTaskReviewResult = {
+  attempt: LessonTaskAttempt | null
+  review: LessonTaskReview | null
+}
+
 export type LessonProgress = {
   lessonId: string
   status: LessonProgressStatus
@@ -64,6 +107,21 @@ async function parseLessonTaskProgressResponse(response: Response) {
   }
 
   return (await response.json()) as LessonTaskProgress
+}
+
+async function parseLessonTaskReviewResponse(response: Response) {
+  if (!response.ok) {
+    const message = await getErrorMessage(
+      response,
+      response.status === 401
+        ? 'Authentication required.'
+        : 'Unable to load mentor review.',
+    )
+
+    throw new LessonProgressApiError(message, response.status)
+  }
+
+  return (await response.json()) as LessonTaskReviewResult
 }
 
 async function getErrorMessage(response: Response, fallback: string) {
@@ -152,4 +210,46 @@ export async function saveLessonTaskProgress(
   )
 
   return parseLessonTaskProgressResponse(response)
+}
+
+export async function getLatestLessonTaskReview(
+  lessonId: string,
+  lessonTaskId: string,
+  signal?: AbortSignal,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/lessons/${encodeURIComponent(
+      lessonId,
+    )}/tasks/${encodeURIComponent(lessonTaskId)}/review`,
+    {
+      credentials: 'include',
+      signal,
+    },
+  )
+
+  return parseLessonTaskReviewResponse(response)
+}
+
+export async function submitLessonTaskAttemptForReview(
+  lessonId: string,
+  lessonTaskId: string,
+  taskResponse: NonNullable<LessonTaskProgressResponse>,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/lessons/${encodeURIComponent(
+      lessonId,
+    )}/tasks/${encodeURIComponent(lessonTaskId)}/attempts`,
+    {
+      body: JSON.stringify({
+        response: taskResponse,
+      }),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    },
+  )
+
+  return parseLessonTaskReviewResponse(response)
 }
