@@ -41,7 +41,10 @@
     },
     "metadata": {
       "source": "docs/content/react/state-and-events",
-      "sourceSection": "Practice Task"
+      "sourceSection": "Practice Task",
+      "mentorReview": {
+        "enabled": true
+      }
     },
     "type": "CODE",
     "order": 1,
@@ -58,7 +61,10 @@
     },
     "metadata": {
       "source": "docs/content/react/state-and-events",
-      "sourceSection": "Reflection"
+      "sourceSection": "Reflection",
+      "mentorReview": {
+        "enabled": true
+      }
     },
     "type": "REFLECTION",
     "order": 2,
