@@ -269,11 +269,14 @@ function validateMentorFallbackResponse(
     }
   }
 
-  const reviewedAttempt = getString(
-    getJsonRecord(latestReview.lessonTaskAttempt.response).attempt,
+  const reviewedAttempt = getLearnerTaskResponse(
+    latestReview.lessonTaskAttempt.response,
   )
   const responseAttempt =
-    getString(response.attempt) ?? getString(response.code)
+    getString(response.attempt) ??
+    getString(response.code) ??
+    getString(response.answer) ??
+    getString(response.reflection)
 
   if (!reviewedAttempt || responseAttempt !== reviewedAttempt) {
     return {
@@ -322,6 +325,34 @@ function validateReflectionResponse(
     return {
       isValid: false,
       message: `Reflection must be at least ${minWords} words and ${minCharacters} characters.`,
+    }
+  }
+
+  return {
+    isValid: true,
+    response: {
+      ...response,
+      answer,
+    },
+  }
+}
+
+function validateMentorReflectionResponse(
+  response: unknown,
+): TaskValidationResult {
+  if (!isRecord(response)) {
+    return {
+      isValid: false,
+      message: 'Reflection answer is required.',
+    }
+  }
+
+  const answer = getString(response.answer) ?? getString(response.reflection)
+
+  if (!answer?.trim()) {
+    return {
+      isValid: false,
+      message: 'Reflection answer is required.',
     }
   }
 
@@ -393,6 +424,17 @@ function getPreviousReviewSummary(output: Prisma.JsonValue | null) {
   return isRecord(output) && typeof output.summary === 'string'
     ? output.summary
     : null
+}
+
+function getLearnerTaskResponse(response: Prisma.JsonValue | null) {
+  const responseRecord = getJsonRecord(response)
+
+  return (
+    getString(responseRecord.attempt) ??
+    getString(responseRecord.code) ??
+    getString(responseRecord.answer) ??
+    getString(responseRecord.reflection)
+  )
 }
 
 function toUnavailableReviewResult(): MentorReviewResult {
@@ -659,9 +701,10 @@ export async function upsertLessonTaskProgressForUser(
     }
   }
 
-  const isMentorCodeTask =
-    task.type === TaskType.CODE && isMentorReviewEnabled(task.metadata)
-  const latestReview = isMentorCodeTask
+  const isMentorTask =
+    (task.type === TaskType.CODE || task.type === TaskType.REFLECTION) &&
+    isMentorReviewEnabled(task.metadata)
+  const latestReview = isMentorTask
     ? await prisma.lessonTaskReview.findFirst({
         where: {
           lessonTaskAttempt: {
@@ -682,12 +725,12 @@ export async function upsertLessonTaskProgressForUser(
         },
       })
     : null
-  const validationResult = isMentorCodeTask
+  const validationResult = isMentorTask
     ? isRecord(response)
       ? validateMentorFallbackResponse(response, latestReview)
       : ({
           isValid: false,
-          message: 'Submit this attempt for Mentor Review before continuing.',
+          message: 'Submit this response for Mentor Review before continuing.',
         } satisfies TaskValidationResult)
     : validateTaskResponse(task, response)
 
@@ -779,10 +822,10 @@ export async function submitLessonTaskAttemptForReview(
     }
   }
 
-  if (task.type !== TaskType.CODE) {
+  if (task.type !== TaskType.CODE && task.type !== TaskType.REFLECTION) {
     return {
       status: 'invalid',
-      message: 'Mentor review is available for CODE tasks only.',
+      message: 'Mentor review is available for CODE and REFLECTION tasks only.',
     }
   }
 
@@ -793,11 +836,14 @@ export async function submitLessonTaskAttemptForReview(
     }
   }
 
-  const validationResult = validateCodeResponse(
-    response,
-    task.starterCode,
-    getJsonRecord(task.validation),
-  )
+  const validationResult =
+    task.type === TaskType.CODE
+      ? validateCodeResponse(
+          response,
+          task.starterCode,
+          getJsonRecord(task.validation),
+        )
+      : validateMentorReflectionResponse(response)
 
   if (!validationResult.isValid) {
     return {
@@ -833,6 +879,7 @@ export async function submitLessonTaskAttemptForReview(
       title: task.lesson.module.technology.title,
     },
     task: {
+      type: task.type,
       title: task.title,
       prompt: task.prompt,
       starterCode: task.starterCode,
@@ -846,7 +893,7 @@ export async function submitLessonTaskAttemptForReview(
   }
   const reviewer = getConfiguredMentorReviewer()
   const rawReviewResult = await reviewer
-    .reviewCodeAttempt(reviewContext)
+    .reviewTaskAttempt(reviewContext)
     .catch(toUnavailableReviewResult)
   const reviewResult = validateMentorReviewResult(rawReviewResult)
   const result = await createAttemptAndReview(
@@ -888,7 +935,7 @@ export async function getLatestLessonTaskReviewForUser(
     }
   }
 
-  if (task.type !== TaskType.CODE) {
+  if (task.type !== TaskType.CODE && task.type !== TaskType.REFLECTION) {
     return {
       status: 'not-found',
     }

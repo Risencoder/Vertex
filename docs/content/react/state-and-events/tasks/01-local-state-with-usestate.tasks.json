@@ -103,7 +103,10 @@
     },
     "metadata": {
       "source": "docs/content/react/state-and-events",
-      "sourceSection": "Reflection"
+      "sourceSection": "Reflection",
+      "mentorReview": {
+        "enabled": true
+      }
     },
     "type": "REFLECTION",
     "order": 3,

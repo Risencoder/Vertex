@@ -10,6 +10,7 @@ import {
   submitLessonTaskAttemptForReview,
   type LessonProgress,
   type LessonTaskAttempt,
+  type LessonTaskReviewResult,
   type LessonTaskProgress,
   type LessonTaskReview,
   saveLessonTaskProgress,
@@ -114,6 +115,17 @@ type MentorReviewState =
       isStale: boolean
       error: string
     }
+
+function createInitialMentorReviewState(): MentorReviewState {
+  return {
+    status: 'idle',
+    attempt: null,
+    review: null,
+    reviewedAttempt: '',
+    isStale: false,
+    error: '',
+  }
+}
 
 const lessonFlowSteps = [
   { id: 'predict', label: 'Predict' },
@@ -584,7 +596,26 @@ function getRecordFromResponse(
 }
 
 function getAttemptFromReviewAttempt(attempt: LessonTaskAttempt | null) {
-  return getStringFromResponse(attempt?.response ?? null, ['attempt', 'code'])
+  return getStringFromResponse(attempt?.response ?? null, [
+    'attempt',
+    'code',
+    'answer',
+    'reflection',
+  ])
+}
+
+function getMentorReviewStateFromResult(
+  result: LessonTaskReviewResult,
+  reviewedAttempt: string,
+): MentorReviewState {
+  return {
+    status: 'success',
+    attempt: result.attempt,
+    review: result.review,
+    reviewedAttempt,
+    isStale: false,
+    error: '',
+  }
 }
 
 function isUnreviewedFallbackProgress(progress?: LessonTaskProgress) {
@@ -670,18 +701,26 @@ function formatMentorNextAction(action: string) {
   return 'Review concept'
 }
 
-function MentorReviewPanel({ state }: { state: MentorReviewState }) {
+function MentorReviewPanel({
+  state,
+  subject = 'code',
+}: {
+  state: MentorReviewState
+  subject?: 'code' | 'reflection'
+}) {
   if (state.status === 'idle') {
     return null
   }
+
+  const subjectLabel = subject === 'reflection' ? 'reflection' : 'code'
 
   return (
     <div className="grid gap-4 rounded-lg border bg-background p-4">
       <div className="grid gap-1">
         <p className="text-sm font-medium">Mentor Review</p>
         <p className="text-sm leading-6 text-muted-foreground">
-          Submit your code for review before continuing. The Mentor checks your
-          attempt without executing code or giving you a full solution.
+          Submit your {subjectLabel} for review before continuing. The Mentor
+          checks your response without giving you a full solution.
         </p>
       </div>
 
@@ -726,8 +765,9 @@ function MentorReviewPanel({ state }: { state: MentorReviewState }) {
 
           {state.review.status === 'REVIEW_UNAVAILABLE' ? (
             <p className="text-sm leading-6 text-muted-foreground">
-              Mentor Review is unavailable right now. Your code is preserved.
-              Retry review, or continue without review if the outage persists.
+              Mentor Review is unavailable right now. Your {subjectLabel} is
+              preserved. Retry review, or continue without review if the outage
+              persists.
             </p>
           ) : null}
 
@@ -824,14 +864,7 @@ export function LessonPage() {
   const [isSavingPracticeAttempt, setIsSavingPracticeAttempt] = useState(false)
   const [practiceSaveError, setPracticeSaveError] = useState('')
   const [mentorReviewState, setMentorReviewState] = useState<MentorReviewState>(
-    {
-      status: 'idle',
-      attempt: null,
-      review: null,
-      reviewedAttempt: '',
-      isStale: false,
-      error: '',
-    },
+    createInitialMentorReviewState,
   )
   const [isSubmittingMentorReview, setIsSubmittingMentorReview] =
     useState(false)
@@ -839,6 +872,10 @@ export function LessonPage() {
   const [isReflectionAccepted, setIsReflectionAccepted] = useState(false)
   const [isSavingReflection, setIsSavingReflection] = useState(false)
   const [reflectionSaveError, setReflectionSaveError] = useState('')
+  const [reflectionMentorReviewState, setReflectionMentorReviewState] =
+    useState<MentorReviewState>(createInitialMentorReviewState)
+  const [isSubmittingReflectionReview, setIsSubmittingReflectionReview] =
+    useState(false)
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -872,19 +909,14 @@ export function LessonPage() {
       setIsPracticeAttemptSaved(false)
       setIsSavingPracticeAttempt(false)
       setPracticeSaveError('')
-      setMentorReviewState({
-        status: 'idle',
-        attempt: null,
-        review: null,
-        reviewedAttempt: '',
-        isStale: false,
-        error: '',
-      })
+      setMentorReviewState(createInitialMentorReviewState())
       setIsSubmittingMentorReview(false)
       setReflectionAnswer('')
       setIsReflectionAccepted(false)
       setIsSavingReflection(false)
       setReflectionSaveError('')
+      setReflectionMentorReviewState(createInitialMentorReviewState())
+      setIsSubmittingReflectionReview(false)
 
       try {
         const lessonDetails = await getLessonByModuleAndTechnologySlug(
@@ -1070,14 +1102,8 @@ export function LessonPage() {
 
     async function loadMentorReview() {
       if (lessonState.status !== 'success') {
-        setMentorReviewState({
-          status: 'idle',
-          attempt: null,
-          review: null,
-          reviewedAttempt: '',
-          isStale: false,
-          error: '',
-        })
+        setMentorReviewState(createInitialMentorReviewState())
+        setReflectionMentorReviewState(createInitialMentorReviewState())
         return
       }
 
@@ -1085,16 +1111,22 @@ export function LessonPage() {
         lessonState.data.lesson.tasks ?? [],
         'CODE',
       )
+      const reflectionTask = getTaskByType(
+        lessonState.data.lesson.tasks ?? [],
+        'REFLECTION',
+      )
+      const isCodeReviewEnabled = isMentorReviewEnabled(codeTask)
+      const isReflectionReviewEnabled = isMentorReviewEnabled(reflectionTask)
 
-      if (!isMentorReviewEnabled(codeTask)) {
-        setMentorReviewState({
-          status: 'idle',
-          attempt: null,
-          review: null,
-          reviewedAttempt: '',
-          isStale: false,
-          error: '',
-        })
+      if (!isCodeReviewEnabled) {
+        setMentorReviewState(createInitialMentorReviewState())
+      }
+
+      if (!isReflectionReviewEnabled) {
+        setReflectionMentorReviewState(createInitialMentorReviewState())
+      }
+
+      if (!isCodeReviewEnabled && !isReflectionReviewEnabled) {
         return
       }
 
@@ -1102,72 +1134,108 @@ export function LessonPage() {
         return
       }
 
-      if (!session.data || !codeTask) {
-        setMentorReviewState({
-          status: 'idle',
-          attempt: null,
-          review: null,
-          reviewedAttempt: '',
-          isStale: false,
-          error: '',
-        })
+      if (!session.data) {
+        setMentorReviewState(createInitialMentorReviewState())
+        setReflectionMentorReviewState(createInitialMentorReviewState())
         return
       }
 
-      setMentorReviewState((currentState) => ({
-        status: 'loading',
-        attempt: currentState.attempt,
-        review: currentState.review,
-        reviewedAttempt: currentState.reviewedAttempt,
-        isStale: currentState.isStale,
-        error: '',
-      }))
+      if (isCodeReviewEnabled && codeTask) {
+        setMentorReviewState((currentState) => ({
+          status: 'loading',
+          attempt: currentState.attempt,
+          review: currentState.review,
+          reviewedAttempt: currentState.reviewedAttempt,
+          isStale: currentState.isStale,
+          error: '',
+        }))
+      }
+
+      if (isReflectionReviewEnabled && reflectionTask) {
+        setReflectionMentorReviewState((currentState) => ({
+          status: 'loading',
+          attempt: currentState.attempt,
+          review: currentState.review,
+          reviewedAttempt: currentState.reviewedAttempt,
+          isStale: currentState.isStale,
+          error: '',
+        }))
+      }
 
       try {
-        const result = await getLatestLessonTaskReview(
-          lessonState.data.lesson.id,
-          codeTask.id,
-          abortController.signal,
-        )
-        const restoredAttempt = getAttemptFromReviewAttempt(result.attempt)
+        const [codeResult, reflectionResult] = await Promise.all([
+          isCodeReviewEnabled && codeTask
+            ? getLatestLessonTaskReview(
+                lessonState.data.lesson.id,
+                codeTask.id,
+                abortController.signal,
+              )
+            : Promise.resolve(null),
+          isReflectionReviewEnabled && reflectionTask
+            ? getLatestLessonTaskReview(
+                lessonState.data.lesson.id,
+                reflectionTask.id,
+                abortController.signal,
+              )
+            : Promise.resolve(null),
+        ])
 
-        if (restoredAttempt !== null) {
-          setPracticeAttempt(restoredAttempt)
+        if (codeResult) {
+          const restoredAttempt = getAttemptFromReviewAttempt(
+            codeResult.attempt,
+          )
+
+          if (restoredAttempt !== null) {
+            setPracticeAttempt(restoredAttempt)
+          }
+
+          setMentorReviewState(
+            getMentorReviewStateFromResult(codeResult, restoredAttempt ?? ''),
+          )
         }
 
-        setMentorReviewState({
-          status: 'success',
-          attempt: result.attempt,
-          review: result.review,
-          reviewedAttempt: restoredAttempt ?? '',
-          isStale: false,
-          error: '',
-        })
+        if (reflectionResult) {
+          const restoredReflection = getAttemptFromReviewAttempt(
+            reflectionResult.attempt,
+          )
+
+          if (restoredReflection !== null) {
+            setReflectionAnswer(restoredReflection)
+          }
+
+          setReflectionMentorReviewState(
+            getMentorReviewStateFromResult(
+              reflectionResult,
+              restoredReflection ?? '',
+            ),
+          )
+        }
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return
         }
 
         if (error instanceof LessonProgressApiError && error.status === 401) {
-          setMentorReviewState({
-            status: 'idle',
-            attempt: null,
-            review: null,
-            reviewedAttempt: '',
-            isStale: false,
-            error: '',
-          })
+          setMentorReviewState(createInitialMentorReviewState())
+          setReflectionMentorReviewState(createInitialMentorReviewState())
           return
         }
 
-        setMentorReviewState({
-          status: 'error',
-          attempt: null,
-          review: null,
-          reviewedAttempt: '',
-          isStale: false,
-          error: 'Unable to load mentor review. Please try again later.',
-        })
+        if (isCodeReviewEnabled) {
+          setMentorReviewState({
+            ...createInitialMentorReviewState(),
+            status: 'error',
+            error: 'Unable to load mentor review. Please try again later.',
+          })
+        }
+
+        if (isReflectionReviewEnabled) {
+          setReflectionMentorReviewState({
+            ...createInitialMentorReviewState(),
+            status: 'error',
+            error: 'Unable to load mentor review. Please try again later.',
+          })
+        }
       }
     }
 
@@ -1363,6 +1431,100 @@ export function LessonPage() {
     }
   }
 
+  async function handleSubmitReflectionReview(
+    lessonId: string,
+    task: LessonTask,
+  ) {
+    if (isSubmittingReflectionReview || !isMentorReviewEnabled(task)) {
+      return
+    }
+
+    setIsSubmittingReflectionReview(true)
+    setReflectionMentorReviewState((currentState) => ({
+      status: 'loading',
+      attempt: currentState.attempt,
+      review: currentState.review,
+      reviewedAttempt: currentState.reviewedAttempt,
+      isStale: currentState.isStale,
+      error: '',
+    }))
+
+    try {
+      const result = await submitLessonTaskAttemptForReview(lessonId, task.id, {
+        answer: reflectionAnswer,
+      })
+
+      if (!result.review) {
+        throw new Error('Mentor Review was not returned.')
+      }
+
+      const reviewedAttempt = getAttemptFromReviewAttempt(result.attempt) ?? ''
+
+      setReflectionMentorReviewState({
+        status: 'success',
+        attempt: result.attempt,
+        review: result.review,
+        reviewedAttempt,
+        isStale: false,
+        error: '',
+      })
+      setIsReflectionAccepted(result.review.status === 'READY_TO_CONTINUE')
+
+      const progress = await getLessonProgress(lessonId)
+      setProgressState({
+        status: 'success',
+        data: progress,
+        error: '',
+      })
+      restoreTaskInteractionState(lessonState.data!, progress)
+    } catch (error) {
+      setReflectionMentorReviewState((currentState) => ({
+        status: 'error',
+        attempt: currentState.attempt,
+        review: currentState.review,
+        reviewedAttempt: currentState.reviewedAttempt,
+        isStale: currentState.isStale,
+        error: getSaveTaskProgressErrorMessage(error),
+      }))
+    } finally {
+      setIsSubmittingReflectionReview(false)
+    }
+  }
+
+  async function handleContinueWithoutReflectionReview(
+    lessonId: string,
+    task: LessonTask,
+  ) {
+    if (
+      isSavingReflection ||
+      !isMentorReviewEnabled(task) ||
+      !isMentorReviewUnavailable(reflectionMentorReviewState)
+    ) {
+      return
+    }
+
+    setIsSavingReflection(true)
+    setReflectionSaveError('')
+
+    try {
+      const savedTaskProgress = await saveLessonTaskProgress(
+        lessonId,
+        task.id,
+        {
+          answer: reflectionAnswer,
+          continueWithoutReview: true,
+        },
+      )
+
+      updateSavedTaskProgress(savedTaskProgress)
+      setIsReflectionAccepted(true)
+    } catch (error) {
+      setReflectionSaveError(getSaveTaskProgressErrorMessage(error))
+    } finally {
+      setIsSavingReflection(false)
+    }
+  }
+
   async function handleSaveReflection(lessonId: string, task: LessonTask) {
     if (isSavingReflection || isReflectionAccepted) {
       return
@@ -1446,12 +1608,23 @@ export function LessonPage() {
   const codeTask = getTaskByType(lessonTasks, 'CODE')
   const reflectionTask = getTaskByType(lessonTasks, 'REFLECTION')
   const isCodeTaskMentorReviewEnabled = isMentorReviewEnabled(codeTask)
+  const isReflectionTaskMentorReviewEnabled =
+    isMentorReviewEnabled(reflectionTask)
   const codeTaskProgress = codeTask
     ? getTaskProgressByTaskId(progressState.data?.taskProgress, codeTask.id)
+    : undefined
+  const reflectionTaskProgress = reflectionTask
+    ? getTaskProgressByTaskId(
+        progressState.data?.taskProgress,
+        reflectionTask.id,
+      )
     : undefined
   const hasUnreviewedFallbackProgress =
     isCodeTaskMentorReviewEnabled &&
     isUnreviewedFallbackProgress(codeTaskProgress)
+  const hasUnreviewedReflectionFallbackProgress =
+    isReflectionTaskMentorReviewEnabled &&
+    isUnreviewedFallbackProgress(reflectionTaskProgress)
   const lessonFlow = getLessonFlowSteps(lessonTasks)
   const usesStepLessonFlow = lessonTasks.some((task) =>
     ['PREDICTION', 'CODE', 'REFLECTION'].includes(task.type),
@@ -1495,8 +1668,33 @@ export function LessonPage() {
   const reflectionWordCount = reflectionText.split(/\s+/).filter(Boolean).length
   const reflectionMinWords = reflectionTask?.validation?.minWords ?? 1
   const reflectionMinCharacters = reflectionTask?.validation?.minCharacters ?? 1
+  const isReflectionLongEnough =
+    reflectionWordCount >= reflectionMinWords &&
+    reflectionCharacterCount >= reflectionMinCharacters
   const canAcceptReflection =
-    reflectionText.length > 0 && !isReflectionAccepted && !isSavingReflection
+    reflectionText.length > 0 &&
+    !isReflectionTaskMentorReviewEnabled &&
+    isReflectionLongEnough &&
+    !isReflectionAccepted &&
+    !isSavingReflection
+  const canSubmitReflectionReview =
+    Boolean(session.data) &&
+    Boolean(reflectionTask) &&
+    isReflectionTaskMentorReviewEnabled &&
+    reflectionText.length > 0 &&
+    !isMentorReviewReady(reflectionMentorReviewState) &&
+    !isSubmittingReflectionReview
+  const canContinueWithoutReflectionReview =
+    Boolean(session.data) &&
+    Boolean(reflectionTask) &&
+    isReflectionTaskMentorReviewEnabled &&
+    isMentorReviewUnavailable(reflectionMentorReviewState) &&
+    !isReflectionAccepted &&
+    !isSavingReflection
+  const canContinueAfterReflection = isReflectionTaskMentorReviewEnabled
+    ? isMentorReviewReady(reflectionMentorReviewState) ||
+      hasUnreviewedReflectionFallbackProgress
+    : isReflectionAccepted
   const nextStepAfterLearn = getNextLessonFlowStep(lessonFlow, 'learn')
   const nextStepAfterPractice = getNextLessonFlowStep(lessonFlow, 'practice')
   const finalLessonFlowStep = lessonFlow[lessonFlow.length - 1]?.id
@@ -1505,7 +1703,7 @@ export function LessonPage() {
     !usesStepLessonFlow ||
     isLessonCompleted ||
     !requiresReflection ||
-    isReflectionAccepted
+    canContinueAfterReflection
   const requestedLessonFlowStepValue = searchParams.get('step')
   const requestedLessonFlowStep = isLessonFlowStepId(
     requestedLessonFlowStepValue,
@@ -1521,12 +1719,18 @@ export function LessonPage() {
       progressState.data?.taskProgress?.some(
         (progress) => progress.isCompleted,
       ),
-    ) || Boolean(mentorReviewState.review)
+    ) ||
+    Boolean(mentorReviewState.review) ||
+    Boolean(reflectionMentorReviewState.review)
   const isMentorReviewResolved =
-    !isCodeTaskMentorReviewEnabled ||
+    (!isCodeTaskMentorReviewEnabled && !isReflectionTaskMentorReviewEnabled) ||
     !session.data ||
-    mentorReviewState.status === 'success' ||
-    mentorReviewState.status === 'error'
+    ((mentorReviewState.status === 'success' ||
+      mentorReviewState.status === 'error' ||
+      !isCodeTaskMentorReviewEnabled) &&
+      (reflectionMentorReviewState.status === 'success' ||
+        reflectionMentorReviewState.status === 'error' ||
+        !isReflectionTaskMentorReviewEnabled))
   const canResolvePersistedLessonFlow =
     !session.isPending &&
     (!session.data ||
@@ -1539,7 +1743,7 @@ export function LessonPage() {
         codeTask,
         isLessonCompleted,
         isPredictionRevealed,
-        isReflectionAccepted,
+        isReflectionAccepted: canContinueAfterReflection,
         predictionTask,
         reflectionTask,
       })
@@ -1936,7 +2140,10 @@ export function LessonPage() {
                                 Review.
                               </p>
                             ) : null}
-                            <MentorReviewPanel state={mentorReviewState} />
+                            <MentorReviewPanel
+                              state={mentorReviewState}
+                              subject="code"
+                            />
                           </div>
                         ) : null}
                       </div>
@@ -2056,13 +2263,36 @@ export function LessonPage() {
                       className="min-h-32 w-full resize-y rounded-lg border bg-background p-4 text-sm leading-6 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ring"
                       id="lesson-reflection-answer"
                       onChange={(event) => {
-                        setReflectionAnswer(event.target.value)
+                        const nextReflection = event.target.value
+
+                        setReflectionAnswer(nextReflection)
                         setIsReflectionAccepted(false)
                         setReflectionSaveError('')
+                        setReflectionMentorReviewState((currentState) => ({
+                          ...currentState,
+                          isStale: Boolean(
+                            currentState.review &&
+                            nextReflection !== currentState.reviewedAttempt,
+                          ),
+                        }))
                       }}
                       value={reflectionAnswer}
                     />
-                    {isReflectionAccepted ? (
+                    {isReflectionTaskMentorReviewEnabled ? (
+                      canContinueAfterReflection ? (
+                        <p
+                          className="text-sm font-medium text-primary"
+                          role="status"
+                        >
+                          You can complete the lesson.
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Submit your reflection for Mentor Review before
+                          completing the lesson.
+                        </p>
+                      )
+                    ) : isReflectionAccepted ? (
                       <p
                         className="text-sm font-medium text-primary"
                         role="status"
@@ -2082,24 +2312,79 @@ export function LessonPage() {
                         {reflectionSaveError}
                       </p>
                     ) : null}
-                    <div>
-                      <Button
-                        disabled={!canAcceptReflection || isReflectionAccepted}
-                        onClick={() => {
-                          void handleSaveReflection(
-                            lessonDetails.lesson.id,
-                            reflectionTask,
-                          )
-                        }}
-                        type="button"
-                        variant="outline"
-                      >
-                        {isSavingReflection
-                          ? 'Saving...'
-                          : isReflectionAccepted
-                            ? 'Reflection saved'
-                            : 'Save reflection'}
-                      </Button>
+                    {isReflectionTaskMentorReviewEnabled ? (
+                      <div className="grid gap-3">
+                        {!session.isPending && !session.data ? (
+                          <p className="text-sm text-muted-foreground">
+                            Sign in to submit this reflection for Mentor Review.
+                          </p>
+                        ) : null}
+                        <MentorReviewPanel
+                          state={reflectionMentorReviewState}
+                          subject="reflection"
+                        />
+                      </div>
+                    ) : null}
+                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                      {isReflectionTaskMentorReviewEnabled ? (
+                        <Button
+                          disabled={!canSubmitReflectionReview}
+                          onClick={() => {
+                            void handleSubmitReflectionReview(
+                              lessonDetails.lesson.id,
+                              reflectionTask,
+                            )
+                          }}
+                          type="button"
+                        >
+                          {isSubmittingReflectionReview
+                            ? 'Submitting...'
+                            : reflectionMentorReviewState.review
+                              ? 'Resubmit for Mentor Review'
+                              : 'Submit for Mentor Review'}
+                        </Button>
+                      ) : (
+                        <Button
+                          disabled={
+                            !canAcceptReflection || isReflectionAccepted
+                          }
+                          onClick={() => {
+                            void handleSaveReflection(
+                              lessonDetails.lesson.id,
+                              reflectionTask,
+                            )
+                          }}
+                          type="button"
+                          variant="outline"
+                        >
+                          {isSavingReflection
+                            ? 'Saving...'
+                            : isReflectionAccepted
+                              ? 'Reflection saved'
+                              : 'Save reflection'}
+                        </Button>
+                      )}
+                      {isReflectionTaskMentorReviewEnabled &&
+                      reflectionMentorReviewState.review?.status ===
+                        'REVIEW_UNAVAILABLE' ? (
+                        <Button
+                          disabled={!canContinueWithoutReflectionReview}
+                          onClick={() => {
+                            void handleContinueWithoutReflectionReview(
+                              lessonDetails.lesson.id,
+                              reflectionTask,
+                            )
+                          }}
+                          type="button"
+                          variant="outline"
+                        >
+                          {isSavingReflection
+                            ? 'Saving...'
+                            : isReflectionAccepted
+                              ? 'Continuing without review'
+                              : 'Continue without review'}
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -2119,10 +2404,10 @@ export function LessonPage() {
                   </CardHeader>
                   <CardContent>
                     {usesStepLessonFlow &&
-                    !isReflectionAccepted &&
+                    !canContinueAfterReflection &&
                     !isLessonCompleted ? (
                       <p className="text-sm text-muted-foreground">
-                        Save your reflection before marking this lesson
+                        Complete the reflection step before marking this lesson
                         complete.
                       </p>
                     ) : null}
