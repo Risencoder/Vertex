@@ -1,0 +1,66 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use updater functions when the next state depends on the previous state.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "export function SeatReservation() {",
+      "  // TODO: store the number of reserved seats.",
+      "",
+      "  function handleReserveSeat() {",
+      "    // TODO: add one seat using a safe state update.",
+      "  }",
+      "",
+      "  function handleReleaseSeat() {",
+      "    // TODO: remove one seat without going below zero.",
+      "  }",
+      "",
+      "  return (",
+      "    <section aria-labelledby=\"seat-reservation-heading\">",
+      "      <h2 id=\"seat-reservation-heading\">Seat reservation</h2>",
+      "",
+      "      <p>{/* TODO: show the current number of reserved seats. */}</p>",
+      "",
+      "      <button onClick={handleReserveSeat} type=\"button\">",
+      "        Reserve seat",
+      "      </button>",
+      "      <button onClick={handleReleaseSeat} type=\"button\">",
+      "        Release seat",
+      "      </button>",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

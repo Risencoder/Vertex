@@ -1,0 +1,109 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict how React state changes what appears on screen.",
+    "prompt": "What happens each time the button is clicked?",
+    "starterCode": [
+      "function Counter() {",
+      "  const [count, setCount] = useState(0)",
+      "",
+      "  return (",
+      "    <button onClick={() => setCount(count + 1)}>",
+      "      Clicked {count} times",
+      "    </button>",
+      "  )",
+      "}"
+    ],
+    "options": [
+      {
+        "id": "increment-once",
+        "label": "The button always shows \"Clicked 1 time\"."
+      },
+      {
+        "id": "increment-each-click",
+        "label": "The number increases by 1 after every click."
+      },
+      {
+        "id": "no-change",
+        "label": "The number stays at 0 because count is a const."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "increment-each-click",
+      "responses": {
+        "increment-once": "This would be true if count were a regular variable recreated on every render. React preserves useState values between renders, so the count can keep increasing.",
+        "increment-each-click": "Correct. setCount schedules a render with the next value, and React preserves that state for the component between renders.",
+        "no-change": "A const prevents reassignment within one render, but setCount does not reassign count. It gives React a new state value to use on the next render."
+      }
+    },
+    "validation": {
+      "correctOptionId": "increment-each-click"
+    },
+    "metadata": {
+      "source": "golden-lesson-v1-prototype"
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Understand local component state and how useState drives UI updates.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "export function NotificationToggle() {",
+      "  // TODO: create local state for whether notifications are enabled.",
+      "",
+      "  function handleToggle() {",
+      "    // TODO: update state to the opposite value.",
+      "  }",
+      "",
+      "  return (",
+      "    <section aria-labelledby=\"notification-heading\">",
+      "      <h2 id=\"notification-heading\">Notifications</h2>",
+      "",
+      "      <p>",
+      "        {/* TODO: show whether notifications are enabled or disabled. */}",
+      "      </p>",
+      "",
+      "      <button onClick={handleToggle} type=\"button\">",
+      "        {/* TODO: show a different label for each state. */}",
+      "      </button>",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

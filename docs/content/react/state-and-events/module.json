@@ -1,0 +1,76 @@
+{
+  "slug": "state-and-events",
+  "title": "State and Events",
+  "description": "Manage local state and respond to user interactions.",
+  "order": 3,
+  "difficulty": "BEGINNER",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "local-state-with-usestate",
+      "title": "Local State with useState",
+      "description": "Understand local component state and how useState drives UI updates.",
+      "content": "01-local-state-with-usestate.md",
+      "tasks": "tasks/01-local-state-with-usestate.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "updating-state-safely",
+      "title": "Updating State Safely",
+      "description": "Use updater functions when the next state depends on the previous state.",
+      "content": "02-updating-state-safely.md",
+      "tasks": "tasks/02-updating-state-safely.tasks.json",
+      "order": 2,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "handling-user-events",
+      "title": "Handling User Events",
+      "description": "Connect user actions to component behavior with clear event handlers.",
+      "content": "03-handling-user-events.md",
+      "tasks": "tasks/03-handling-user-events.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "controlled-form-inputs",
+      "title": "Controlled Form Inputs",
+      "description": "Keep form values in React state with value and onChange.",
+      "content": "04-controlled-form-inputs.md",
+      "tasks": "tasks/04-controlled-form-inputs.tasks.json",
+      "order": 4,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "derived-ui-state",
+      "title": "Derived UI State",
+      "description": "Calculate UI values from existing state instead of duplicating data.",
+      "content": "05-derived-ui-state.md",
+      "tasks": "tasks/05-derived-ui-state.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    },
+    {
+      "slug": "state-and-events-practice",
+      "title": "State and Events Practice",
+      "description": "Combine local state, safe updates, events, controlled inputs, and derived state.",
+      "content": "06-state-and-events-practice.md",
+      "tasks": "tasks/06-state-and-events-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "BEGINNER",
+      "isPublished": true
+    }
+  ]
+}

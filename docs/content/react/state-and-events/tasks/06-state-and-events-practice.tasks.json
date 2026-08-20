@@ -1,0 +1,77 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Combine local state, safe updates, events, controlled inputs, and derived state.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type Priority = 'low' | 'medium' | 'high'",
+      "",
+      "type Task = {",
+      "  id: number",
+      "  title: string",
+      "  priority: Priority",
+      "  isComplete: boolean",
+      "}",
+      "",
+      "export function TaskPlanner() {",
+      "  // TODO: store task title, priority, and tasks.",
+      "  // TODO: derive canAddTask, completedCount, and totalCount.",
+      "",
+      "  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {",
+      "    event.preventDefault()",
+      "    // TODO: prevent empty titles and add a task with a safe update.",
+      "  }",
+      "",
+      "  function handleToggleTask(taskId: number) {",
+      "    // TODO: toggle one task without mutating the existing task.",
+      "  }",
+      "",
+      "  return (",
+      "    <section aria-labelledby=\"task-planner-heading\">",
+      "      <h2 id=\"task-planner-heading\">Task planner</h2>",
+      "",
+      "      <form onSubmit={handleSubmit}>",
+      "        {/* TODO: add controlled title and priority inputs. */}",
+      "        <button type=\"submit\">Add task</button>",
+      "      </form>",
+      "",
+      "      <p>{/* TODO: show completed and total task counts. */}</p>",
+      "",
+      "      {/* TODO: show an empty state or a task list. */}",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

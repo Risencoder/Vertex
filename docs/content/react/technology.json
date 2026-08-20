@@ -1,0 +1,13 @@
+{
+  "slug": "react",
+  "title": "React",
+  "description": "Create component-driven user interfaces for web applications.",
+  "category": "frontend",
+  "isPublished": true,
+  "modules": [
+    {
+      "slug": "state-and-events",
+      "manifest": "state-and-events/module.json"
+    }
+  ]
+}

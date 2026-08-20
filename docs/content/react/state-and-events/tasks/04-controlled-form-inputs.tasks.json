@@ -1,0 +1,72 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Keep form values in React state with value and onChange.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "export function ContactForm() {",
+      "  // TODO: create state for name, email, message, and submitted summary.",
+      "",
+      "  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {",
+      "    event.preventDefault()",
+      "    // TODO: submit using current state values.",
+      "  }",
+      "",
+      "  function handleReset() {",
+      "    // TODO: clear the form state.",
+      "  }",
+      "",
+      "  return (",
+      "    <form onSubmit={handleSubmit}>",
+      "      <label htmlFor=\"contact-name\">Name</label>",
+      "      <input id=\"contact-name\" />",
+      "",
+      "      <label htmlFor=\"contact-email\">Email</label>",
+      "      <input id=\"contact-email\" type=\"email\" />",
+      "",
+      "      <label htmlFor=\"contact-message\">Message</label>",
+      "      <textarea id=\"contact-message\" />",
+      "",
+      "      <button type=\"submit\">{/* TODO: disable when fields are empty. */}</button>",
+      "      <button onClick={handleReset} type=\"button\">",
+      "        Reset",
+      "      </button>",
+      "",
+      "      {/* TODO: show a submitted summary. */}",
+      "    </form>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

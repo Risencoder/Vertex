@@ -1,0 +1,67 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Connect user actions to component behavior with clear event handlers.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type Preference = 'email' | 'product'",
+      "",
+      "export function PreferencePanel() {",
+      "  // TODO: store whether the panel is open.",
+      "  // TODO: store the selected preference.",
+      "",
+      "  function handleTogglePanel() {",
+      "    // TODO: open or close the panel.",
+      "  }",
+      "",
+      "  function handleSelectPreference(preference: Preference) {",
+      "    // TODO: store the selected preference.",
+      "  }",
+      "",
+      "  return (",
+      "    <section aria-labelledby=\"preference-heading\">",
+      "      <h2 id=\"preference-heading\">Preferences</h2>",
+      "",
+      "      <button onClick={handleTogglePanel} type=\"button\">",
+      "        {/* TODO: show a label based on whether the panel is open. */}",
+      "      </button>",
+      "",
+      "      {/* TODO: show preference buttons only when the panel is open. */}",
+      "      {/* TODO: display the selected preference. */}",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/state-and-events",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]
