@@ -6,6 +6,12 @@ import {
   TaskType,
 } from '../../generated/prisma/index.js'
 import { prisma } from '../../shared/prisma.ts'
+import {
+  isValidMentorReviewOutput,
+  localMockMentorReviewer,
+  type MentorReviewContext,
+  type MentorReviewResult,
+} from './mentor-reviewer.ts'
 
 type JsonRecord = Record<string, unknown>
 
@@ -46,6 +52,51 @@ type UpsertTaskProgressResult =
   | {
       status: 'invalid'
       message: string
+    }
+
+type LessonTaskAttemptPayload = {
+  id: string
+  lessonTaskId: string
+  response: Prisma.JsonValue
+  attemptNumber: number
+  submittedAt: Date
+  createdAt: Date
+}
+
+type LessonTaskReviewPayload = {
+  id: string
+  lessonTaskAttemptId: string
+  status: string
+  output: Prisma.JsonValue | null
+  provider: string | null
+  model: string | null
+  errorMessage: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+type SubmitLessonTaskAttemptResult =
+  | {
+      status: 'success'
+      attempt: LessonTaskAttemptPayload
+      review: LessonTaskReviewPayload
+    }
+  | {
+      status: 'not-found'
+    }
+  | {
+      status: 'invalid'
+      message: string
+    }
+
+type GetLatestLessonTaskReviewResult =
+  | {
+      status: 'success'
+      attempt: LessonTaskAttemptPayload | null
+      review: LessonTaskReviewPayload | null
+    }
+  | {
+      status: 'not-found'
     }
 
 type TaskValidationResult =
@@ -256,6 +307,122 @@ function validateTaskResponse(
   }
 }
 
+function validateMentorReviewResult(
+  reviewResult: MentorReviewResult,
+): MentorReviewResult {
+  if (
+    reviewResult.status === 'REVIEW_UNAVAILABLE' ||
+    isValidMentorReviewOutput(reviewResult.output)
+  ) {
+    return reviewResult
+  }
+
+  return {
+    status: 'REVIEW_UNAVAILABLE',
+    output: null,
+    provider: reviewResult.provider,
+    model: reviewResult.model,
+    errorMessage: 'Reviewer returned invalid structured output.',
+  }
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002'
+  )
+}
+
+function toUnavailableReviewResult(error: unknown): MentorReviewResult {
+  return {
+    status: 'REVIEW_UNAVAILABLE',
+    output: null,
+    provider: 'LOCAL_MOCK',
+    model: 'mentor-review-v1-contract',
+    errorMessage:
+      error instanceof Error
+        ? error.message
+        : 'Reviewer unavailable for this attempt.',
+  }
+}
+
+async function createAttemptAndReview(
+  userId: string,
+  lessonTaskId: string,
+  response: JsonRecord,
+  reviewResult: MentorReviewResult,
+) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(async (transaction) => {
+        const latestAttempt = await transaction.lessonTaskAttempt.aggregate({
+          where: {
+            userId,
+            lessonTaskId,
+          },
+          _max: {
+            attemptNumber: true,
+          },
+        })
+        const attemptNumber = (latestAttempt._max.attemptNumber ?? 0) + 1
+        const lessonTaskAttempt = await transaction.lessonTaskAttempt.create({
+          data: {
+            userId,
+            lessonTaskId,
+            response: response as Prisma.InputJsonValue,
+            attemptNumber,
+          },
+          select: {
+            id: true,
+            lessonTaskId: true,
+            response: true,
+            attemptNumber: true,
+            submittedAt: true,
+            createdAt: true,
+          },
+        })
+        const review = await transaction.lessonTaskReview.create({
+          data: {
+            lessonTaskAttemptId: lessonTaskAttempt.id,
+            status: reviewResult.status,
+            output:
+              reviewResult.output === null
+                ? Prisma.JsonNull
+                : (reviewResult.output as Prisma.InputJsonValue),
+            provider: reviewResult.provider,
+            model: reviewResult.model,
+            errorMessage: reviewResult.errorMessage,
+          },
+          select: {
+            id: true,
+            lessonTaskAttemptId: true,
+            status: true,
+            output: true,
+            provider: true,
+            model: true,
+            errorMessage: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        })
+
+        return {
+          attempt: lessonTaskAttempt,
+          review,
+        }
+      })
+    } catch (error) {
+      if (isUniqueConstraintError(error) && attempt < 2) {
+        continue
+      }
+
+      throw error
+    }
+  }
+
+  throw new Error('Unable to create lesson task attempt.')
+}
+
 function defaultLessonProgress(lessonId: string): LessonProgressPayload {
   return {
     lessonId,
@@ -413,6 +580,198 @@ export async function upsertLessonTaskProgressForUser(
   return {
     status: 'success',
     progress,
+  }
+}
+
+export async function submitLessonTaskAttemptForReview(
+  userId: string,
+  lessonId: string,
+  lessonTaskId: string,
+  response: unknown,
+): Promise<SubmitLessonTaskAttemptResult> {
+  const task = await prisma.lessonTask.findFirst({
+    where: {
+      id: lessonTaskId,
+      lessonId,
+      lesson: {
+        isPublished: true,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      prompt: true,
+      starterCode: true,
+      metadata: true,
+      validation: true,
+      type: true,
+      lesson: {
+        select: {
+          title: true,
+          description: true,
+          module: {
+            select: {
+              title: true,
+              technology: {
+                select: {
+                  title: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!task) {
+    return {
+      status: 'not-found',
+    }
+  }
+
+  if (task.type !== TaskType.CODE) {
+    return {
+      status: 'invalid',
+      message: 'Mentor review is available for CODE tasks only.',
+    }
+  }
+
+  const validationResult = validateCodeResponse(
+    response,
+    task.starterCode,
+    getJsonRecord(task.validation),
+  )
+
+  if (!validationResult.isValid) {
+    return {
+      status: 'invalid',
+      message: validationResult.message,
+    }
+  }
+
+  const reviewContext: MentorReviewContext = {
+    lesson: {
+      title: task.lesson.title,
+      description: task.lesson.description,
+    },
+    module: {
+      title: task.lesson.module.title,
+    },
+    technology: {
+      title: task.lesson.module.technology.title,
+    },
+    task: {
+      title: task.title,
+      prompt: task.prompt,
+      starterCode: task.starterCode,
+      metadata: task.metadata,
+      validation: task.validation,
+    },
+    response: validationResult.response as Prisma.JsonValue,
+  }
+  const rawReviewResult = await localMockMentorReviewer
+    .reviewCodeAttempt(reviewContext)
+    .catch(toUnavailableReviewResult)
+  const reviewResult = validateMentorReviewResult(rawReviewResult)
+  const result = await createAttemptAndReview(
+    userId,
+    lessonTaskId,
+    validationResult.response,
+    reviewResult,
+  )
+
+  return {
+    status: 'success',
+    attempt: result.attempt,
+    review: result.review,
+  }
+}
+
+export async function getLatestLessonTaskReviewForUser(
+  userId: string,
+  lessonId: string,
+  lessonTaskId: string,
+): Promise<GetLatestLessonTaskReviewResult> {
+  const task = await prisma.lessonTask.findFirst({
+    where: {
+      id: lessonTaskId,
+      lessonId,
+      lesson: {
+        isPublished: true,
+      },
+    },
+    select: {
+      id: true,
+      type: true,
+    },
+  })
+
+  if (!task) {
+    return {
+      status: 'not-found',
+    }
+  }
+
+  if (task.type !== TaskType.CODE) {
+    return {
+      status: 'not-found',
+    }
+  }
+
+  const latestAttempt = await prisma.lessonTaskAttempt.findFirst({
+    where: {
+      userId,
+      lessonTaskId,
+    },
+    orderBy: {
+      attemptNumber: 'desc',
+    },
+    select: {
+      id: true,
+      lessonTaskId: true,
+      response: true,
+      attemptNumber: true,
+      submittedAt: true,
+      createdAt: true,
+      reviews: {
+        take: 1,
+        select: {
+          id: true,
+          lessonTaskAttemptId: true,
+          status: true,
+          output: true,
+          provider: true,
+          model: true,
+          errorMessage: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  })
+
+  if (!latestAttempt) {
+    return {
+      status: 'success',
+      attempt: null,
+      review: null,
+    }
+  }
+
+  const [review] = latestAttempt.reviews
+
+  return {
+    status: 'success',
+    attempt: {
+      id: latestAttempt.id,
+      lessonTaskId: latestAttempt.lessonTaskId,
+      response: latestAttempt.response,
+      attemptNumber: latestAttempt.attemptNumber,
+      submittedAt: latestAttempt.submittedAt,
+      createdAt: latestAttempt.createdAt,
+    },
+    review: review ?? null,
   }
 }
 

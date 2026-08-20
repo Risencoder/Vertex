@@ -47,6 +47,12 @@ enum ReviewType {
   AI
 }
 
+enum LessonTaskReviewStatus {
+  NEEDS_IMPROVEMENT
+  READY_TO_CONTINUE
+  REVIEW_UNAVAILABLE
+}
+
 model User {
   id                 String               @id @default(uuid())
   name               String?
@@ -61,6 +67,7 @@ model User {
   settings           UserSettings?
   lessonProgress     LessonProgress[]
   lessonTaskProgress LessonTaskProgress[]
+  lessonTaskAttempts LessonTaskAttempt[]
   projectSubmissions ProjectSubmission[]
   achievements       Achievement[]
 
@@ -245,6 +252,7 @@ model LessonTask {
   updatedAt   DateTime             @updatedAt
   lesson      Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   progress    LessonTaskProgress[]
+  attempts    LessonTaskAttempt[]
 
   @@unique([lessonId, key])
   @@map("lesson_tasks")
@@ -294,6 +302,37 @@ model LessonTaskProgress {
 
   @@unique([userId, lessonTaskId])
   @@map("lesson_task_progress")
+}
+
+model LessonTaskAttempt {
+  id            String             @id @default(uuid())
+  userId        String
+  lessonTaskId  String
+  response      Json
+  attemptNumber Int
+  submittedAt   DateTime           @default(now())
+  createdAt     DateTime           @default(now())
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonTask    LessonTask         @relation(fields: [lessonTaskId], references: [id], onDelete: Cascade)
+  reviews       LessonTaskReview[]
+
+  @@unique([userId, lessonTaskId, attemptNumber])
+  @@map("lesson_task_attempts")
+}
+
+model LessonTaskReview {
+  id                  String                 @id @default(uuid())
+  lessonTaskAttemptId String                 @unique
+  status              LessonTaskReviewStatus
+  output              Json?
+  provider            String?
+  model               String?
+  errorMessage        String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  lessonTaskAttempt   LessonTaskAttempt      @relation(fields: [lessonTaskAttemptId], references: [id], onDelete: Cascade)
+
+  @@map("lesson_task_reviews")
 }
 
 model Project {

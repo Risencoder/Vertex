@@ -3,7 +3,9 @@ import type { NextFunction, Request, Response } from 'express'
 import { getAuthSession } from '../../shared/auth-session.ts'
 import {
   completeLessonForUser,
+  getLatestLessonTaskReviewForUser,
   getLessonProgressForUser,
+  submitLessonTaskAttemptForReview,
   upsertLessonTaskProgressForUser,
 } from './lessons.service.ts'
 
@@ -183,6 +185,94 @@ export async function upsertLessonTaskProgress(
     }
 
     response.status(200).json(result.progress)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function submitLessonTaskAttempt(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  try {
+    const session = await getAuthSession(request)
+
+    if (!session?.user.id) {
+      sendUnauthorized(response)
+      return
+    }
+
+    const lessonId = getLessonId(request)
+    const lessonTaskId = getLessonTaskId(request)
+
+    if (!lessonId || !lessonTaskId) {
+      sendTaskNotFound(response)
+      return
+    }
+
+    const result = await submitLessonTaskAttemptForReview(
+      session.user.id,
+      lessonId,
+      lessonTaskId,
+      getTaskProgressResponse(request),
+    )
+
+    if (result.status === 'not-found') {
+      sendTaskNotFound(response)
+      return
+    }
+
+    if (result.status === 'invalid') {
+      sendValidationError(response, result.message)
+      return
+    }
+
+    response.status(201).json({
+      attempt: result.attempt,
+      review: result.review,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function getLatestLessonTaskReview(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  try {
+    const session = await getAuthSession(request)
+
+    if (!session?.user.id) {
+      sendUnauthorized(response)
+      return
+    }
+
+    const lessonId = getLessonId(request)
+    const lessonTaskId = getLessonTaskId(request)
+
+    if (!lessonId || !lessonTaskId) {
+      sendTaskNotFound(response)
+      return
+    }
+
+    const result = await getLatestLessonTaskReviewForUser(
+      session.user.id,
+      lessonId,
+      lessonTaskId,
+    )
+
+    if (result.status === 'not-found') {
+      sendTaskNotFound(response)
+      return
+    }
+
+    response.status(200).json({
+      attempt: result.attempt,
+      review: result.review,
+    })
   } catch (error) {
     next(error)
   }
