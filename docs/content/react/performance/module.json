@@ -1,0 +1,76 @@
+{
+  "slug": "performance",
+  "title": "Performance",
+  "description": "Improve rendering behavior and user-perceived performance.",
+  "order": 7,
+  "difficulty": "ADVANCED",
+  "isPublished": true,
+  "lessons": [
+    {
+      "slug": "understanding-react-re-renders",
+      "title": "Understanding React Re-Renders",
+      "description": "Understand why React re-renders components and when that matters.",
+      "content": "01-understanding-react-re-renders.md",
+      "tasks": "tasks/01-understanding-react-re-renders.tasks.json",
+      "order": 1,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "avoiding-unnecessary-state",
+      "title": "Avoiding Unnecessary State",
+      "description": "Reduce avoidable re-renders by keeping state minimal and well-owned.",
+      "content": "02-avoiding-unnecessary-state.md",
+      "tasks": "tasks/02-avoiding-unnecessary-state.tasks.json",
+      "order": 2,
+      "type": "ARTICLE",
+      "difficulty": "INTERMEDIATE",
+      "isPublished": true
+    },
+    {
+      "slug": "react-memo-and-component-boundaries",
+      "title": "React.memo and Component Boundaries",
+      "description": "Use component boundaries and memoization only where they solve a real render problem.",
+      "content": "03-react-memo-and-component-boundaries.md",
+      "tasks": "tasks/03-react-memo-and-component-boundaries.tasks.json",
+      "order": 3,
+      "type": "ARTICLE",
+      "difficulty": "ADVANCED",
+      "isPublished": true
+    },
+    {
+      "slug": "usememo-and-usecallback",
+      "title": "useMemo and useCallback",
+      "description": "Use memo hooks deliberately and understand their costs.",
+      "content": "04-usememo-and-usecallback.md",
+      "tasks": "tasks/04-usememo-and-usecallback.tasks.json",
+      "order": 4,
+      "type": "ARTICLE",
+      "difficulty": "ADVANCED",
+      "isPublished": true
+    },
+    {
+      "slug": "measuring-before-optimizing",
+      "title": "Measuring Before Optimizing",
+      "description": "Use evidence to decide whether a React performance change is worth making.",
+      "content": "05-measuring-before-optimizing.md",
+      "tasks": "tasks/05-measuring-before-optimizing.tasks.json",
+      "order": 5,
+      "type": "ARTICLE",
+      "difficulty": "ADVANCED",
+      "isPublished": true
+    },
+    {
+      "slug": "performance-practice",
+      "title": "Performance Practice",
+      "description": "Apply render reasoning, state ownership, boundaries, and measurement in one workflow.",
+      "content": "06-performance-practice.md",
+      "tasks": "tasks/06-performance-practice.tasks.json",
+      "order": 6,
+      "type": "EXERCISE",
+      "difficulty": "ADVANCED",
+      "isPublished": true
+    }
+  ]
+}

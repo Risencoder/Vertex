@@ -1,0 +1,67 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Write a small measurement plan before making one performance change.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "type Investigation = {",
+      "  interaction: string",
+      "  hypothesis: string",
+      "  measurement: string",
+      "  change: string",
+      "}",
+      "",
+      "export function PerformanceInvestigation() {",
+      "  const [query, setQuery] = useState('')",
+      "",
+      "  const investigation: Investigation = {",
+      "    interaction: '',",
+      "    hypothesis: '',",
+      "    measurement: '',",
+      "    change: '',",
+      "  }",
+      "",
+      "  // TODO: name one slow interaction and one focused measurement.",
+      "  // TODO: make one targeted improvement after the plan is clear.",
+      "",
+      "  return (",
+      "    <section>",
+      "      <input value={query} onChange={(event) => setQuery(event.target.value)} />",
+      "      <pre>{JSON.stringify(investigation, null, 2)}</pre>",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

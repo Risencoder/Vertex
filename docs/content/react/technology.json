@@ -16,6 +16,10 @@
     {
       "slug": "forms",
       "manifest": "forms/module.json"
+    },
+    {
+      "slug": "performance",
+      "manifest": "performance/module.json"
     }
   ]
 }

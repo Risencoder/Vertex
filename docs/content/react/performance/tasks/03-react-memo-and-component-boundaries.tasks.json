@@ -1,0 +1,103 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict when React.memo can skip rendering.",
+    "prompt": "A parent re-renders and passes a new object literal to a memoized child on every render. What is most likely?",
+    "starterCode": [
+      "const SummaryPanel = React.memo(function SummaryPanel({ summary }) {",
+      "  return <Chart data={summary.chartData} />",
+      "})",
+      "",
+      "<SummaryPanel summary={{ chartData }} />"
+    ],
+    "options": [
+      {
+        "id": "always-skips",
+        "label": "React.memo skips the child because the object has the same contents."
+      },
+      {
+        "id": "still-renders",
+        "label": "The child may still render because the object prop has a new identity."
+      },
+      {
+        "id": "breaks-state",
+        "label": "The child loses its state because it is memoized."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "still-renders",
+      "responses": {
+        "always-skips": "Not quite. React.memo compares prop identity by default. A new object literal is a new prop value.",
+        "still-renders": "Correct. Memoization works best when the props passed to the child are stable across unrelated renders.",
+        "breaks-state": "Not quite. Memoization does not reset child state by itself."
+      }
+    },
+    "validation": {
+      "correctOptionId": "still-renders"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that React.memo compares object contents deeply."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use a component boundary and React.memo only where it protects useful work.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import React, { useState } from 'react'",
+      "",
+      "type Summary = { completed: number; total: number }",
+      "",
+      "function ProgressSummary({ summary }: { summary: Summary }) {",
+      "  // TODO: decide whether this boundary is worth memoizing.",
+      "  return <p>{summary.completed} of {summary.total} lessons complete</p>",
+      "}",
+      "",
+      "export function CourseDashboard() {",
+      "  const [query, setQuery] = useState('')",
+      "  const summary = { completed: 8, total: 24 }",
+      "",
+      "  return (",
+      "    <section>",
+      "      <input value={query} onChange={(event) => setQuery(event.target.value)} />",
+      "      {/* TODO: make the summary props stable if memoization is justified. */}",
+      "      <ProgressSummary summary={summary} />",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

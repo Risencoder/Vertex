@@ -150,6 +150,7 @@ const frontendEngineerTechnologies = [
 const stateAndEventsContent = loadStateAndEventsContent()
 const routingContent = loadReactModuleContent('routing')
 const formsContent = loadReactModuleContent('forms')
+const performanceContent = loadReactModuleContent('performance')
 
 const reactModules = [
   {
@@ -179,14 +180,7 @@ const reactModules = [
   },
   routingContent.module,
   formsContent.module,
-  {
-    slug: 'performance',
-    title: 'Performance',
-    description: 'Improve rendering behavior and user-perceived performance.',
-    order: 7,
-    difficulty: 'ADVANCED',
-    isPublished: true,
-  },
+  performanceContent.module,
 ]
 
 const reactBasicsLessons = [
@@ -3986,6 +3980,23 @@ async function main() {
     formsModule.id,
   )
 
+  const performanceModule = await prisma.module.findUniqueOrThrow({
+    where: {
+      technologyId_slug: {
+        technologyId: reactTechnology.id,
+        slug: 'performance',
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  const performanceTaskCount = await seedContentModuleLessons(
+    performanceContent,
+    performanceModule.id,
+  )
+
   console.log(`Seeded ${learningPaths.length} learning paths.`)
   console.log(`Seeded ${technologies.length} technologies.`)
   console.log(
@@ -4010,6 +4021,10 @@ async function main() {
   console.log(`Seeded ${routingTaskCount} Routing tasks.`)
   console.log(`Seeded ${formsContent.lessons.length} Forms lessons.`)
   console.log(`Seeded ${formsTaskCount} Forms tasks.`)
+  console.log(
+    `Seeded ${performanceContent.lessons.length} Performance lessons.`,
+  )
+  console.log(`Seeded ${performanceTaskCount} Performance tasks.`)
 }
 
 main()

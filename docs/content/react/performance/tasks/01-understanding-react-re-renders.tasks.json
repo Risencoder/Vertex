@@ -1,0 +1,104 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict whether a re-render is automatically a performance bug.",
+    "prompt": "A component function runs again after its state changes. What does that usually mean?",
+    "starterCode": [
+      "function Counter() {",
+      "  const [count, setCount] = useState(0)",
+      "",
+      "  return <button onClick={() => setCount(count + 1)}>{count}</button>",
+      "}"
+    ],
+    "options": [
+      {
+        "id": "normal-react-update",
+        "label": "React is recalculating the UI for the new state."
+      },
+      {
+        "id": "performance-bug",
+        "label": "The component has a performance bug because it rendered again."
+      },
+      {
+        "id": "state-reset",
+        "label": "The component state will reset to its initial value."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "normal-react-update",
+      "responses": {
+        "normal-react-update": "Correct. Re-rendering after state changes is normal React behavior. The performance question is whether the render does expensive or unnecessary work.",
+        "performance-bug": "Not quite. A re-render can be completely normal. It becomes interesting only when it causes meaningful user-visible cost.",
+        "state-reset": "Not quite. React preserves state for the component instance across normal re-renders."
+      }
+    },
+    "validation": {
+      "correctOptionId": "normal-react-update"
+    },
+    "metadata": {
+      "reason": "Catches the misconception that every re-render is automatically bad."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Investigate which interactions cause which renders before optimizing.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "function LessonList({ query }: { query: string }) {",
+      "  // TODO: add a lightweight render signal or comment explaining when this runs.",
+      "  return <p>Showing lessons for {query || 'all topics'}</p>",
+      "}",
+      "",
+      "export function LearningDashboard() {",
+      "  const [query, setQuery] = useState('')",
+      "  const [sidebarOpen, setSidebarOpen] = useState(false)",
+      "",
+      "  return (",
+      "    <section>",
+      "      <button type=\"button\" onClick={() => setSidebarOpen((open) => !open)}>",
+      "        Toggle sidebar",
+      "      </button>",
+      "      <input value={query} onChange={(event) => setQuery(event.target.value)} />",
+      "      <LessonList query={query} />",
+      "      {/* TODO: explain which interaction affects which part of the UI. */}",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

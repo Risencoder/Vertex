@@ -1,0 +1,105 @@
+[
+  {
+    "key": "prediction-main",
+    "title": "Prediction",
+    "description": "Predict when memo hooks are worth adding.",
+    "prompt": "Which reason best justifies adding useMemo to a calculation?",
+    "starterCode": null,
+    "options": [
+      {
+        "id": "every-calculation",
+        "label": "Every calculation in render should be wrapped in useMemo."
+      },
+      {
+        "id": "expensive-measured-work",
+        "label": "The calculation is expensive enough to matter and its inputs change predictably."
+      },
+      {
+        "id": "avoid-all-renders",
+        "label": "useMemo prevents the component from re-rendering."
+      }
+    ],
+    "feedback": {
+      "correctOptionId": "expensive-measured-work",
+      "responses": {
+        "every-calculation": "Not quite. useMemo adds complexity and should not wrap cheap calculations by default.",
+        "expensive-measured-work": "Correct. useMemo is useful when avoiding a specific recalculation is worth the dependency and readability cost.",
+        "avoid-all-renders": "Not quite. useMemo can cache a value, but it does not stop the component itself from rendering."
+      }
+    },
+    "validation": {
+      "correctOptionId": "expensive-measured-work"
+    },
+    "metadata": {
+      "reason": "Catches premature useMemo usage and confusion about what it prevents."
+    },
+    "type": "PREDICTION",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Use memo hooks only for a specific expensive calculation and memoized child boundary.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import React, { useState } from 'react'",
+      "",
+      "type Lesson = { id: string; title: string; topic: string }",
+      "",
+      "const LessonResults = React.memo(function LessonResults(props: {",
+      "  lessons: Lesson[]",
+      "  onSelectLesson: (lessonId: string) => void",
+      "}) {",
+      "  return <p>{props.lessons.length} lessons found</p>",
+      "})",
+      "",
+      "function expensiveFilter(lessons: Lesson[], query: string) {",
+      "  // TODO: keep this as the one intentionally expensive calculation.",
+      "  return lessons.filter((lesson) => lesson.title.toLowerCase().includes(query.toLowerCase()))",
+      "}",
+      "",
+      "export function LessonSearchPanel({ lessons }: { lessons: Lesson[] }) {",
+      "  const [query, setQuery] = useState('')",
+      "",
+      "  // TODO: memoize the expensive filter only if justified.",
+      "  // TODO: stabilize the select handler only because LessonResults is memoized.",
+      "",
+      "  return (",
+      "    <section>",
+      "      <input value={query} onChange={(event) => setQuery(event.target.value)} />",
+      "      {/* TODO: render LessonResults with filtered lessons and a stable handler. */}",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 2,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 3,
+    "isRequired": true
+  }
+]

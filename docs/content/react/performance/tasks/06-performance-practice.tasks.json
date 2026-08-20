@@ -1,0 +1,67 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Apply the full performance workflow to one realistic lesson library screen.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import React, { useState } from 'react'",
+      "",
+      "type Lesson = { id: string; title: string; topic: string; completed: boolean }",
+      "",
+      "function LessonList(props: { lessons: Lesson[]; onSelect: (lessonId: string) => void }) {",
+      "  // TODO: decide whether this boundary needs memoization after reasoning about props.",
+      "  return <p>{props.lessons.length} lessons</p>",
+      "}",
+      "",
+      "export function LessonLibraryPerformanceReview({ lessons }: { lessons: Lesson[] }) {",
+      "  const [query, setQuery] = useState('')",
+      "  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)",
+      "  const [previewOpen, setPreviewOpen] = useState(false)",
+      "",
+      "  // TODO: identify one interaction that could be slow.",
+      "  // TODO: choose the simplest fix: state ownership, boundary, React.memo, useMemo, or useCallback.",
+      "  // TODO: write a short investigation note in the UI.",
+      "",
+      "  return (",
+      "    <section>",
+      "      <input value={query} onChange={(event) => setQuery(event.target.value)} />",
+      "      <button type=\"button\" onClick={() => setPreviewOpen((open) => !open)}>",
+      "        Toggle preview",
+      "      </button>",
+      "      {/* TODO: render filtered lessons and selected lesson preview. */}",
+      "      <LessonList lessons={lessons} onSelect={setSelectedLessonId} />",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]

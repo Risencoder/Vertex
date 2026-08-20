@@ -1,0 +1,65 @@
+[
+  {
+    "key": "practice-main",
+    "title": "Practice task",
+    "description": "Remove unnecessary state and keep ownership close to the UI that needs it.",
+    "promptSection": "## 7. Practice Task",
+    "starterCode": [
+      "import { useState } from 'react'",
+      "",
+      "function DetailsToggle() {",
+      "  // TODO: own details visibility here if only this component needs it.",
+      "  return <button type=\"button\">Toggle details</button>",
+      "}",
+      "",
+      "export function ProgressPanel() {",
+      "  const [completedLessons, setCompletedLessons] = useState(3)",
+      "  const [totalLessons, setTotalLessons] = useState(10)",
+      "  const [percentage, setPercentage] = useState(30)",
+      "  const [statusLabel, setStatusLabel] = useState('In progress')",
+      "",
+      "  // TODO: derive percentage and statusLabel instead of storing them.",
+      "  // TODO: keep only source values as state.",
+      "",
+      "  return (",
+      "    <section>",
+      "      <p>{percentage}% complete</p>",
+      "      <p>{statusLabel}</p>",
+      "      <button type=\"button\" onClick={() => setCompletedLessons((count) => count + 1)}>",
+      "        Complete one lesson",
+      "      </button>",
+      "      <DetailsToggle />",
+      "    </section>",
+      "  )",
+      "}"
+    ],
+    "validation": {
+      "rejectUnchangedStarter": true,
+      "normalization": "trim"
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Practice Task"
+    },
+    "type": "CODE",
+    "order": 1,
+    "isRequired": true
+  },
+  {
+    "key": "reflection-main",
+    "title": "Reflection",
+    "description": "Explain the concept in your own words before moving on.",
+    "promptSection": "## 9. Reflection",
+    "validation": {
+      "minWords": 6,
+      "minCharacters": 40
+    },
+    "metadata": {
+      "source": "docs/content/react/performance",
+      "sourceSection": "Reflection"
+    },
+    "type": "REFLECTION",
+    "order": 2,
+    "isRequired": true
+  }
+]
